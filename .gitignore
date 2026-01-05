@@ -1,0 +1,18 @@
+Assignments/
+Backend/
+Classes/
+Clone Git/
+Figma File/
+JavaScript/
+PH FILES/
+Projects/
+React/
+Tailwind Projects/
+json/
+node_modules/
+.next/
+.env
+.env.local
+.env.production
+.env.development
+out/

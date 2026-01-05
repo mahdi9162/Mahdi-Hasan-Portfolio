@@ -1,0 +1,145 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import PageWrapper from '@/components/PageWrapper'
+import Navbar from '@/components/Navbar'
+import SocialLinks from '@/components/SocialLinks'
+import ProfileImage from '@/components/ProfileImage'
+import MouseSpotlight from '@/components/MouseSpotlight'
+import SkillsSection from '@/components/SkillsSection'
+import ProjectsSection from '@/components/ProjectsSection'
+import AboutSection from '@/components/AboutSection'
+import ContactSection from '@/components/ContactSection'
+
+export default function Home() {
+  return (
+    <PageWrapper>
+      <main className="bg-background-light dark:bg-background-dark text-neutral-800 dark:text-neutral-200 min-h-screen relative">
+        <MouseSpotlight />
+        
+        {/* Fixed Navbar */}
+        <Navbar />
+        
+        {/* Hero Section */}
+        <section id="hero" className="flex flex-col lg:flex-row min-h-screen relative z-10 pt-16">
+          <div className="w-full lg:w-[55%] bg-background-light dark:bg-background-dark lg:border-r lg:border-neutral-200/20 dark:lg:border-neutral-800/80 p-6 sm:p-8 md:p-12 relative z-20">
+            <div className="flex flex-col h-full justify-center py-12 md:py-24">
+              <div className="max-w-3xl">
+                {/* Hero Name */}
+                <motion.div
+                  initial={{ opacity: 0, y: 80, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+                >
+                  <h1 className="hero-heading hero-name tracking-tighter leading-none text-neutral-900 dark:text-primary hover:text-[#CFAE52] transition-all duration-700 cursor-pointer hover:drop-shadow-[0_0_20px_rgba(207,174,82,0.3)]" data-lens="on">
+                    MAHDI HASAN
+                  </h1>
+                </motion.div>
+                
+                {/* Subheading */}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+                >
+                  <h2 className="hero-subheading mt-4 text-3xl md:text-4xl tracking-tight text-neutral-700 dark:text-neutral-300 hover:text-[#D4AF37] transition-all duration-700 cursor-pointer hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.25)]" data-lens="on">
+                    Junior Frontend Developer
+                  </h2>
+                </motion.div>
+                
+                {/* Bio paragraph */}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+                >
+                  <div className="hero-description mt-6 leading-relaxed">
+                    <span className="inline-block text-neutral-600 dark:text-neutral-400 opacity-70 hover:opacity-100 hover:text-neutral-100 dark:hover:text-neutral-50 transition-all duration-700 cursor-pointer" data-lens="on">
+                      I build clean, responsive, and user-friendly web interfaces with React and Tailwind CSS. I enjoy turning ideas into real products through practical projects and consistent learning. Currently exploring Next.js and improving my full-stack skills.
+                    </span>
+                  </div>
+                </motion.div>
+                
+                {/* Social Links */}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+                >
+                  <div className="hero-social mt-8">
+                    <SocialLinks />
+                  </div>
+                </motion.div>
+
+                {/* CTA Buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.7 }}
+                >
+                  <div className="flex items-center space-x-4 mt-8">
+                    <motion.button 
+                      className="px-4 py-2 text-sm bg-[#CFAE52] text-black rounded-md transition-all duration-700"
+                      data-lens="on"
+                      whileHover={{ 
+                        scale: 1.05,
+                        backgroundColor: "#B8984A",
+                        boxShadow: "0 0 25px rgba(207, 174, 82, 0.4), 0 8px 32px rgba(207, 174, 82, 0.2)"
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 400, 
+                        damping: 10,
+                        duration: 0.8
+                      }}
+                    >
+                      View Projects
+                    </motion.button>
+                    
+                    <motion.button 
+                      className="px-4 py-2 text-sm border-2 border-neutral-700 dark:border-neutral-300 text-neutral-800 dark:text-primary rounded-md bg-transparent transition-all duration-700"
+                      data-lens="on"
+                      whileHover={{ 
+                        scale: 1.05,
+                        borderColor: "#CFAE52",
+                        color: "#CFAE52",
+                        boxShadow: "0 0 20px rgba(207, 174, 82, 0.3), 0 6px 24px rgba(207, 174, 82, 0.15)"
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 400, 
+                        damping: 10,
+                        duration: 0.8
+                      }}
+                    >
+                      Resume
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Profile Image - Right side of split layout with proper width */}
+          <div className="w-full lg:w-[45%] relative z-[100] profile-image-container" style={{ minHeight: '100vh' }}>
+            <ProfileImage />
+          </div>
+        </section>
+
+        {/* Skills Section */}
+        <SkillsSection />
+
+        {/* Projects Section */}
+        <ProjectsSection />
+
+        {/* About Section */}
+        <AboutSection />
+
+        {/* Contact Section */}
+        <ContactSection />
+      </main>
+    </PageWrapper>
+  )
+}
