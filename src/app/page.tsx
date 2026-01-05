@@ -81,6 +81,16 @@ export default function Home() {
                     <motion.button 
                       className="px-4 py-2 text-sm bg-[#CFAE52] text-black rounded-md transition-all duration-700"
                       data-lens="on"
+                      onClick={() => {
+                        const element = document.getElementById('projects')
+                        if (element && (window as any).lenis) {
+                          ;(window as any).lenis.scrollTo(element, {
+                            offset: -90,
+                            duration: 2.0,
+                            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+                          })
+                        }
+                      }}
                       whileHover={{ 
                         scale: 1.05,
                         backgroundColor: "#B8984A",
