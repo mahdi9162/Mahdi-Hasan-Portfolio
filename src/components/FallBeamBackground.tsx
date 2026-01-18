@@ -82,11 +82,11 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
     }
   }
 
-  // Fade-in sync: Start fade-in exactly 5 seconds after page load
+  // Fade-in sync: Start fade-in exactly 1.6 seconds after page load (matches Hero section trigger)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(true)
-    }, 5000) // 5 second delay to match Welcome Loader
+    }, 1600) // 1.6 second delay to match Hero section start time
 
     return () => clearTimeout(timer)
   }, [])

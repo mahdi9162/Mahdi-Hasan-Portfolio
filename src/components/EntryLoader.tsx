@@ -27,28 +27,28 @@ const EntryLoader = ({ onComplete }: EntryLoaderProps) => {
   }, [])
 
   useEffect(() => {
-    // Progress animation over 2.8 seconds (0 to 100%)
+    // Progress animation over 1.5 seconds (0 to 100%)
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval)
           return 100
         }
-        return prev + 3.57 // 100% over 2.8 seconds (3.57% every 100ms)
+        return prev + 6.67 // 100% over 1.5 seconds (6.67% every 100ms)
       })
     }, 100)
 
-    // Start curtain reveal transition after 2.8 seconds
+    // Start curtain reveal transition after 1.5 seconds
     const curtainTimer = setTimeout(() => {
       setShowDoorTransition(true)
       
-      // Complete and trigger page reveal after curtain animation
+      // Complete and trigger page reveal after 100ms (at 1.6s total) to prevent blank screen
       setTimeout(() => {
         sessionStorage.setItem('entryLoaderSeen', '1')
         sessionStorage.setItem('welcomeShown', '1') // Mark welcome as shown
         onComplete()
-      }, 800) // 800ms curtain transition
-    }, 2800) // 2.8s total duration
+      }, 100) // 100ms delay so Hero starts at exactly 1.6s
+    }, 1500) // 1.5s total duration
 
     return () => {
       clearInterval(progressInterval)
@@ -112,14 +112,14 @@ const EntryLoader = ({ onComplete }: EntryLoaderProps) => {
       >
         {/* Top Curtain Panel */}
         <div 
-          className={`absolute top-0 left-0 w-full h-1/2 bg-black border-b border-white/5 transition-transform duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`absolute top-0 left-0 w-full h-1/2 bg-black border-b border-white/5 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             showDoorTransition ? '-translate-y-full' : 'translate-y-0'
           }`}
         />
         
         {/* Bottom Curtain Panel */}
         <div 
-          className={`absolute bottom-0 left-0 w-full h-1/2 bg-black border-t border-white/5 transition-transform duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`absolute bottom-0 left-0 w-full h-1/2 bg-black border-t border-white/5 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             showDoorTransition ? 'translate-y-full' : 'translate-y-0'
           }`}
         />
@@ -166,7 +166,7 @@ const EntryLoader = ({ onComplete }: EntryLoaderProps) => {
                 fill="transparent" 
                 strokeDasharray="276" 
                 strokeDashoffset={strokeDashoffset}
-                className="text-[#D4AF37] transition-all duration-100 ease-linear"
+                className="text-[#D4AF37] transition-all duration-75 ease-out"
                 style={{
                   filter: 'drop-shadow(0 0 8px rgb(212 175 55 / 0.6))'
                 }}
