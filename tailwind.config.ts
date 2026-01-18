@@ -10,9 +10,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#ffffff',
-        'background-light': '#f0f0f0',
+        primary: '#dfb52a',
+        'background-light': '#ffffff',
         'background-dark': '#000000',
+        'card-dark': '#121212',
+        'brand-gold': 'rgb(var(--brand-gold) / <alpha-value>)',
+        'brand-gold-dark': 'rgb(var(--brand-gold-dark) / <alpha-value>)',
+        'brand-gold-alt': 'rgb(var(--brand-gold-alt) / <alpha-value>)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -45,6 +49,8 @@ const config: Config = {
       },
       fontFamily: {
         syne: ['var(--font-syne)', 'sans-serif'],
+        body: ['var(--font-body)', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-epilogue)', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Noto Sans Mono', 'Ubuntu Mono', 'monospace'],
       },
       borderRadius: {

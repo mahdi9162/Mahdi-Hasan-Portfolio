@@ -1,9 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   SiReact, 
-  SiTailwindcss, 
-  SiJavascript, 
+  SiJavascript,
+  SiTailwindcss,
   SiNodedotjs, 
   SiExpress, 
   SiMongodb, 
@@ -11,163 +13,638 @@ import {
   SiFirebase, 
   SiNetlify 
 } from 'react-icons/si'
+import { FaCode, FaServer, FaDatabase, FaTools } from 'react-icons/fa'
+
+interface OrbitalIcon {
+  id: string
+  name: string
+  icon: any
+  description: string
+  category: string
+}
+
+const orbitalIcons: OrbitalIcon[] = [
+  { id: 'react', name: 'React', icon: SiReact, description: 'Component-based UI library for building dynamic interfaces', category: 'Frontend' },
+  { id: 'javascript', name: 'JavaScript', icon: SiJavascript, description: 'Modern ES6+ JavaScript for interactive web applications', category: 'Frontend' },
+  { id: 'tailwind', name: 'Tailwind CSS', icon: SiTailwindcss, description: 'Utility-first CSS framework for rapid UI development', category: 'Frontend' },
+  { id: 'nodejs', name: 'Node.js', icon: SiNodedotjs, description: 'JavaScript runtime for building scalable server applications', category: 'Backend' },
+  { id: 'mongodb', name: 'MongoDB', icon: SiMongodb, description: 'NoSQL database for flexible, document-based data storage', category: 'Database' },
+  { id: 'express', name: 'Express.js', icon: SiExpress, description: 'Minimal web framework for Node.js backend services', category: 'Backend' },
+  { id: 'git', name: 'Git', icon: SiGit, description: 'Version control system for tracking code changes', category: 'Tools' },
+  { id: 'firebase', name: 'Firebase', icon: SiFirebase, description: 'Backend-as-a-service platform for rapid development', category: 'Database' },
+  { id: 'netlify', name: 'Netlify', icon: SiNetlify, description: 'Modern hosting platform for web applications', category: 'Tools' }
+]
+
+const skillCategories = [
+  {
+    title: 'Frontend',
+    icon: FaCode,
+    skills: ['React', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3', 'Responsive Design'],
+    relatedOrbIcons: ['react', 'javascript', 'tailwind']
+  },
+  {
+    title: 'Backend',
+    icon: FaServer,
+    skills: ['Node.js', 'Express.js', 'REST APIs'],
+    relatedOrbIcons: ['nodejs', 'express']
+  },
+  {
+    title: 'Database',
+    icon: FaDatabase,
+    skills: ['MongoDB', 'Firebase'],
+    relatedOrbIcons: ['mongodb', 'firebase']
+  },
+  {
+    title: 'Tools & Workflow',
+    icon: FaTools,
+    skills: ['Git', 'GitHub', 'VS Code', 'Postman', 'Netlify', 'Docker', 'Figma'],
+    relatedOrbIcons: ['git', 'netlify']
+  }
+]
 
 const SkillsSection = () => {
-  const skillsData = {
-    frontend: ['React', 'Tailwind CSS', 'JavaScript', 'HTML', 'CSS'],
-    backend: ['Node.js', 'Express.js', 'REST APIs'],
-    database: ['MongoDB', 'Firebase'],
-    tools: ['Git', 'GitHub', 'VS Code', 'Postman', 'Netlify']
+  const [selectedIcon, setSelectedIcon] = useState<OrbitalIcon | null>(null)
+  const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
+  const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
+
+  // Map orb icon hover to related card
+  const handleOrbIconHover = (iconId: string | null) => {
+    if (!iconId) {
+      setHighlightedCard(null)
+      return
+    }
+
+    const relatedCard = skillCategories.find(cat => 
+      cat.relatedOrbIcons.includes(iconId)
+    )
+    
+    if (relatedCard) {
+      setHighlightedCard(relatedCard.title)
+    }
   }
 
-  const floatingIcons = [
-    { name: 'React', icon: SiReact, animation: 'animate-float1', delay: '-3s' },
-    { name: 'Tailwind CSS', icon: SiTailwindcss, animation: 'animate-float2', delay: '-1s' },
-    { name: 'JavaScript', icon: SiJavascript, animation: 'animate-float3', delay: '-5s' },
-    { name: 'Node.js', icon: SiNodedotjs, animation: 'animate-float3', delay: '-2s' },
-    { name: 'MongoDB', icon: SiMongodb, animation: 'animate-float1', delay: '0s' },
-    { name: 'Express.js', icon: SiExpress, animation: 'animate-float2', delay: '-4s' },
-    { name: 'Git', icon: SiGit, animation: 'animate-float2', delay: '-6s' },
-    { name: 'Firebase', icon: SiFirebase, animation: 'animate-float3', delay: '-8s' },
-    { name: 'Netlify', icon: SiNetlify, animation: 'animate-float1', delay: '-7s' }
-  ]
+  // Navigate to next card
+  const nextCard = () => {
+    setActiveCardIndex((prev) => (prev + 1) % skillCategories.length)
+  }
+
+  // Navigate to previous card
+  const prevCard = () => {
+    setActiveCardIndex((prev) => (prev - 1 + skillCategories.length) % skillCategories.length)
+  }
+
+  // Handle touch events for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      nextCard()
+    }
+    if (isRightSwipe) {
+      prevCard()
+    }
+
+    setTouchStart(0)
+    setTouchEnd(0)
+  }
 
   return (
-    <section id="skills" className="section min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-black">
-      {/* Section Heading - Consistent with Projects */}
-      <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 md:px-12">
-        <h2 className="text-4xl md:text-5xl text-white mb-8" data-lens="on">
-          Skills
-        </h2>
-        <p className="text-lg text-white/65" data-lens="on">
-          Technologies I work with.
-        </p>
-      </div>
+    <section id="skills" className="scroll-mt-24 section-gap w-full bg-black overflow-hidden">
+      {/* Section Container - Max width and centered */}
+      <div className="max-w-[1280px] mx-auto px-6 md:px-8">
+        {/* Header - Simplified with kicker styling on main title */}
+        <div className="mb-14 md:mb-16 text-left">
+          {/* Title with kicker styling + thin line accent */}
+          <div className="flex items-center gap-4 mb-3">
+            <h2 
+              className="text-4xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+              data-lens="on"
+            >
+              Skills
+            </h2>
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-white/20 to-transparent max-w-[140px]" />
+          </div>
 
-      {/* Main Skills Content */}
-      <div className="container mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          {/* Subtitle */}
+          <p className="text-base md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
+            Core technologies and tools I use to build modern web applications.
+          </p>
+        </div>
+
+        {/* Main 2-Column Layout: Orbit LEFT + Stacked Deck RIGHT - Center Aligned */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-[72px]">
           
-          {/* Left: Floating Icons Cluster */}
-          <div className="relative flex items-center justify-center h-[500px] lg:h-[600px] order-2 lg:order-1">
-            <div className="grid grid-cols-3 gap-8 sm:gap-12 w-full max-w-md">
-              {floatingIcons.map((iconData, index) => {
-                const IconComponent = iconData.icon
-                return (
-                  <div 
-                    key={iconData.name}
-                    className={`flex flex-col items-center justify-center ${iconData.animation}`}
-                    style={{ animationDelay: iconData.delay }}
-                  >
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-neutral-900/80 backdrop-blur-sm rounded-2xl shadow-lg border border-neutral-700/50 hover:border-neutral-600/60 hover:bg-neutral-800/90 transition-all duration-700 hover:shadow-xl">
-                      <IconComponent 
-                        className="w-8 h-8 sm:w-10 sm:h-10" 
-                        style={{ color: 'inherit' }}
-                      />
+          {/* Left Column: Orbit (Fixed Width) - UNCHANGED */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex-shrink-0 flex items-center justify-center mx-auto lg:mx-0"
+            style={{
+              flex: '0 0 420px'
+            }}
+          >
+            <TechOrb 
+              icons={orbitalIcons}
+              onIconClick={setSelectedIcon}
+              onIconHover={handleOrbIconHover}
+            />
+          </motion.div>
+
+          {/* Right Column: Stacked Card Deck with Navigation */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex-1 max-w-[580px] w-full mx-auto lg:mx-0 flex flex-col justify-center"
+          >
+            {/* Selected Skill Detail Card */}
+            <AnimatePresence mode="wait">
+              {selectedIcon && (
+                <motion.div
+                  key={selectedIcon.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-6 p-6 bg-gradient-to-br from-white/[0.08] to-white/[0.04] backdrop-blur-sm rounded-2xl border border-brand-gold/30 shadow-[0_0_30px_rgb(var(--brand-gold)_/_0.15)]"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="p-2.5 bg-brand-gold/10 rounded-xl">
+                      <selectedIcon.icon className="w-7 h-7 text-brand-gold" />
                     </div>
-                    <span 
-                      className="mt-3 text-xs sm:text-sm text-white/65 hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                      data-lens="on"
-                    >
-                      {iconData.name}
-                    </span>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white mb-1.5" data-lens="on">
+                        {selectedIcon.name}
+                      </h3>
+                      <p className="text-sm text-white/70 leading-relaxed" data-lens="on">
+                        {selectedIcon.description}
+                      </p>
+                      <span className="inline-block mt-2.5 px-2.5 py-1 text-xs bg-brand-gold/20 text-brand-gold rounded-full">
+                        {selectedIcon.category}
+                      </span>
+                    </div>
                   </div>
-                )
-              })}
-            </div>
-          </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* Right: Tech Stack List (Terminal/Mono Vibe) */}
-          <div className="space-y-12 order-1 lg:order-2">
-            <div className="space-y-10 font-mono">
-              {/* Frontend */}
-              <div>
-                <h3 
-                  className="text-white tracking-wide mb-4 text-base hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                  data-lens="on"
-                >
-                  Frontend
-                </h3>
-                <div className="flex flex-wrap gap-x-6 gap-y-3">
-                  {skillsData.frontend.map((skill) => (
-                    <span 
-                      key={skill}
-                      className="text-white/65 hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                      data-lens="on"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+            {/* Stacked Card Deck Container with Navigation */}
+            <div className="relative">
+              {/* Left Arrow Button */}
+              <button
+                onClick={prevCard}
+                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
+                aria-label="Previous card"
+              >
+                <svg className="w-5 h-5 text-white/70 group-hover:text-brand-gold transition-colors duration-420" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Right Arrow Button */}
+              <button
+                onClick={nextCard}
+                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
+                aria-label="Next card"
+              >
+                <svg className="w-5 h-5 text-white/70 group-hover:text-brand-gold transition-colors duration-420" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Stacked Cards Container */}
+              <div 
+                className="relative overflow-visible"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                {/* Stacked Cards */}
+                <div className="relative h-[460px] md:h-[500px] overflow-visible">
+                  {skillCategories.map((category, index) => {
+                    const offset = (index - activeCardIndex + skillCategories.length) % skillCategories.length
+                    const isActive = offset === 0
+                    const isPreview1 = offset === 1
+                    const isPreview2 = offset === 2
+                    const isVisible = offset <= 2
+
+                    return (
+                      <StackedSkillCard
+                        key={category.title}
+                        category={category}
+                        isActive={isActive}
+                        isPreview1={isPreview1}
+                        isPreview2={isPreview2}
+                        isVisible={isVisible}
+                        isHighlighted={highlightedCard === category.title}
+                      />
+                    )
+                  })}
                 </div>
-              </div>
 
-              {/* Backend */}
-              <div>
-                <h3 
-                  className="text-white tracking-wide mb-4 text-base hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                  data-lens="on"
-                >
-                  Backend
-                </h3>
-                <div className="flex flex-wrap gap-x-6 gap-y-3">
-                  {skillsData.backend.map((skill) => (
-                    <span 
-                      key={skill}
-                      className="text-white/65 hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                      data-lens="on"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Database/Services */}
-              <div>
-                <h3 
-                  className="text-white tracking-wide mb-4 text-base hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                  data-lens="on"
-                >
-                  Database / Services
-                </h3>
-                <div className="flex flex-wrap gap-x-6 gap-y-3">
-                  {skillsData.database.map((skill) => (
-                    <span 
-                      key={skill}
-                      className="text-white/65 hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                      data-lens="on"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tools */}
-              <div>
-                <h3 
-                  className="text-white tracking-wide mb-4 text-base hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                  data-lens="on"
-                >
-                  Tools
-                </h3>
-                <div className="flex flex-wrap gap-x-6 gap-y-3">
-                  {skillsData.tools.map((skill) => (
-                    <span 
-                      key={skill}
-                      className="text-white/65 hover:text-[#CFAE52] transition-colors duration-700 cursor-pointer"
-                      data-lens="on"
-                    >
-                      {skill}
-                    </span>
+                {/* Dots Indicator - Mobile */}
+                <div className="flex md:hidden justify-center gap-2 mt-6">
+                  {skillCategories.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setActiveCardIndex(index)
+                      }}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index === activeCardIndex
+                          ? 'bg-brand-gold w-6'
+                          : 'bg-white/20 hover:bg-white/40'
+                      }`}
+                      aria-label={`Go to card ${index + 1}`}
+                    />
                   ))}
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
+  )
+}
+
+// Tech Orb Component - UNCHANGED
+const TechOrb = ({ 
+  icons, 
+  onIconClick,
+  onIconHover
+}: { 
+  icons: OrbitalIcon[]
+  onIconClick: (icon: OrbitalIcon) => void
+  onIconHover?: (iconId: string | null) => void
+}) => {
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handler)
+    return () => mediaQuery.removeEventListener('change', handler)
+  }, [])
+
+  const handleIconHover = (iconId: string | null) => {
+    setHoveredIcon(iconId)
+    if (onIconHover) {
+      onIconHover(iconId)
+    }
+  }
+
+  const orbitRadius = 170
+  const iconSize = 56
+
+  return (
+    <div 
+      className="relative mx-auto"
+      style={{
+        '--radius': `${orbitRadius}px`,
+        '--iconSize': `${iconSize}px`,
+        width: `calc(var(--radius) * 2)`,
+        height: `calc(var(--radius) * 2)`
+      } as React.CSSProperties}
+    >
+      {/* Crisp Dashed Ring */}
+      <div 
+        className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+        style={{
+          width: `calc(var(--radius) * 2)`,
+          height: `calc(var(--radius) * 2)`,
+          transform: 'translate(-50%, -50%)',
+          border: '1px dashed rgba(255, 255, 255, 0.18)',
+          filter: 'none',
+          backdropFilter: 'none',
+          zIndex: 10
+        }}
+      />
+
+      {/* Central Orb Core */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+        <div className="relative w-32 h-32 md:w-40 md:h-40">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 blur-xl" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-white/[0.06] to-white/[0.02] backdrop-blur-md border border-white/20 shadow-[0_0_60px_rgb(var(--brand-gold)_/_0.2),inset_0_0_30px_rgb(var(--brand-gold)_/_0.1)]">
+            <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white/10 blur-md" />
+            <div className="absolute inset-0 rounded-full opacity-30 mix-blend-overlay" 
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E")`
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Orbit Track - Rotating container with locked transform */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 pointer-events-none"
+        style={{
+          width: `calc(var(--radius) * 2)`,
+          height: `calc(var(--radius) * 2)`,
+          transformOrigin: 'center',
+          zIndex: 15
+        }}
+        animate={!prefersReducedMotion ? {
+          transform: [
+            'translate(-50%, -50%) rotate(0deg)',
+            'translate(-50%, -50%) rotate(360deg)'
+          ]
+        } : {
+          transform: 'translate(-50%, -50%) rotate(0deg)'
+        }}
+        transition={{
+          duration: 24,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      >
+        {/* 9 Orbiting Icons - Evenly spaced at 40deg intervals */}
+        {icons.map((iconData, index) => {
+          const IconComponent = iconData.icon
+          const isHovered = hoveredIcon === iconData.id
+          const angleDeg = index * 40 // 0, 40, 80, 120, 160, 200, 240, 280, 320
+          
+          return (
+            <div
+              key={iconData.id}
+              className="absolute left-1/2 top-1/2 pointer-events-auto"
+              style={{
+                '--angle': `${angleDeg}deg`,
+                width: 'var(--iconSize)',
+                height: 'var(--iconSize)',
+                transform: 'translate(-50%, -50%) rotate(var(--angle)) translateX(var(--radius)) rotate(calc(-1 * var(--angle)))',
+                willChange: 'transform'
+              } as React.CSSProperties}
+            >
+              {/* Floating animation */}
+              <motion.div
+                animate={!prefersReducedMotion && !isHovered ? {
+                  y: [-4, 4, -4]
+                } : {}}
+                transition={{
+                  duration: 3 + index * 0.3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: index * 0.2
+                }}
+              >
+                <motion.button
+                  onClick={() => onIconClick(iconData)}
+                  onMouseEnter={() => handleIconHover(iconData.id)}
+                  onMouseLeave={() => handleIconHover(null)}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group w-full h-full"
+                  style={{
+                    borderRadius: '9999px',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {/* Icon container - Perfect Circle */}
+                  <div 
+                    className={`relative w-full h-full grid place-items-center bg-gradient-to-br from-white/[0.1] to-white/[0.05] backdrop-blur-sm border transition-all duration-420 ${
+                      isHovered 
+                        ? 'border-brand-gold/60 shadow-[0_0_25px_rgb(var(--brand-gold)_/_0.3)]' 
+                        : 'border-white/10 hover:border-brand-gold/40'
+                    }`}
+                    style={{
+                      borderRadius: '9999px',
+                      aspectRatio: '1 / 1',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <IconComponent 
+                      className={`transition-colors duration-420 ${
+                        isHovered ? 'text-brand-gold' : 'text-white/80'
+                      }`}
+                      style={{
+                        width: '60%',
+                        height: '60%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                    
+                    {/* Hover ring pulse */}
+                    {isHovered && (
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1.3, opacity: 0 }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        className="absolute inset-0 border-2 border-brand-gold/40"
+                        style={{
+                          borderRadius: '9999px'
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Tooltip on hover */}
+                  {isHovered && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-sm border border-brand-gold/30 rounded-lg whitespace-nowrap pointer-events-none z-50"
+                    >
+                      <span className="text-xs text-white font-medium">{iconData.name}</span>
+                    </motion.div>
+                  )}
+                </motion.button>
+              </motion.div>
+            </div>
+          )
+        })}
+      </motion.div>
+    </div>
+  )
+}
+
+// Stacked Skill Card Component - Premium polish with animated border glow
+const StackedSkillCard = ({ 
+  category, 
+  isActive,
+  isPreview1,
+  isPreview2,
+  isVisible,
+  isHighlighted 
+}: { 
+  category: { title: string; icon: any; skills: string[]; relatedOrbIcons: string[] }
+  isActive: boolean
+  isPreview1: boolean
+  isPreview2: boolean
+  isVisible: boolean
+  isHighlighted?: boolean
+}) => {
+  const IconComponent = category.icon
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+  }, [])
+
+  // Calculate transform and opacity based on position
+  const getTransform = () => {
+    if (!isVisible) return 'translateX(100%) scale(0.9) rotate(0deg)'
+    if (isActive) return 'translateX(0) translateY(0) scale(1) rotate(0deg)'
+    if (isPreview1) return 'translateX(26px) translateY(18px) scale(0.96) rotate(3deg)'
+    if (isPreview2) return 'translateX(48px) translateY(34px) scale(0.92) rotate(5deg)'
+    return 'translateX(100%) scale(0.9) rotate(0deg)'
+  }
+
+  const getOpacity = () => {
+    if (!isVisible) return 0
+    if (isActive) return 1
+    if (isPreview1) return 0.55
+    if (isPreview2) return 0.35
+    return 0
+  }
+
+  const getZIndex = () => {
+    if (isActive) return 30
+    if (isPreview1) return 20
+    if (isPreview2) return 10
+    return 0
+  }
+
+  return (
+    <motion.div
+      className="absolute inset-0"
+      style={{
+        zIndex: getZIndex(),
+        pointerEvents: isActive ? 'auto' : 'none'
+      }}
+      initial={false}
+      animate={{
+        transform: getTransform(),
+        opacity: getOpacity()
+      }}
+      transition={{
+        duration: prefersReducedMotion ? 0 : 0.55,
+        ease: [0.22, 1, 0.36, 1]
+      }}
+    >
+      <div 
+        className={`relative h-full overflow-hidden rounded-[18px] border transition-all duration-[550ms] ${
+          isHighlighted
+            ? 'border-brand-gold/50 shadow-[0_0_28px_rgb(var(--brand-gold)_/_0.22),0_8px_24px_rgba(0,0,0,0.3)]'
+            : isActive
+              ? 'border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.35)]'
+              : isPreview1
+                ? 'border-white/[0.12] shadow-[0_22px_70px_rgba(0,0,0,0.55)]'
+                : 'border-white/[0.12] shadow-[0_18px_55px_rgba(0,0,0,0.45)]'
+        }`}
+        style={{
+          background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.92) 0%, rgba(12, 12, 12, 0.96) 100%)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          boxShadow: !isActive ? 'inset 0 1px 0 rgba(255, 255, 255, 0.06)' : undefined
+        }}
+      >
+        {/* Animated Running Border Glow - Active Card Only */}
+        {isActive && !prefersReducedMotion && (
+          <>
+            {/* Rotating conic gradient border */}
+            <div 
+              className="absolute inset-0 rounded-[18px] pointer-events-none"
+              style={{
+                padding: '1px',
+                background: 'conic-gradient(from 0deg, transparent 0%, rgba(207, 174, 82, 0.5) 10%, rgba(255, 255, 255, 0.3) 20%, transparent 30%, transparent 70%, rgba(207, 174, 82, 0.4) 85%, transparent 95%)',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                animation: 'rotateBorder 6s linear infinite',
+                zIndex: 2
+              }}
+            />
+            {/* Subtle outer glow */}
+            <div 
+              className="absolute inset-0 rounded-[18px] pointer-events-none"
+              style={{
+                boxShadow: '0 0 24px rgba(207, 174, 82, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                zIndex: 1
+              }}
+            />
+          </>
+        )}
+
+        {/* Top radial highlight for depth */}
+        <div 
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-20 pointer-events-none z-5"
+          style={{
+            background: 'radial-gradient(ellipse at center top, rgba(255, 255, 255, 0.06) 0%, transparent 70%)'
+          }}
+        />
+
+        {/* Card Content */}
+        <div className="relative z-10 p-5 md:p-6 h-full flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4 pb-3.5 border-b border-white/[0.16]">
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-xl ring-1 transition-all duration-[550ms] ${
+                isHighlighted
+                  ? 'bg-brand-gold/[0.22] ring-brand-gold/40'
+                  : 'bg-brand-gold/[0.18] ring-brand-gold/30'
+              }`}>
+                <IconComponent className="w-4 h-4 text-brand-gold" />
+              </div>
+              <h3 className="text-base md:text-lg font-bold text-white/95 tracking-wide" data-lens="on">
+                {category.title}
+              </h3>
+            </div>
+            <span className="px-2.5 py-1 text-xs font-semibold bg-white/[0.10] text-white/75 rounded-lg border border-white/[0.16]">
+              {category.skills.length}
+            </span>
+          </div>
+
+          {/* Full-width skill rows - Improved readability */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+            {category.skills.map((skill, index) => (
+              <motion.div
+                key={skill}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                className="w-full px-4 py-2.5 flex items-center space-x-3 rounded-full border transition-all duration-[500ms] hover:border-white/[0.28] hover:bg-white/[0.09] cursor-default"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  borderColor: 'rgba(255, 255, 255, 0.16)'
+                }}
+                data-lens="on"
+              >
+                {/* Tiny dot indicator */}
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-gold/70" />
+                
+                {/* Skill text - Crisp and readable */}
+                <span className="text-sm font-medium flex-1 text-white/92">
+                  {skill}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 

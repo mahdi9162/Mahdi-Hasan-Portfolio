@@ -116,7 +116,7 @@ const Navbar = () => {
   return (
     <>
       <motion.header 
-        className="fixed top-0 left-0 right-0 z-[90] transition-all duration-700 ease-out"
+        className="fixed top-0 left-0 right-0 z-[90] transition-all duration-300 ease-out"
         style={{
           background: scrolled 
             ? 'rgba(0, 0, 0, 0.8)' 
@@ -132,13 +132,22 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo - Clickable to scroll to top */}
             <motion.div 
-              className="text-xl tracking-[-0.02em] text-neutral-900 dark:text-primary cursor-pointer"
+              className="cursor-pointer"
               data-lens="on"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
               onClick={handleLogoClick}
             >
-              MH
+              <img 
+                src="/mh.svg" 
+                alt="MH Logo"
+                className="h-5 md:h-[26px] w-auto transition-all duration-300 hover:opacity-90 hover:drop-shadow-[0_0_14px_rgba(223,181,42,0.18)]"
+                onError={(e) => {
+                  // Fallback to PNG if SVG fails
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/mh(4x).png";
+                }}
+              />
             </motion.div>
             
             {/* Desktop Navigation */}
@@ -148,14 +157,14 @@ const Navbar = () => {
                   <li key={item.id} className="relative">
                     <button
                       onClick={() => handleNavClick(item.id)}
-                      className="text-sm text-neutral-600 dark:text-neutral-400 hover:text-[#CFAE52] transition-colors duration-700 ease-out py-2 px-1 relative"
+                      className="text-sm text-neutral-600 dark:text-neutral-400 hover:text-brand-gold transition-colors duration-300 ease-out py-2 px-1 relative"
                       data-lens="on"
                     >
                       {item.label}
-                      {/* Active indicator - tiny gold dot */}
+                      {/* Active indicator - subtle underline */}
                       {activeSection === item.id && (
                         <motion.div
-                          className="absolute -bottom-1 left-1/2 w-1 h-1 bg-[#CFAE52] rounded-full"
+                          className="absolute -bottom-1 left-1/2 w-1 h-1 bg-brand-gold/60 rounded-full"
                           layoutId="activeIndicator"
                           initial={{ opacity: 0, scale: 0 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -171,7 +180,7 @@ const Navbar = () => {
 
             {/* Mobile Hamburger Button */}
             <button
-              className="md:hidden p-2 text-neutral-600 dark:text-neutral-400 hover:text-[#CFAE52] transition-colors duration-300"
+              className="md:hidden p-2 text-neutral-600 dark:text-neutral-400 hover:text-brand-gold transition-colors duration-300"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Open menu"
               data-lens="on"
@@ -213,8 +222,8 @@ const Navbar = () => {
                     onClick={() => handleNavClick(item.id)}
                     className={`block w-full text-left py-3 px-4 rounded-lg transition-all duration-300 ${
                       activeSection === item.id
-                        ? 'bg-[#CFAE52]/20 text-[#CFAE52] border-l-4 border-[#CFAE52]'
-                        : 'text-white/80 hover:text-[#CFAE52] hover:bg-white/5'
+                        ? 'bg-brand-gold/20 text-brand-gold border-l-4 border-brand-gold'
+                        : 'text-white/80 hover:text-brand-gold hover:bg-white/5'
                     }`}
                     data-lens="on"
                   >

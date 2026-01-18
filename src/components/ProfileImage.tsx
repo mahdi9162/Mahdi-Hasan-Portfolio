@@ -23,7 +23,7 @@ const ProfileImage = () => {
       >
         <Image
           alt="Professional portrait of Mahdi Hasan"
-          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-out"
+          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 ease-out"
           src="/formal_Img_org.webp"
           fill
           priority

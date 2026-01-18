@@ -90,7 +90,7 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
                       opacity: 1, 
                       y: 0,
                       rotateX: 0,
-                      color: countdown > (index * 14) ? '#CFAE52' : 'rgba(207, 174, 82, 0.3)'
+                      color: countdown > (index * 14) ? 'rgb(207 174 82)' : 'rgb(207 174 82 / 0.3)'
                     }}
                     transition={{
                       delay: index * 0.1,
@@ -100,8 +100,8 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
                     }}
                     style={{
                       textShadow: countdown > (index * 14) 
-                        ? '0 0 40px rgba(207, 174, 82, 0.8), 0 0 80px rgba(207, 174, 82, 0.4)' 
-                        : '0 0 20px rgba(207, 174, 82, 0.2)',
+                        ? '0 0 40px rgb(207 174 82 / 0.8), 0 0 80px rgb(207 174 82 / 0.4)' 
+                        : '0 0 20px rgb(207 174 82 / 0.2)',
                     }}
                   >
                     {letter}
@@ -111,7 +111,7 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
               
               {/* Countdown Display */}
               <motion.div
-                className="mt-8 text-2xl md:text-3xl font-light text-[#CFAE52] tracking-[0.3em]"
+                className="mt-8 text-2xl md:text-3xl font-light text-brand-gold tracking-[0.3em]"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
@@ -127,12 +127,12 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
                 transition={{ delay: 1.4, duration: 0.6, ease: "easeOut" }}
               >
                 <motion.div
-                  className="h-full bg-gradient-to-r from-[#CFAE52] to-[#D4AF37] rounded-full"
+                  className="h-full bg-gradient-to-r from-brand-gold to-brand-gold-alt rounded-full"
                   initial={{ width: "0%" }}
                   animate={{ width: `${countdown}%` }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   style={{
-                    boxShadow: '0 0 20px rgba(207, 174, 82, 0.6)'
+                    boxShadow: '0 0 20px rgb(207 174 82 / 0.6)'
                   }}
                 />
               </motion.div>
@@ -149,14 +149,14 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
             transition={{ duration: 1.2, ease: "easeOut" }}
           >
             <motion.div
-              className="text-8xl md:text-9xl font-bold text-[#CFAE52] tracking-wider"
+              className="text-8xl md:text-9xl font-bold text-brand-gold tracking-wider"
               animate={{ 
                 scale: [1, 1.1, 1],
                 opacity: [0.8, 1, 0.8],
                 textShadow: [
-                  "0 0 40px rgba(207, 174, 82, 0.6)",
-                  "0 0 80px rgba(207, 174, 82, 0.9)",
-                  "0 0 40px rgba(207, 174, 82, 0.6)"
+                  "0 0 40px rgb(207 174 82 / 0.6)",
+                  "0 0 80px rgb(207 174 82 / 0.9)",
+                  "0 0 40px rgb(207 174 82 / 0.6)"
                 ]
               }}
               transition={{ 
@@ -171,7 +171,7 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
             {/* Orbital rings around MH */}
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.div
-                className="w-48 h-48 md:w-56 md:h-56 border border-[#CFAE52] rounded-full opacity-30"
+                className="w-48 h-48 md:w-56 md:h-56 border border-brand-gold rounded-full opacity-30"
                 animate={{ rotate: 360 }}
                 transition={{ 
                   duration: 8, 
@@ -180,7 +180,7 @@ const SmartLoader = ({ onComplete }: SmartLoaderProps) => {
                 }}
               />
               <motion.div
-                className="absolute w-64 h-64 md:w-72 md:h-72 border border-[#CFAE52] rounded-full opacity-20"
+                className="absolute w-64 h-64 md:w-72 md:h-72 border border-brand-gold rounded-full opacity-20"
                 animate={{ rotate: -360 }}
                 transition={{ 
                   duration: 12, 

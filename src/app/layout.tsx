@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Syne } from 'next/font/google'
+import { Syne, Manrope, Space_Grotesk, Epilogue } from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import CustomCursor from '@/components/CustomCursor'
@@ -9,6 +9,27 @@ const syne = Syne({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-syne',
+  display: 'swap',
+})
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-body',
+  display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+})
+
+const epilogue = Epilogue({
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-epilogue',
   display: 'swap',
 })
 
@@ -30,7 +51,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${syne.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${syne.variable} ${manrope.variable} ${spaceGrotesk.variable} ${epilogue.variable} antialiased`} suppressHydrationWarning>
         {/* Top-level cursor - HIGHEST priority, no interference */}
         <div style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 9999 }}>
           <CustomCursor />
@@ -51,7 +72,7 @@ export default function RootLayout({
             },
             success: {
               iconTheme: {
-                primary: '#CFAE52',
+                primary: 'rgb(207 174 82)',
                 secondary: '#000000',
               },
             },

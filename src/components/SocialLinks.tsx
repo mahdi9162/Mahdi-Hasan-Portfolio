@@ -54,9 +54,9 @@ const SocialLinks = () => {
             <a
               aria-label={`${link.name} Profile`}
               href={link.href}
-              className="transition-all duration-700"
+              className="transition-all duration-300"
             >
-              <div className="group-hover:brightness-0 group-hover:saturate-100 group-hover:sepia group-hover:hue-rotate-[45deg] transition-all duration-700" style={{ filter: 'none' }}>
+              <div className="group-hover:brightness-0 group-hover:saturate-100 group-hover:sepia group-hover:hue-rotate-[45deg] transition-all duration-300" style={{ filter: 'none' }}>
                 {link.icon}
               </div>
             </a>

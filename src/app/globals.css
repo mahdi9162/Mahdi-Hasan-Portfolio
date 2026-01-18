@@ -25,6 +25,13 @@
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
     --font-syne: 'Syne', sans-serif;
+    --font-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    
+    /* Brand Gold Colors - Single Source of Truth */
+    --brand-gold: 207 174 82;       /* #CFAE52 */
+    --brand-gold-dark: 184 152 74;  /* #B8984A */
+    --brand-gold-alt: 212 175 55;   /* #D4AF37 */
+    --brand-gold-glow: 207 174 82;  /* same as gold for glow usage */
   }
 
   .dark {
@@ -56,9 +63,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
   }
   
-  /* Complete Typography System - Modern + Cinematic */
+  /* Complete Typography System - Premium + Readable */
   
   /* Headings: Syne font for modern, bold, high-impact */
   h1, h2, h3, h4, h5, h6 {
@@ -83,21 +92,35 @@
     @apply font-medium;
   }
   
-  /* Body text: Consistent mono font across entire website */
+  /* Body text: Manrope for premium readability */
   p, span, li, small, label, .body-text {
+    font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
+  }
+  
+  /* Paragraphs: Enhanced readability */
+  p {
+    line-height: 1.75;
+  }
+  
+  /* Navigation text: Keep mono for tech vibe */
+  nav {
     @apply font-mono;
   }
   
-  /* Navigation and button text: Follow body font for consistency */
-  nav, button {
-    @apply font-mono;
+  /* Button transitions: Balanced premium feel */
+  button, a[role="button"] {
+    transition-property: background-color, border-color, color, box-shadow, transform;
+    transition-duration: 420ms, 420ms, 420ms, 520ms, 420ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
-}
-
-/* Hide default cursor on desktop devices */
-@media (pointer: fine) {
-  * {
-    cursor: none !important;
+  
+  /* Tech/Meta utility class for chips, tags, small labels */
+  .text-meta {
+    @apply font-mono;
+    font-size: 0.8125rem; /* 13px */
+    letter-spacing: 0.025em;
+    color: rgba(255, 255, 255, 0.6);
   }
 }
 
@@ -129,7 +152,7 @@ body.loading {
 }
 
 .premium-button-glow:hover {
-  filter: drop-shadow(0 0 25px rgba(207, 174, 82, 0.4));
+  filter: drop-shadow(0 0 25px rgb(var(--brand-gold) / 0.4));
 }
 
 /* Force profile image container and content to always be visible */
@@ -161,8 +184,8 @@ body.loading {
   backdrop-filter: contrast(1.4) brightness(1.2) saturate(1.3);
   -webkit-backdrop-filter: contrast(1.4) brightness(1.2) saturate(1.3);
   background: transparent;
-  border: 1px solid rgba(207, 174, 82, 0.55);
-  box-shadow: 0 0 18px rgba(207, 174, 82, 0.18);
+  border: 1px solid rgb(var(--brand-gold) / 0.55);
+  box-shadow: 0 0 18px rgb(var(--brand-gold) / 0.18);
   position: fixed;
   pointer-events: none;
   z-index: 9999;
@@ -258,6 +281,12 @@ section,
   .custom-cursor-active * {
     cursor: none !important;
   }
+  
+  /* Exclude no-custom-cursor zones from custom cursor */
+  .custom-cursor-active .no-custom-cursor,
+  .custom-cursor-active .no-custom-cursor * {
+    cursor: default !important;
+  }
 }
 
 /* Hide custom cursor on touch devices */
@@ -332,6 +361,33 @@ section,
   scroll-margin-top: 110px;
 }
 
+/* Consistent section spacing - Premium breathing room */
+.section-gap {
+  padding-top: 4rem;    /* py-16 = 64px */
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .section-gap {
+    padding-top: 5rem;    /* md:py-20 = 80px */
+    padding-bottom: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-gap {
+    padding-top: 7rem;    /* lg:py-28 = 112px */
+    padding-bottom: 7rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .section-gap {
+    padding-top: 8rem;    /* xl:py-32 = 128px */
+    padding-bottom: 8rem;
+  }
+}
+
 /* Custom scrollbar for projects list */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
@@ -352,10 +408,208 @@ section,
   background-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Premium Projects Scrollbar */
+.projects-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.projects-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.projects-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: all 0.3s ease;
+}
+
+.projects-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+/* Firefox scrollbar */
+.projects-scrollbar {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.02);
+}
+
+.projects-scrollbar:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.02);
+}
+
+/* Panel scroll container */
+.projects-panel-scroll {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Projects panel class for scroll isolation */
+.projectsPanel {
+  isolation: isolate;
+}
+
+/* Prevent global scroll hijacking on projects panel */
+.projectsPanel * {
+  overscroll-behavior: contain;
+}
+
+/* Dynamic fade gradients */
+.scroll-fade-top {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+  transition: opacity 0.3s ease;
+}
+
+.scroll-fade-bottom {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+  transition: opacity 0.3s ease;
+}
+
 /* Line clamp utility for project descriptions */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+
+/* Tech Orb Performance Optimizations */
+@media (prefers-reduced-motion: reduce) {
+  .tech-orb-container * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Mobile: Show static grid instead of orbit */
+@media (max-width: 1024px) {
+  .tech-orb-orbit {
+    display: none;
+  }
+}
+
+/* Animated Border Glow for Skill Cards */
+@keyframes rotateBorder {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border-glow {
+  animation: rotateBorder 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-border-glow {
+    animation: none !important;
+  }
+}
+/* Ensure no-custom-cursor zones use default cursor */
+.no-custom-cursor {
+  cursor: default !important;
+}
+
+.no-custom-cursor * {
+  cursor: default !important;
+}
+
+/* Force default cursor on scrollbar elements */
+.projects-scrollbar::-webkit-scrollbar,
+.projects-scrollbar::-webkit-scrollbar-track,
+.projects-scrollbar::-webkit-scrollbar-thumb {
+  cursor: default !important;
+}
+
+/* Right Preview Panel - Hide native cursor, show only custom cursor */
+.rightPreview {
+  cursor: none !important;
+}
+
+.rightPreview * {
+  cursor: none !important;
+}
+
+/* Hidden scrollbar container - completely hide native scrollbar */
+.hidden-scrollbar-container {
+  cursor: none !important;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE/Edge */
+  /* Ensure proper scroll behavior */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hidden-scrollbar-container * {
+  cursor: none !important;
+}
+
+/* Webkit scrollbar hiding */
+.hidden-scrollbar-container::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+.hidden-scrollbar-container::-webkit-scrollbar-track {
+  display: none !important;
+}
+
+.hidden-scrollbar-container::-webkit-scrollbar-thumb {
+  display: none !important;
+}
+/* About Section Custom Styles */
+.portrait-hover:hover .portrait-image {
+  filter: grayscale(0%);
+}
+
+.portrait-image {
+  filter: grayscale(100%);
+  transition: filter 0.5s ease-in-out;
+}
+
+.text-gradient {
+  background: linear-gradient(to bottom right, #ffffff, #71717a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bloom-effect {
+  background: radial-gradient(circle at center, rgba(0, 230, 107, 0.15) 0%, rgba(77, 222, 255, 0.1) 30%, transparent 70%);
+}
+
+/* Contact Section Globe Animation */
+@media (prefers-reduced-motion: reduce) {
+  .contact-globe * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Establishing Connectivity Contact Section Styles */
+@keyframes pulse-muted {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: 0.4; 
+  }
+}
+
+.animate-pulse-muted {
+  animation: pulse-muted 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
