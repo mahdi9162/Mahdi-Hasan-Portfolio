@@ -69,6 +69,48 @@ const SkillsSection = () => {
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
 
+  // Animation variants for section
+  const sectionVariants = {
+    hidden: { opacity: 0 },
+    show: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0
+      }
+    }
+  }
+
+  const titleVariants = {
+    hidden: { opacity: 0, y: 14 },
+    show: { 
+      opacity: 1, 
+      y: 0
+    }
+  }
+
+  const orbitVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.96
+    },
+    show: { 
+      opacity: 1, 
+      scale: 1
+    }
+  }
+
+  const cardStackVariants = {
+    hidden: { 
+      opacity: 0, 
+      x: 24
+    },
+    show: { 
+      opacity: 1, 
+      x: 0
+    }
+  }
+
   // Map orb icon hover to related card
   const handleOrbIconHover = (iconId: string | null) => {
     if (!iconId) {
@@ -123,15 +165,29 @@ const SkillsSection = () => {
   }
 
   return (
-    <section id="skills" className="scroll-mt-24 section-gap w-full bg-black overflow-x-hidden lg:overflow-visible my-28 py-16 sm:py-18 md:py-0">
+    <motion.section 
+      id="skills" 
+      className="scroll-mt-24 section-gap w-full bg-black overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 py-16 sm:py-18 md:py-0"
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.25, margin: "0px 0px -15% 0px" }}
+    >
       {/* Section Container - Max width and centered */}
       <div className="max-w-[1280px] mx-auto px-6 md:px-8">
         {/* Header - Simplified with kicker styling on main title */}
-        <div className="mb-10 sm:mb-12 md:mb-16 text-left">
+        <motion.div 
+          className="mb-10 sm:mb-12 md:mb-16 text-left"
+          variants={titleVariants}
+          transition={{
+            duration: 0.5,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+        >
           {/* Title with kicker styling + thin line accent */}
           <div className="flex items-center gap-4 mb-3">
             <h2 
-              className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+              className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em] hover:text-brand-gold-alt transition-all duration-300 cursor-pointer hover:drop-shadow-[0_0_15px_rgb(var(--brand-gold-alt)_/_0.25)]" 
               data-lens="on"
             >
               Skills
@@ -143,18 +199,24 @@ const SkillsSection = () => {
           <p className="text-xs md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
             Core technologies and tools I use to build modern web applications.
           </p>
-        </div>
+        </motion.div>
 
         {/* Main 2-Column Layout: Orbit LEFT + Stacked Deck RIGHT - Center Aligned */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-[72px]">
           
           {/* Left Column: Orbit Stage with Proper Mobile Height */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
             className="flex-shrink-0 w-full lg:w-auto"
+            variants={orbitVariants}
+            transition={{
+              type: "tween",
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1]
+            }}
+            style={{
+              willChange: "transform, opacity",
+              transform: "translateZ(0)"
+            }}
           >
             {/* Orbit Stage - Dedicated container with proper height for mobile */}
             <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full">
@@ -168,11 +230,21 @@ const SkillsSection = () => {
 
           {/* Right Column: Stacked Card Deck with Navigation */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4 }}
             className="flex-1 max-w-[580px] w-full mx-auto lg:mx-0 flex flex-col justify-center"
+            variants={cardStackVariants}
+            transition={{
+              type: "tween",
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1],
+              when: "beforeChildren",
+              delayChildren: 0,
+              staggerChildren: 0.04
+            }}
+            style={{
+              willChange: "transform, opacity",
+              transform: "translateZ(0)",
+              backfaceVisibility: "hidden"
+            }}
           >
             {/* Selected Skill Detail Card */}
             <AnimatePresence mode="wait">
@@ -281,7 +353,7 @@ const SkillsSection = () => {
           </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -553,6 +625,27 @@ const StackedSkillCard = ({
     setPrefersReducedMotion(mediaQuery.matches)
   }, [])
 
+  // List container and item variants for fast stagger
+  const listContainer = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.03,
+        delayChildren: 0
+      }
+    }
+  }
+
+  const listItem = {
+    hidden: { opacity: 0, x: 10 },
+    show: {
+      opacity: 1,
+      x: 0
+    }
+  }
+
+
   // Calculate transform and opacity based on position
   const getTransform = () => {
     if (!isVisible) return 'translateX(100%) scale(0.9) rotate(0deg)'
@@ -668,13 +761,20 @@ const StackedSkillCard = ({
           </div>
 
           {/* Full-width skill rows - Improved readability */}
-          <div className="flex-1 space-y-2 overflow-y-auto skills-scroll">
-            {category.skills.map((skill, index) => (
+          <motion.div 
+            className="flex-1 space-y-2 overflow-y-auto skills-scroll"
+            variants={listContainer}
+            initial={false}
+            animate={isActive ? "show" : "hidden"}
+          >
+            {category.skills.map((skill) => (
               <motion.div
                 key={skill}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
+                variants={listItem}
+                transition={{ 
+                  duration: 0.22, 
+                  ease: [0.22, 1, 0.36, 1] 
+                }}
                 className="w-full px-4 py-2.5 flex items-center space-x-3 rounded-full border transition-all duration-[500ms] hover:border-white/[0.28] hover:bg-white/[0.09] cursor-default"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -691,7 +791,7 @@ const StackedSkillCard = ({
                 </span>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>

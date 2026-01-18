@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Cursor Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            cursor: none;
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.2), inset 0 0 2px rgba(255, 255, 255, 0.5);
+            border: 0.25px solid rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+            z-index: 999999;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            /* This creates a stacking context that would break non-portal cursors */
+            transform: translateZ(0);
+            will-change: transform, opacity;
+        }
+        
+        .left-side {
+            flex: 1;
+            background: #111;
+            padding: 20px;
+            color: white;
+            /* Another stacking context */
+            filter: blur(0px);
+            backdrop-filter: blur(0px);
+        }
+        
+        .right-side {
+            flex: 1;
+            background: #222;
+            padding: 20px;
+            color: white;
+            /* Multiple stacking context creators */
+            transform: translateZ(0);
+            filter: blur(0px);
+            backdrop-filter: blur(0px);
+            will-change: transform, opacity, filter;
+            overflow: hidden;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            /* More stacking contexts */
+            backdrop-filter: blur(10px);
+            transform: translateZ(0);
+        }
+        
+        .card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(207, 174, 82, 0.4);
+            transform: scale(1.02);
+        }
+        
+        .scroll-container {
+            height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            /* This would clip non-portal cursors */
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cursor rendered directly to body via "portal" simulation -->
+    <div class="custom-cursor" id="cursor"></div>
+    
+    <div class="container">
+        <div class="left-side">
+            <h2>Left Side</h2>
+            <p>Hover here - cursor should be visible</p>
+            <div class="card">
+                <h3>Main Project Card</h3>
+                <p>This has backdrop-filter and transform</p>
+            </div>
+        </div>
+        
+        <div class="right-side">
+            <h2>Right Side (Problematic Area)</h2>
+            <p>This area has multiple stacking contexts that would break cursor visibility</p>
+            <p><strong>Stacking contexts:</strong> transform, filter, backdrop-filter, will-change, overflow:hidden</p>
+            
+            <div class="scroll-container">
+                <div class="card">
+                    <h3>EduBridge</h3>
+                    <p>Cursor should be visible here now!</p>
+                </div>
+                <div class="card">
+                    <h3>AppVerse</h3>
+                    <p>And here too!</p>
+                </div>
+                <div class="card">
+                    <h3>Skillora</h3>
+                    <p>Portal-based cursor bypasses all stacking contexts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        
+        document.addEventListener('mousemove', (e) => {
+            // Cursor is rendered directly to body, so it's always on top
+            cursor.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
+        });
+        
+        console.log('✅ Cursor is rendered directly to document.body');
+        console.log('✅ Cursor bypasses all stacking contexts');
+        console.log('✅ No parent containers can clip or hide the cursor');
+    </script>
+</body>
+</html>

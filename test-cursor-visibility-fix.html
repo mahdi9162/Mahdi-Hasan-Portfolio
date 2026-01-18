@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Visibility Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            cursor: none;
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.2), inset 0 0 2px rgba(255, 255, 255, 0.5);
+            border: 0.25px solid rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+            z-index: 999999;
+            transition: transform 0.1s ease-out;
+            /* NO opacity changes based on location */
+            opacity: 1 !important;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .left-side {
+            flex: 1;
+            background: #111;
+            padding: 20px;
+            color: white;
+        }
+        
+        .right-side {
+            flex: 1;
+            background: #222;
+            padding: 20px;
+            color: white;
+            /* This is the "rightPreview" equivalent area */
+        }
+        
+        .rightPreview {
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(207, 174, 82, 0.4);
+        }
+        
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 255, 0, 0.2);
+            color: #0f0;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor" id="cursor"></div>
+    
+    <div class="status">
+        ✅ Cursor should be visible EVERYWHERE
+    </div>
+    
+    <div class="container">
+        <div class="left-side">
+            <h2>Left Side</h2>
+            <p>Cursor visible here ✅</p>
+            <div class="card">
+                <h3>Main Project Card</h3>
+                <p>Cursor should be visible</p>
+            </div>
+        </div>
+        
+        <div class="right-side">
+            <h2>Right Side (Previously Problematic)</h2>
+            <p>Cursor should now be visible here too! ✅</p>
+            
+            <div class="rightPreview">
+                <h3>Right Preview Area</h3>
+                <p>This simulates the .rightPreview container</p>
+                
+                <div class="card">
+                    <h3>EduBridge</h3>
+                    <p>Cursor should be visible! ✅</p>
+                </div>
+                <div class="card">
+                    <h3>AppVerse</h3>
+                    <p>Cursor should be visible! ✅</p>
+                </div>
+                <div class="card">
+                    <h3>Skillora</h3>
+                    <p>Cursor should be visible! ✅</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
+        });
+        
+        console.log('✅ Fixed: Removed isInRightPreview logic that was hiding cursor');
+        console.log('✅ Fixed: Cursor now visible everywhere including right column');
+        console.log('✅ Fixed: No more opacity: 0 when hovering right preview area');
+    </script>
+</body>
+</html>

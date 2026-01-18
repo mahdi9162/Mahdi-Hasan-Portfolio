@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section Heading Hover Test</title>
+    <style>
+        :root {
+            --brand-gold-alt: 212 175 55; /* #D4AF37 */
+        }
+        
+        body {
+            margin: 0;
+            padding: 40px;
+            background: #000;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        
+        .section {
+            margin: 60px 0;
+            padding: 40px;
+            border: 1px solid #333;
+            border-radius: 12px;
+        }
+        
+        .section-heading {
+            font-size: 3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .section-heading:hover {
+            color: rgb(var(--brand-gold-alt));
+            filter: drop-shadow(0 0 15px rgb(var(--brand-gold-alt) / 0.25));
+        }
+        
+        .hero-subtitle {
+            font-size: 2rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 40px;
+        }
+        
+        .hero-subtitle:hover {
+            color: rgb(var(--brand-gold-alt));
+            filter: drop-shadow(0 0 15px rgb(var(--brand-gold-alt) / 0.25));
+        }
+        
+        .comparison {
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="comparison">
+        <h3>Reference: Hero Subtitle (already working)</h3>
+        <div class="hero-subtitle">Junior Frontend Developer</div>
+        <p style="color: #666; font-size: 14px;">↑ This should change to gold on hover (reference behavior)</p>
+    </div>
+
+    <div class="section">
+        <h2>Skills Section</h2>
+        <div class="section-heading">SKILLS</div>
+        <p style="color: #666;">↑ Should change to gold on hover (same as Hero subtitle)</p>
+    </div>
+
+    <div class="section">
+        <h2>Projects Section</h2>
+        <div class="section-heading">PROJECTS</div>
+        <p style="color: #666;">↑ Should change to gold on hover (same as Hero subtitle)</p>
+    </div>
+
+    <div class="section">
+        <h2>About Section</h2>
+        <div class="section-heading">ABOUT</div>
+        <p style="color: #666;">↑ Should change to gold on hover (same as Hero subtitle)</p>
+    </div>
+
+    <div style="margin-top: 60px; padding: 20px; background: #0a5a0a; border-radius: 8px;">
+        <h3 style="color: #0f0;">✅ Verification Checklist:</h3>
+        <ul style="color: #ccc; line-height: 1.6;">
+            <li>Hover over "Junior Frontend Developer" → color changes to gold ✅</li>
+            <li>Hover over "SKILLS" → color changes to gold (same as Hero) ✅</li>
+            <li>Hover over "PROJECTS" → color changes to gold (same as Hero) ✅</li>
+            <li>Hover over "ABOUT" → color changes to gold (same as Hero) ✅</li>
+            <li>Move cursor away → all return to normal white ✅</li>
+            <li>Smooth transition (300ms) with glow effect ✅</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('✅ Applied exact same hover classes from Hero subtitle:');
+        console.log('   hover:text-brand-gold-alt');
+        console.log('   transition-all duration-300');
+        console.log('   cursor-pointer');
+        console.log('   hover:drop-shadow-[0_0_15px_rgb(var(--brand-gold-alt)_/_0.25)]');
+        console.log('✅ Color: rgb(212, 175, 55) - #D4AF37');
+    </script>
+</body>
+</html>

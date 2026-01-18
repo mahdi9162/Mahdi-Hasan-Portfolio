@@ -38,26 +38,21 @@ const EntryLoader = ({ onComplete }: EntryLoaderProps) => {
       })
     }, 100)
 
-    // Start door transition after 2.8 seconds
-    const doorTimer = setTimeout(() => {
+    // Start curtain reveal transition after 2.8 seconds
+    const curtainTimer = setTimeout(() => {
       setShowDoorTransition(true)
       
-      // Start exit sequence after door transition
+      // Complete and trigger page reveal after curtain animation
       setTimeout(() => {
-        setIsExiting(true)
-        
-        // Complete after fade-out
-        setTimeout(() => {
-          sessionStorage.setItem('entryLoaderSeen', '1')
-          sessionStorage.setItem('welcomeShown', '1') // Mark welcome as shown
-          onComplete()
-        }, 400) // 400ms fade-out
-      }, 800) // 800ms door transition (faster)
+        sessionStorage.setItem('entryLoaderSeen', '1')
+        sessionStorage.setItem('welcomeShown', '1') // Mark welcome as shown
+        onComplete()
+      }, 800) // 800ms curtain transition
     }, 2800) // 2.8s total duration
 
     return () => {
       clearInterval(progressInterval)
-      clearTimeout(doorTimer)
+      clearTimeout(curtainTimer)
     }
   }, [onComplete])
 
@@ -111,20 +106,20 @@ const EntryLoader = ({ onComplete }: EntryLoaderProps) => {
       `}</style>
 
       <div 
-        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black overflow-hidden transition-opacity duration-400 ${
-          isExiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black overflow-hidden ${
+          showDoorTransition ? 'pointer-events-none' : ''
         }`}
       >
-        {/* Top Door Panel */}
+        {/* Top Curtain Panel */}
         <div 
-          className={`absolute top-0 left-0 w-full h-1/2 bg-zinc-950 border-b border-white/5 transition-transform duration-800 ${
+          className={`absolute top-0 left-0 w-full h-1/2 bg-black border-b border-white/5 transition-transform duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             showDoorTransition ? '-translate-y-full' : 'translate-y-0'
           }`}
         />
         
-        {/* Bottom Door Panel */}
+        {/* Bottom Curtain Panel */}
         <div 
-          className={`absolute bottom-0 left-0 w-full h-1/2 bg-zinc-950 border-t border-white/5 transition-transform duration-800 ${
+          className={`absolute bottom-0 left-0 w-full h-1/2 bg-black border-t border-white/5 transition-transform duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             showDoorTransition ? 'translate-y-full' : 'translate-y-0'
           }`}
         />

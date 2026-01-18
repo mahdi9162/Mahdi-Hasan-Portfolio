@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
-const Navbar = () => {
+const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => {
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('home') // Default to home instead of projects
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -113,10 +113,25 @@ const Navbar = () => {
     { id: 'contact', label: 'Contact' }
   ]
 
+  const navbarVariants = {
+    hidden: { opacity: 0, y: -10 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.45, 
+        ease: [0.16, 1, 0.3, 1] 
+      }
+    }
+  }
+
   return (
     <>
       <motion.header 
         className="fixed top-0 left-0 right-0 z-[90] transition-all duration-300 ease-out"
+        variants={navbarVariants}
+        initial="hidden"
+        animate={entryRevealReady ? "show" : "hidden"}
         style={{
           background: scrolled 
             ? 'rgba(0, 0, 0, 0.8)' 

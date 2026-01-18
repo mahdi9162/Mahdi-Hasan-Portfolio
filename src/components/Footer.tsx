@@ -24,7 +24,7 @@ const Footer = () => {
   }, [])
 
   return (
-    <footer className="section-gap bg-black px-6 md:px-8 overflow-hidden pb-16 md:pb-12">
+    <footer className="section-gap bg-black px-6 md:px-8 overflow-hidden mt-28 pb-16 md:pb-12">
       <div className="max-w-7xl mx-auto relative">
         <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-12 relative z-10">
           <div className="space-y-6 w-full md:w-auto">

@@ -2,35 +2,26 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
 
 interface ProfileImageProps {
-  animationReady?: boolean
+  entryRevealReady?: boolean
 }
 
-const ProfileImage = ({ animationReady = true }: ProfileImageProps) => {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-  useEffect(() => {
-    // Check for reduced motion preference
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
-  }, [])
-
+const ProfileImage = ({ entryRevealReady = true }: ProfileImageProps) => {
   const imageVariants = {
     hidden: { 
       opacity: 0,
-      scale: prefersReducedMotion ? 1 : 1.04,
-      filter: prefersReducedMotion ? 'blur(0px)' : 'blur(6px)'
+      filter: "blur(14px)",
+      scale: 1.03
     },
-    visible: { 
+    show: { 
       opacity: 1,
+      filter: "blur(0px)",
       scale: 1,
-      filter: 'blur(0px)',
       transition: {
-        duration: 1.2,
-        delay: 0.3,
-        ease: "easeOut"
+        duration: 0.8,
+        delay: 0.2,
+        ease: [0.16, 1, 0.3, 1]
       }
     }
   }
@@ -46,13 +37,18 @@ const ProfileImage = ({ animationReady = true }: ProfileImageProps) => {
       }}
     >
       <motion.div
+        className="relative w-full h-full group"
         variants={imageVariants}
         initial="hidden"
-        animate={animationReady ? "visible" : "hidden"}
-        whileHover={{ scale: prefersReducedMotion ? 1 : 1.05 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative w-full h-full group"
-        style={{ opacity: 1, visibility: 'visible', display: 'block' }}
+        animate={entryRevealReady ? "show" : "hidden"}
+        whileHover={{ scale: 1.05 }}
+        style={{ 
+          opacity: 1, 
+          visibility: 'visible', 
+          display: 'block',
+          // Fallback to ensure no permanent blur
+          filter: entryRevealReady ? "blur(0px)" : undefined
+        }}
       >
         <Image
           alt="Professional portrait of Mahdi Hasan"

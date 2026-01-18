@@ -3,6 +3,7 @@ import { Syne, Manrope, Space_Grotesk, Epilogue } from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import CustomCursor from '@/components/CustomCursor'
+import FallBeamBackground from '@/components/FallBeamBackground'
 import { Toaster } from 'react-hot-toast'
 
 const syne = Syne({ 
@@ -52,13 +53,21 @@ export default function RootLayout({
         />
       </head>
       <body className={`${syne.variable} ${manrope.variable} ${spaceGrotesk.variable} ${epilogue.variable} antialiased`} suppressHydrationWarning>
-        {/* Top-level cursor - HIGHEST priority, no interference */}
-        <div style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 9999 }}>
+        <div className="relative min-h-screen">
+          {/* Global Fall Beam Background */}
+          <FallBeamBackground 
+            lineCount={40} 
+            beamColorClass="golden" 
+            className="z-0" 
+          />
+          
           <CustomCursor />
+          <SmoothScrollProvider>
+            <div className="relative z-10">
+              {children}
+            </div>
+          </SmoothScrollProvider>
         </div>
-        <SmoothScrollProvider>
-          {children}
-        </SmoothScrollProvider>
         <Toaster
           position="top-right"
           toastOptions={{

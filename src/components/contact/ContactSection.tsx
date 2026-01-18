@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Mail, MapPin, Phone } from 'lucide-react'
 
 interface FormData {
@@ -26,6 +27,77 @@ const ContactSection = () => {
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success'>('idle')
+
+  // Animation variants - same pattern as Projects/About sections
+  const containerVariants = {
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { 
+        duration: 0.6, 
+        ease: [0.22, 1, 0.36, 1], 
+        staggerChildren: 0.08, 
+        delayChildren: 0 
+      }
+    },
+    hide: { 
+      // IMPORTANT: never fully hide the whole section
+      opacity: 1,                 // was 0
+      y: 8,                       // small move only
+      filter: "blur(2px)",        // light blur only
+      transition: { 
+        duration: 0.35, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    }
+  }
+
+  const leftVariants = {
+    show: { 
+      opacity: 1, 
+      x: 0, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { 
+        duration: 0.6, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    },
+    hide: { 
+      opacity: 0.65,              // was 0
+      x: -10,
+      y: 8,
+      filter: "blur(3px)",
+      transition: { 
+        duration: 0.35, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    }
+  }
+
+  const rightVariants = {
+    show: { 
+      opacity: 1, 
+      x: 0, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { 
+        duration: 0.6, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    },
+    hide: { 
+      opacity: 0.65,              // was 0
+      x: 10,
+      y: 8,
+      filter: "blur(3px)",
+      transition: { 
+        duration: 0.35, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    }
+  }
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -78,11 +150,22 @@ const ContactSection = () => {
   }
 
   return (
-    <section id="contact" className="scroll-mt-24 section-gap w-full bg-background-dark font-display mb-28 sm:mb-16 md:mb-0 md:pt-10 md:pb-12">
+    <section id="contact" className="scroll-mt-24 section-gap w-full bg-background-dark font-display my-28 md:pt-10 md:pb-12">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20 items-start">
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20 items-start"
+          initial="hide"
+          whileInView="show"
+          viewport={{ amount: 0.18, once: false }}
+          variants={containerVariants}
+          style={{ willChange: "transform, opacity, filter" }}
+        >
           {/* Left Section: Premium Contact Info */}
-          <div className="lg:col-span-5 flex flex-col md:gap-10 w-full md:max-w-[640px] md:mx-auto md:text-left lg:max-w-none lg:mx-0">
+          <motion.div 
+            className="lg:col-span-5 flex flex-col md:gap-10 w-full md:max-w-[640px] md:mx-auto md:text-left lg:max-w-none lg:mx-0"
+            variants={leftVariants}
+            style={{ willChange: "transform, opacity, filter" }}
+          >
             {/* Premium Headline */}
             <div className="space-y-6">
               <div className="space-y-1">
@@ -156,10 +239,14 @@ const ContactSection = () => {
                 System Status: {submitStatus === 'success' ? 'Message ready to send' : 'Waiting for user input'}
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Section: Premium Contact Form */}
-          <div className="lg:col-span-7 w-full md:max-w-[640px] md:mx-auto lg:max-w-none lg:mx-0">
+          <motion.div 
+            className="lg:col-span-7 w-full md:max-w-[640px] md:mx-auto lg:max-w-none lg:mx-0"
+            variants={rightVariants}
+            style={{ willChange: "transform, opacity, filter" }}
+          >
             <div className="glass-card rounded-2xl p-4 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-full">
               {/* Subtle Background Pattern */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
@@ -262,8 +349,8 @@ const ContactSection = () => {
                 </form>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )

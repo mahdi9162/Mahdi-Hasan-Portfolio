@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            cursor: none;
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.2), inset 0 0 2px rgba(255, 255, 255, 0.5);
+            border: 0.25px solid rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+            z-index: 999999;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .left-side {
+            flex: 1;
+            background: #111;
+            padding: 20px;
+            color: white;
+        }
+        
+        .right-side {
+            flex: 1;
+            background: #222;
+            padding: 20px;
+            color: white;
+            /* This was the problematic style */
+            /* cursor: none; */
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(207, 174, 82, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor" id="cursor"></div>
+    
+    <div class="container">
+        <div class="left-side">
+            <h2>Left Side</h2>
+            <p>Hover here - cursor should be visible</p>
+            <div class="card">
+                <h3>Main Project Card</h3>
+                <p>This represents the main project card on the left</p>
+            </div>
+        </div>
+        
+        <div class="right-side">
+            <h2>Right Side (Projects List)</h2>
+            <p>Hover here - cursor should ALSO be visible now!</p>
+            <div class="card">
+                <h3>EduBridge</h3>
+                <p>Tuition management system</p>
+            </div>
+            <div class="card">
+                <h3>AppVerse</h3>
+                <p>Productivity app explorer</p>
+            </div>
+            <div class="card">
+                <h3>Skillora</h3>
+                <p>Skill-sharing platform</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
+        });
+    </script>
+</body>
+</html>

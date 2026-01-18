@@ -97,6 +97,54 @@ const ProjectsSection = () => {
     thumbTop: 0
   })
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLDivElement>(null)
+
+  // Animation variants - proper in/out with no layout issues
+  const containerVariants = {
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { 
+        duration: 0.6, 
+        ease: [0.22, 1, 0.36, 1], 
+        staggerChildren: 0.08, 
+        delayChildren: 0 
+      }
+    },
+    hide: { 
+      // IMPORTANT: never fully hide the whole section
+      opacity: 1,                 // was 0
+      y: 8,                       // small move only
+      filter: "blur(2px)",        // light blur only
+      transition: { 
+        duration: 0.35, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    }
+  }
+
+  const childVariants = {
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      filter: "blur(0px)",
+      transition: { 
+        duration: 0.6, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    },
+    hide: { 
+      // IMPORTANT: also avoid vanishing children completely
+      opacity: 0.65,              // was 0
+      y: 10,
+      filter: "blur(3px)",
+      transition: { 
+        duration: 0.35, 
+        ease: [0.22, 1, 0.36, 1] 
+      }
+    }
+  }
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -211,14 +259,25 @@ const ProjectsSection = () => {
 
   return (
     <>
-      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black mb-28 md:mb-0">
+      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black my-12 sm:my-16 md:my-26">
         <Container>
-          <div className="space-y-8 md:space-y-10">
+          <motion.div 
+            ref={sectionRef}
+            className="space-y-8 md:space-y-10"
+            variants={containerVariants}
+            initial="hide"
+            whileInView="show"
+            viewport={{ amount: 0.18, once: false }}
+            style={{ willChange: "transform, opacity, filter" }}
+          >
             {/* Header */}
-            <div className="mb-14 md:mb-16 text-left">
+            <motion.div 
+              className="mb-14 md:mb-16 text-left"
+              variants={childVariants}
+            >
               <div className="flex items-center gap-4 mb-3">
                 <h2 
-                  className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+                  className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em] hover:text-brand-gold-alt transition-all duration-300 cursor-pointer hover:drop-shadow-[0_0_15px_rgb(var(--brand-gold-alt)_/_0.25)]" 
                   data-lens="on"
                 >
                   Projects
@@ -228,10 +287,13 @@ const ProjectsSection = () => {
               <p className="text-xs md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
                 Showcase of my latest work and projects.
               </p>
-            </div>
+            </motion.div>
 
             {/* Tab Navigation */}
-            <div className="flex gap-1 p-1 bg-white/[0.04] rounded-xl border border-white/[0.08] w-fit">
+            <motion.div 
+              className="flex gap-1 p-1 bg-white/[0.04] rounded-xl border border-white/[0.08] w-fit"
+              variants={childVariants}
+            >
               <button
                 onClick={() => setActiveTab('frontend')}
                 className={`px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
@@ -252,21 +314,25 @@ const ProjectsSection = () => {
               >
                 Client Work
               </button>
-            </div>
+            </motion.div>
 
             {/* Main Layout - Animated Tab Content */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                transition={{ 
-                  duration: 0.24, 
-                  ease: [0.22, 1, 0.36, 1] 
-                }}
-                className="min-h-0 lg:min-h-[600px]" // Stable height to prevent layout jump
-              >
+            <motion.div
+              variants={childVariants}
+              style={{ willChange: "transform, opacity, filter" }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                  transition={{ 
+                    duration: 0.24, 
+                    ease: [0.22, 1, 0.36, 1] 
+                  }}
+                  className="min-h-0 lg:min-h-[600px]" // Stable height to prevent layout jump
+                >
                 {activeTab === 'client' && filteredProjects.length === 1 ? (
                   /* Client Work: Premium Top Media + Bottom Content Card */
                   <div className="max-w-4xl mx-auto">
@@ -512,7 +578,6 @@ const ProjectsSection = () => {
                         {/* Right Preview Wrapper with scrollbar overlay */}
                         <div 
                           className="rightPreview relative h-full"
-                          style={{ cursor: 'none' }}
                         >
                           {/* Scroll Container - Hidden native scrollbar, custom scrollbar UI */}
                           <div 
@@ -523,7 +588,6 @@ const ProjectsSection = () => {
                               overscrollBehaviorY: 'contain',
                               WebkitOverflowScrolling: 'touch',
                               scrollBehavior: 'auto',
-                              cursor: 'none',
                               scrollbarWidth: 'none', // Firefox
                               msOverflowStyle: 'none' // IE/Edge
                             }}
@@ -578,11 +642,10 @@ const ProjectsSection = () => {
 
                         {/* Custom Scrollbar UI - Floating/Inset Style */}
                         {scrollState.scrollHeight > scrollState.clientHeight && (
-                          <div className="absolute top-4 right-2 w-1.5 z-20" style={{ height: 'calc(100% - 32px)', cursor: 'none' }}>
+                          <div className="absolute top-4 right-2 w-1.5 z-20" style={{ height: 'calc(100% - 32px)' }}>
                             {/* Scrollbar Track */}
                             <div 
                               className="w-full h-full bg-white/[0.06] rounded-full relative"
-                              style={{ cursor: 'none' }}
                               onPointerDown={(e) => {
                                 const container = scrollContainerRef.current
                                 if (!container) return
@@ -601,8 +664,7 @@ const ProjectsSection = () => {
                                 className="absolute left-0 w-full bg-white/[0.25] rounded-full transition-colors duration-150 hover:bg-white/[0.35]"
                                 style={{
                                   height: `${Math.max(16, scrollState.thumbHeight)}px`,
-                                  top: `${scrollState.thumbTop}px`,
-                                  cursor: 'none'
+                                  top: `${scrollState.thumbTop}px`
                                 }}
                                 onPointerDown={(e) => {
                                   e.stopPropagation()
@@ -726,7 +788,8 @@ const ProjectsSection = () => {
                 )}
               </motion.div>
             </AnimatePresence>
-          </div>
+            </motion.div>
+          </motion.div>
         </Container>
       </section>
 

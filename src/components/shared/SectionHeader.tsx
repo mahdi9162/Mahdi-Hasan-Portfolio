@@ -23,7 +23,7 @@ const SectionHeader = ({
           {/* Title with Divider Line - Matching Skills Style */}
           <div className={`flex ${align === 'center' ? 'justify-center' : 'items-center'} gap-4 mb-3`}>
             <h2 
-              className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+              className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em] hover:text-brand-gold-alt transition-all duration-300 cursor-pointer hover:drop-shadow-[0_0_15px_rgb(var(--brand-gold-alt)_/_0.25)]" 
               data-lens="on"
             >
               {title}

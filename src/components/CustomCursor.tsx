@@ -2,13 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { createPortal } from 'react-dom'
 
 const CustomCursor = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isVisible, setIsVisible] = useState(false)
   const [isHoveringText, setIsHoveringText] = useState(false)
   const [isMagnetic, setIsMagnetic] = useState(false)
-  const [isInRightPreview, setIsInRightPreview] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     // Hide cursor on mobile devices and touch devices
@@ -36,29 +41,12 @@ const CustomCursor = () => {
       
       setMousePosition({ x: mouseX, y: mouseY })
 
-      // Check if mouse is inside right preview area using bounding rect
-      const rightPreviewEl = document.querySelector('.rightPreview')
-      if (rightPreviewEl) {
-        const rect = rightPreviewEl.getBoundingClientRect()
-        const buffer = 24 // Extra buffer for scrollbar area
-        const insideX = mouseX >= rect.left && mouseX <= (rect.right + buffer)
-        const insideY = mouseY >= rect.top && mouseY <= rect.bottom
-        setIsInRightPreview(insideX && insideY)
-      } else {
-        setIsInRightPreview(false)
-      }
-
-      // Only check for text targets if not in right preview area
-      if (!isInRightPreview) {
-        // Reliable target detection using elementFromPoint
-        const elementUnderMouse = document.elementFromPoint(mouseX, mouseY)
-        if (elementUnderMouse) {
-          // Check if element or closest parent is a text target
-          const textTarget = elementUnderMouse.closest('[data-lens="on"], h1, h2, h3, h4, h5, h6, p, a, button, li, span')
-          setIsHoveringText(!!textTarget)
-        } else {
-          setIsHoveringText(false)
-        }
+      // Reliable target detection using elementFromPoint
+      const elementUnderMouse = document.elementFromPoint(mouseX, mouseY)
+      if (elementUnderMouse) {
+        // Check if element or closest parent is a text target
+        const textTarget = elementUnderMouse.closest('[data-lens="on"], h1, h2, h3, h4, h5, h6, p, a, button, li, span')
+        setIsHoveringText(!!textTarget)
       } else {
         setIsHoveringText(false)
       }
@@ -101,17 +89,17 @@ const CustomCursor = () => {
         el.removeEventListener('mouseleave', handleMagneticLeave as EventListener)
       })
     }
-  }, [isInRightPreview])
+  }, [])
 
-  if (!isVisible) return null
+  if (!isVisible || !isMounted) return null
 
-  return (
+  const cursorElements = (
     <>
       {/* Main cursor dot - polished lens highlight with 90-100% text readability */}
       <motion.div
         className="fixed top-0 left-0 w-2 h-2 rounded-full pointer-events-none"
         style={{ 
-          zIndex: 99999,
+          zIndex: 999999,
           // Very light translucency with subtle highlight - minimal opacity for readability
           background: isHoveringText 
             ? 'radial-gradient(circle at 40% 30%, rgb(207 174 82 / 0.25), rgb(207 174 82 / 0.15), rgb(207 174 82 / 0.05))'
@@ -122,8 +110,6 @@ const CustomCursor = () => {
             : '0 0 3px rgba(255, 255, 255, 0.2), inset 0 0 2px rgba(255, 255, 255, 0.5)',
           // Very subtle border for definition
           border: '0.25px solid rgba(255, 255, 255, 0.15)',
-          // Hide cursor when in right preview area
-          opacity: isInRightPreview ? 0 : 1,
         }}
         animate={{
           x: mousePosition.x - 4,
@@ -139,15 +125,13 @@ const CustomCursor = () => {
       <motion.div
         className="fixed top-0 left-0 w-12 h-12 rounded-full pointer-events-none"
         style={{ 
-          zIndex: 99999,
+          zIndex: 999999,
           border: '1px solid rgb(207 174 82 / 0.55)',
           background: 'transparent',
           // Clarity filters only - NO BLUR to avoid haziness
           backdropFilter: 'contrast(1.4) brightness(1.2) saturate(1.3)',
           WebkitBackdropFilter: 'contrast(1.4) brightness(1.2) saturate(1.3)',
           boxShadow: '0 0 18px rgb(207 174 82 / 0.18)',
-          // Hide cursor when in right preview area
-          opacity: isInRightPreview ? 0 : 1,
         }}
         animate={{
           x: mousePosition.x - 24,
@@ -162,6 +146,9 @@ const CustomCursor = () => {
       />
     </>
   )
+
+  // Render cursor directly to document.body using Portal
+  return createPortal(cursorElements, document.body)
 }
 
 export default CustomCursor
