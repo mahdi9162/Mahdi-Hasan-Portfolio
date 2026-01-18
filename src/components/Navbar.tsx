@@ -128,8 +128,8 @@ const Navbar = () => {
             : '1px solid transparent',
         }}
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-8">
+          <div className="flex items-center justify-between h-16 relative">
             {/* Logo - Clickable to scroll to top */}
             <motion.div 
               className="cursor-pointer"
@@ -180,10 +180,11 @@ const Navbar = () => {
 
             {/* Mobile Hamburger Button */}
             <button
-              className="md:hidden p-2 text-neutral-600 dark:text-neutral-400 hover:text-brand-gold transition-colors duration-300"
+              className="md:hidden p-1 text-neutral-600 dark:text-neutral-400 hover:text-brand-gold transition-colors duration-300 flex items-center justify-center"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Open menu"
               data-lens="on"
+              style={{ minWidth: '40px', minHeight: '40px' }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -202,6 +203,7 @@ const Navbar = () => {
         <div 
           className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          style={{ width: '100vw', maxWidth: '100%', overflowX: 'hidden' }}
         />
       )}
 
@@ -212,9 +214,10 @@ const Navbar = () => {
             ? 'opacity-100 translate-y-0' 
             : 'opacity-0 -translate-y-4 pointer-events-none'
         }`}
+        style={{ maxWidth: '100vw', overflowX: 'hidden' }}
       >
-        <div className="bg-black/90 backdrop-blur-lg border-b border-white/10 shadow-lg">
-          <nav className="px-6 py-4">
+        <div className="bg-black/90 backdrop-blur-lg border-b border-white/10 shadow-lg max-w-full overflow-hidden">
+          <nav className="px-4 py-4 max-w-7xl mx-auto">
             <ul className="space-y-4">
               {navItems.map((item) => (
                 <li key={item.id}>

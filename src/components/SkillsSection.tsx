@@ -123,15 +123,15 @@ const SkillsSection = () => {
   }
 
   return (
-    <section id="skills" className="scroll-mt-24 section-gap w-full bg-black overflow-hidden">
+    <section id="skills" className="scroll-mt-24 section-gap w-full bg-black overflow-x-hidden lg:overflow-visible my-28 py-16 sm:py-18 md:py-0">
       {/* Section Container - Max width and centered */}
       <div className="max-w-[1280px] mx-auto px-6 md:px-8">
         {/* Header - Simplified with kicker styling on main title */}
-        <div className="mb-14 md:mb-16 text-left">
+        <div className="mb-10 sm:mb-12 md:mb-16 text-left">
           {/* Title with kicker styling + thin line accent */}
           <div className="flex items-center gap-4 mb-3">
             <h2 
-              className="text-4xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+              className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
               data-lens="on"
             >
               Skills
@@ -140,7 +140,7 @@ const SkillsSection = () => {
           </div>
 
           {/* Subtitle */}
-          <p className="text-base md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
+          <p className="text-xs md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
             Core technologies and tools I use to build modern web applications.
           </p>
         </div>
@@ -148,22 +148,22 @@ const SkillsSection = () => {
         {/* Main 2-Column Layout: Orbit LEFT + Stacked Deck RIGHT - Center Aligned */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-[72px]">
           
-          {/* Left Column: Orbit (Fixed Width) - UNCHANGED */}
+          {/* Left Column: Orbit Stage with Proper Mobile Height */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex-shrink-0 flex items-center justify-center mx-auto lg:mx-0"
-            style={{
-              flex: '0 0 420px'
-            }}
+            className="flex-shrink-0 w-full lg:w-auto"
           >
-            <TechOrb 
-              icons={orbitalIcons}
-              onIconClick={setSelectedIcon}
-              onIconHover={handleOrbIconHover}
-            />
+            {/* Orbit Stage - Dedicated container with proper height for mobile */}
+            <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full">
+              <TechOrb 
+                icons={orbitalIcons}
+                onIconClick={setSelectedIcon}
+                onIconHover={handleOrbIconHover}
+              />
+            </div>
           </motion.div>
 
           {/* Right Column: Stacked Card Deck with Navigation */}
@@ -237,7 +237,7 @@ const SkillsSection = () => {
                 onTouchEnd={handleTouchEnd}
               >
                 {/* Stacked Cards */}
-                <div className="relative h-[460px] md:h-[500px] overflow-visible">
+                <div className="relative h-[420px] sm:h-[440px] md:h-[500px] overflow-visible">
                   {skillCategories.map((category, index) => {
                     const offset = (index - activeCardIndex + skillCategories.length) % skillCategories.length
                     const isActive = offset === 0
@@ -259,8 +259,8 @@ const SkillsSection = () => {
                   })}
                 </div>
 
-                {/* Dots Indicator - Mobile */}
-                <div className="flex md:hidden justify-center gap-2 mt-6">
+                {/* Dots Indicator - Mobile + Tablet (hidden on desktop) */}
+                <div className="flex justify-center gap-2 mt-4 sm:mt-5 md:mt-6 lg:hidden">
                   {skillCategories.map((_, index) => (
                     <button
                       key={index}
@@ -314,19 +314,68 @@ const TechOrb = ({
     }
   }
 
-  const orbitRadius = 170
-  const iconSize = 56
+  // Responsive orbit sizing with safe insets - mobile first (desktop restored)
+  const getOrbitConfig = () => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth
+      if (width <= 320) {
+        // Mobile 320px: larger feature-level sizing
+        const containerSize = 280  // 280px diameter
+        const iconSize = 38
+        const safeInset = 10
+        const radius = (containerSize / 2) - (iconSize / 2) - safeInset
+        return { containerSize, iconSize, radius }
+      }
+      if (width < 640) {
+        // Mobile 375px+: scaled up appropriately
+        const containerSize = 310  // 310px diameter
+        const iconSize = 40
+        const safeInset = 10
+        const radius = (containerSize / 2) - (iconSize / 2) - safeInset
+        return { containerSize, iconSize, radius }
+      }
+      if (width < 768) {
+        // Small screens: medium sizing
+        const containerSize = 320  // 320px diameter
+        const iconSize = 44
+        const safeInset = 10
+        const radius = (containerSize / 2) - (iconSize / 2) - safeInset
+        return { containerSize, iconSize, radius }
+      }
+      // Desktop: RESTORED ORIGINAL SIZING (340px diameter = 170px radius)
+      const containerSize = 340  // 340px diameter (ORIGINAL)
+      const iconSize = 56       // 56px icons (ORIGINAL)
+      const safeInset = 0        // No inset for desktop (ORIGINAL behavior)
+      const radius = 170         // 170px radius (ORIGINAL hardcoded value)
+      return { containerSize, iconSize, radius }
+    }
+    // SSR fallback - desktop values
+    return { containerSize: 340, iconSize: 56, radius: 170 }
+  }
+
+  const [orbitConfig, setOrbitConfig] = useState(getOrbitConfig())
+
+  useEffect(() => {
+    const handleResize = () => {
+      setOrbitConfig(getOrbitConfig())
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   return (
-    <div 
-      className="relative mx-auto"
-      style={{
-        '--radius': `${orbitRadius}px`,
-        '--iconSize': `${iconSize}px`,
-        width: `calc(var(--radius) * 2)`,
-        height: `calc(var(--radius) * 2)`
-      } as React.CSSProperties}
-    >
+    <div className="w-full flex justify-center overflow-visible p-2 max-w-full">
+      <div 
+        className="relative mx-auto max-w-full"
+        style={{
+          '--radius': `${orbitConfig.radius}px`,
+          '--iconSize': `${orbitConfig.iconSize}px`,
+          width: `${orbitConfig.containerSize}px`,
+          height: `${orbitConfig.containerSize}px`,
+          maxWidth: '100%'
+        } as React.CSSProperties}
+      >
       {/* Crisp Dashed Ring */}
       <div 
         className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
@@ -476,6 +525,7 @@ const TechOrb = ({
         })}
       </motion.div>
     </div>
+    </div>
   )
 }
 
@@ -618,7 +668,7 @@ const StackedSkillCard = ({
           </div>
 
           {/* Full-width skill rows - Improved readability */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+          <div className="flex-1 space-y-2 overflow-y-auto skills-scroll">
             {category.skills.map((skill, index) => (
               <motion.div
                 key={skill}

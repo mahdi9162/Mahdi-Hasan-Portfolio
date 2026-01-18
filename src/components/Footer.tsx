@@ -24,14 +24,16 @@ const Footer = () => {
   }, [])
 
   return (
-    <footer className="section-gap bg-black px-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-20">
-          <div className="space-y-6">
-            <h2 className="text-7xl md:text-[12rem] font-black text-white leading-none tracking-tighter opacity-10 select-none">
-              MAHDI
-            </h2>
-            <p className="text-zinc-500 max-w-sm text-lg">
+    <footer className="section-gap bg-black px-6 md:px-8 overflow-hidden pb-16 md:pb-12">
+      <div className="max-w-7xl mx-auto relative">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-12 relative z-10">
+          <div className="space-y-6 w-full md:w-auto">
+            <div className="w-full overflow-visible">
+              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[12rem] font-black text-white leading-none tracking-tighter opacity-10 select-none text-center md:text-left max-w-full">
+                MAHDI
+              </h2>
+            </div>
+            <p className="text-zinc-500 max-w-sm text-sm md:text-lg">
               Thanks for stopping by. Let's turn ideas into clean, responsive UI.
             </p>
             
@@ -74,12 +76,12 @@ const Footer = () => {
 
         <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent mb-12"></div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-          <p className="text-zinc-600 text-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 px-4 md:px-0">
+          <p className="text-zinc-600 text-xs md:text-sm">
             © 2026 Mahdi Hasan. All rights reserved.
           </p>
           
-          <div className="flex gap-8">
+          <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center">
             <a 
               href="https://linkedin.com/in/your-profile" 
               target="_blank"

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, Terminal, Network, MapPin, Phone } from 'lucide-react'
+import { Mail, MapPin, Phone } from 'lucide-react'
 
 interface FormData {
   name: string
@@ -78,18 +78,18 @@ const ContactSection = () => {
   }
 
   return (
-    <section id="contact" className="scroll-mt-24 section-gap w-full bg-background-dark font-display">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-start">
+    <section id="contact" className="scroll-mt-24 section-gap w-full bg-background-dark font-display mb-28 sm:mb-16 md:mb-0 md:pt-10 md:pb-12">
+      <div className="max-w-7xl mx-auto px-6 md:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20 items-start">
           {/* Left Section: Premium Contact Info */}
-          <div className="lg:col-span-5 flex flex-col gap-10">
+          <div className="lg:col-span-5 flex flex-col md:gap-10 w-full md:max-w-[640px] md:mx-auto md:text-left lg:max-w-none lg:mx-0">
             {/* Premium Headline */}
             <div className="space-y-6">
               <div className="space-y-1">
-                <h1 className="text-5xl lg:text-6xl leading-none font-semibold tracking-[-0.02em] text-white">
+                <h1 className="text-2xl md:text-5xl lg:text-6xl leading-none font-semibold tracking-[-0.02em] text-white">
                   Open a
                 </h1>
-                <h1 className="text-6xl lg:text-7xl leading-none font-semibold tracking-[-0.02em] text-primary/70">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl leading-none font-semibold tracking-[-0.02em] text-primary/70">
                   Channel
                 </h1>
               </div>
@@ -105,7 +105,7 @@ const ContactSection = () => {
                 </div>
                 
                 {/* Premium highlight line */}
-                <p className="mt-6 text-zinc-500 text-sm">Fast replies • Clear scope • Clean delivery</p>
+                <p className="mt-6 text-zinc-500 text-xs md:text-sm text-center md:text-start">Fast replies • Clear scope • Clean delivery</p>
               </div>
             </div>
 
@@ -118,7 +118,7 @@ const ContactSection = () => {
                 <div className="flex items-center gap-3">
                   <MapPin className="text-primary/80 text-[18px]" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-zinc-300 text-[14px] leading-relaxed">100/6 West Brahmondi, Narsingdi, Bangladesh</p>
+                    <p className="text-zinc-300 text-[14px] leading-relaxed">West Brahmondi, Narsingdi, Bangladesh</p>
                   </div>
                 </div>
 
@@ -128,7 +128,7 @@ const ContactSection = () => {
                   <div className="flex-1 min-w-0">
                     <a 
                       href="mailto:hasanmahdi6060@gmail.com" 
-                      className="text-zinc-300 text-[14px] leading-relaxed hover:text-zinc-100 transition-colors"
+                      className="text-zinc-300 text-[14px] leading-relaxed hover:text-zinc-100 hover:drop-shadow-[0_0_14px_rgba(223,181,42,0.18)] transition-all duration-300"
                     >
                       hasanmahdi6060@gmail.com
                     </a>
@@ -151,7 +151,7 @@ const ContactSection = () => {
             </div>
 
             {/* System Status */}
-            <div className="mt-8">
+            <div className="mt-8 hidden md:block">
               <p className="text-zinc-500 text-xs font-mono tracking-wide">
                 System Status: {submitStatus === 'success' ? 'Message ready to send' : 'Waiting for user input'}
               </p>
@@ -159,19 +159,19 @@ const ContactSection = () => {
           </div>
 
           {/* Right Section: Premium Contact Form */}
-          <div className="lg:col-span-7">
-            <div className="glass-card rounded-2xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-7 w-full md:max-w-[640px] md:mx-auto lg:max-w-none lg:mx-0">
+            <div className="glass-card rounded-2xl p-4 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-full">
               {/* Subtle Background Pattern */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
               
-              <div className="relative z-10 flex flex-col gap-8">
+              <div className="relative z-10 flex flex-col gap-6 md:gap-8 min-w-0">
                 <div>
-                  <h2 className="text-[34px] md:text-[38px] leading-[1.1] font-semibold tracking-[-0.02em] text-white mb-2">Send me a message</h2>
-                  <p className="text-zinc-500 text-sm leading-relaxed mt-2">Direct packet transfer to my terminal.</p>
+                  <h2 className="text-xl md:text-[38px] leading-[1.1] font-semibold tracking-[-0.02em] text-white mb-2">Send me a message</h2>
+                  <p className="text-zinc-500 text-xs md:text-sm leading-relaxed mt-2">Direct packet transfer to my terminal.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6 min-w-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 min-w-0">
                     <div className="flex flex-col gap-2">
                       <label className="text-zinc-200 text-sm font-medium mb-2 block">
                         Name
@@ -180,7 +180,7 @@ const ContactSection = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-5 py-4 text-[15px] leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition ${
+                        className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition ${
                           errors.name ? 'border-red-500' : ''
                         }`}
                         placeholder="Your full name"
@@ -199,7 +199,7 @@ const ContactSection = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-5 py-4 text-[15px] leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition ${
+                        className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition ${
                           errors.email ? 'border-red-500' : ''
                         }`}
                         placeholder="your.email@example.com"
@@ -219,7 +219,7 @@ const ContactSection = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl bg-zinc-800/40 border border-white/10 px-5 py-4 text-[15px] leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
+                      className="w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
                       placeholder="Your phone number (optional)"
                       type="text"
                     />
@@ -233,7 +233,7 @@ const ContactSection = () => {
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
-                      className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-5 py-4 text-[15px] leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition resize-none min-h-[150px] max-h-[170px] ${
+                      className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition resize-none min-h-[120px] md:min-h-[160px] max-h-[140px] md:max-h-[170px] ${
                         errors.message ? 'border-red-500' : ''
                       }`}
                       placeholder="Tell me about your project, timeline, and any specific requirements..."
@@ -247,7 +247,7 @@ const ContactSection = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="mt-4 flex h-14 items-center justify-center rounded-xl bg-primary text-black text-[13px] tracking-[0.24em] uppercase font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-4 flex h-10 md:h-14 items-center justify-center rounded-xl bg-primary text-black text-xs md;text-[13px] tracking-[0.24em] uppercase font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
                     <svg 

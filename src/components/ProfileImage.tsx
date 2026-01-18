@@ -2,28 +2,61 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
-const ProfileImage = () => {
+interface ProfileImageProps {
+  animationReady?: boolean
+}
+
+const ProfileImage = ({ animationReady = true }: ProfileImageProps) => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  useEffect(() => {
+    // Check for reduced motion preference
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+  }, [])
+
+  const imageVariants = {
+    hidden: { 
+      opacity: 0,
+      scale: prefersReducedMotion ? 1 : 1.04,
+      filter: prefersReducedMotion ? 'blur(0px)' : 'blur(6px)'
+    },
+    visible: { 
+      opacity: 1,
+      scale: 1,
+      filter: 'blur(0px)',
+      transition: {
+        duration: 1.2,
+        delay: 0.3,
+        ease: "easeOut"
+      }
+    }
+  }
+
   return (
     <div 
-      className="profile-image w-full h-80 sm:h-96 md:h-[500px] lg:h-screen relative overflow-hidden"
+      className="profile-image w-full h-[360px] sm:h-[420px] md:h-[520px] lg:h-screen relative overflow-visible lg:overflow-hidden"
       style={{ 
         zIndex: 100, 
         opacity: 1, 
         visibility: 'visible',
-        display: 'block',
-        minHeight: '500px'
+        display: 'block'
       }}
     >
       <motion.div
-        whileHover={{ scale: 1.05 }}
+        variants={imageVariants}
+        initial="hidden"
+        animate={animationReady ? "visible" : "hidden"}
+        whileHover={{ scale: prefersReducedMotion ? 1 : 1.05 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative w-full h-full group"
         style={{ opacity: 1, visibility: 'visible', display: 'block' }}
       >
         <Image
           alt="Professional portrait of Mahdi Hasan"
-          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 ease-out"
+          className="w-full h-full object-contain lg:object-cover grayscale group-hover:grayscale-0 transition-all duration-300 ease-out"
           src="/formal_Img_org.webp"
           fill
           priority

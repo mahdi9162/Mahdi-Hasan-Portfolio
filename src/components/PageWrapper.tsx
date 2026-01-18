@@ -6,9 +6,11 @@ import SmartLoader from './SmartLoader'
 
 interface PageWrapperProps {
   children: React.ReactNode
+  entryLoaderComplete?: boolean
+  skipSmartLoader?: boolean // New prop to skip SmartLoader entirely
 }
 
-const PageWrapper = ({ children }: PageWrapperProps) => {
+const PageWrapper = ({ children, entryLoaderComplete = true, skipSmartLoader = false }: PageWrapperProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [showContent, setShowContent] = useState(false)
 
@@ -19,6 +21,23 @@ const PageWrapper = ({ children }: PageWrapperProps) => {
       setShowContent(true)
     }, 100)
   }
+
+  // Handle entry loader completion and SmartLoader logic
+  useEffect(() => {
+    if (skipSmartLoader) {
+      // Skip SmartLoader entirely (after welcome loader)
+      setIsLoading(false)
+      setShowContent(true)
+    } else if (entryLoaderComplete) {
+      // Entry loader is complete, proceed with SmartLoader
+      setIsLoading(true)
+      setShowContent(false)
+    } else {
+      // Entry loader is still running, don't show anything
+      setIsLoading(false)
+      setShowContent(false)
+    }
+  }, [entryLoaderComplete, skipSmartLoader])
 
   // Prevent any flash of content during loading
   useEffect(() => {
@@ -45,8 +64,11 @@ const PageWrapper = ({ children }: PageWrapperProps) => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {isLoading && (
-          <SmartLoader key="loader" onComplete={handleLoadingComplete} />
+        {isLoading && entryLoaderComplete && !skipSmartLoader && (
+          <SmartLoader 
+            key="loader" 
+            onComplete={handleLoadingComplete}
+          />
         )}
       </AnimatePresence>
       

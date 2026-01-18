@@ -211,21 +211,21 @@ const ProjectsSection = () => {
 
   return (
     <>
-      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black">
+      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black mb-28 md:mb-0">
         <Container>
           <div className="space-y-8 md:space-y-10">
             {/* Header */}
             <div className="mb-14 md:mb-16 text-left">
               <div className="flex items-center gap-4 mb-3">
                 <h2 
-                  className="text-4xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+                  className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
                   data-lens="on"
                 >
                   Projects
                 </h2>
                 <div className="flex-1 h-[1px] bg-gradient-to-r from-white/20 to-transparent max-w-[140px]" />
               </div>
-              <p className="text-base md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
+              <p className="text-xs md:text-lg text-white/70 max-w-[620px] leading-relaxed" data-lens="on">
                 Showcase of my latest work and projects.
               </p>
             </div>
@@ -265,7 +265,7 @@ const ProjectsSection = () => {
                   duration: 0.24, 
                   ease: [0.22, 1, 0.36, 1] 
                 }}
-                className="min-h-[600px]" // Stable height to prevent layout jump
+                className="min-h-0 lg:min-h-[600px]" // Stable height to prevent layout jump
               >
                 {activeTab === 'client' && filteredProjects.length === 1 ? (
                   /* Client Work: Premium Top Media + Bottom Content Card */
@@ -402,13 +402,7 @@ const ProjectsSection = () => {
                   </div>
                 ) : (
                   /* Projects: 2-Column Layout */
-                  <div 
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 min-h-0 lg:items-stretch"
-                    style={{
-                      height: 'calc(100vh - 16rem)',
-                      maxHeight: 'clamp(640px, 78vh, 820px)'
-                    }}
-                  >
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 min-h-0 lg:items-stretch lg:[height:calc(100vh-16rem)] lg:[max-height:clamp(640px,78vh,820px)]">
                     
                     {/* Left: Featured Card */}
                     <div className="lg:col-span-8 min-h-0">
@@ -709,29 +703,29 @@ const ProjectsSection = () => {
                           </button>
                         ))}
                       </div>
+
+                      {/* Mobile Navigation Dots - Attached to cards */}
+                      {activeTab === 'frontend' && (
+                        <div className="flex justify-center gap-2 pt-3 pb-1">
+                          {filteredProjects.map((project) => (
+                            <button
+                              key={project.id}
+                              onClick={() => setActiveId(project.id)}
+                              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                project.id === activeId
+                                  ? 'bg-brand-gold w-6'
+                                  : 'bg-white/20 hover:bg-white/40'
+                              }`}
+                              aria-label={`View ${project.title}`}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </motion.div>
             </AnimatePresence>
-
-            {/* Mobile Navigation Dots - Only show for Projects tab */}
-            {activeTab === 'frontend' && (
-              <div className="flex lg:hidden justify-center gap-2">
-                {filteredProjects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() => setActiveId(project.id)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      project.id === activeId
-                        ? 'bg-brand-gold w-6'
-                        : 'bg-white/20 hover:bg-white/40'
-                    }`}
-                    aria-label={`View ${project.title}`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </Container>
       </section>
@@ -739,7 +733,7 @@ const ProjectsSection = () => {
       {/* Work Summary Modal */}
       {showWorkSummary && active.category === 'client' && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto desktop-hide-scrollbar">
             <div className="p-6 md:p-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-white" data-lens="on">

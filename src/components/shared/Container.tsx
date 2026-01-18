@@ -8,7 +8,7 @@ interface ContainerProps {
 
 const Container = ({ children, className = '', as: Component = 'div' }: ContainerProps) => {
   // Merge default classes with custom className - matches Navbar width (max-w-7xl)
-  const classes = `max-w-7xl mx-auto px-6 sm:px-8 ${className}`.trim()
+  const classes = `max-w-7xl mx-auto px-6 md:px-8 lg:px-8 ${className}`.trim()
   
   return <Component className={classes}>{children}</Component>
 }

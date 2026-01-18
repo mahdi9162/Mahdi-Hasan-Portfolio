@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Entry Loader Test</title>
+</head>
+<body>
+    <script>
+        // Clear session storage to test entry loader
+        sessionStorage.removeItem('entryLoaderSeen');
+        sessionStorage.removeItem('welcomeShown');
+        sessionStorage.removeItem('hasVisited');
+        
+        // Redirect to the app
+        window.location.href = 'http://localhost:3000';
+    </script>
+</body>
+</html>

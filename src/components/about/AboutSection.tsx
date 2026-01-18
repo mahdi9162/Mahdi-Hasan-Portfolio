@@ -12,7 +12,7 @@ import SectionHeader from '@/components/shared/SectionHeader'
 
 const AboutSection = () => {
   return (
-    <section id="about" className="scroll-mt-24 section-gap w-full bg-background-dark">
+    <section id="about" className="scroll-mt-24 section-gap w-full bg-background-dark mb-28 sm:mb-16 md:mb-0">
       <Container>
         <div className="space-y-8 md:space-y-10">
           {/* Section Header */}
@@ -52,7 +52,7 @@ const AboutSection = () => {
                         <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
                           Academic Background
                         </p>
-                        <p className="text-white font-semibold">Govt. Titumir College</p>
+                        <p className="text-white font-semibold text-sm md:text-base my-1">Govt. Titumir College</p>
                         <p className="text-xs text-zinc-400">History Major turned Developer</p>
                       </div>
                     </div>
@@ -75,7 +75,7 @@ const AboutSection = () => {
                       but I was always drawn to logic, structure, and building things. The turning point came when I realized I was preparing for a future I didn't want. I chose to pivot, got the support I needed, and began my development journey through Programming Hero—then kept growing through real projects and consistent practice.
                     </p>
                     
-                    <p className="text-[18px] leading-[1.7] text-zinc-200 italic border-l-2 border-primary pl-6 mt-6 mb-6" style={{ textWrap: 'balance' }} data-lens="on">
+                    <p className="text-sm md:text-[18px] leading-[1.7] text-zinc-200 italic border-l-2 border-primary pl-6 mt-6 mb-6"  data-lens="on">
                       From history to frontend — I build clean, structured UI that feels product-ready.
                     </p>
                     

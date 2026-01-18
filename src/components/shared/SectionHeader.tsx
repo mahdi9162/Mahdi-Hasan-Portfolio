@@ -23,7 +23,7 @@ const SectionHeader = ({
           {/* Title with Divider Line - Matching Skills Style */}
           <div className={`flex ${align === 'center' ? 'justify-center' : 'items-center'} gap-4 mb-3`}>
             <h2 
-              className="text-4xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
+              className="text-2xl md:text-5xl font-bold text-white uppercase tracking-[0.08em]" 
               data-lens="on"
             >
               {title}
@@ -33,7 +33,7 @@ const SectionHeader = ({
 
           {/* Subtitle */}
           {subtitle && (
-            <p className={`text-base md:text-lg text-white/70 max-w-[620px] leading-relaxed ${maxWidthClass}`} data-lens="on">
+            <p className={`text-xs md:text-lg text-white/70 max-w-[620px] leading-relaxed ${maxWidthClass}`} data-lens="on">
               {subtitle}
             </p>
           )}
