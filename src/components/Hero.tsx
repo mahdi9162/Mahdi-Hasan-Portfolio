@@ -1,6 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+import { EASE_OUT } from '@/lib/animations'
 
 /**
  * MOBILE TYPOGRAPHY SCALE PATTERN (Reusable across all sections):
@@ -24,7 +26,7 @@ interface HeroProps {
 
 const Hero = ({ entryRevealReady = true }: HeroProps) => {
   // Animation variants for staggered text reveal
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: { 
       opacity: 1,
@@ -35,7 +37,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
     }
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 18 
@@ -46,7 +48,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
     }
   }
 
-  const subtitleVariants = {
+  const subtitleVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 14 
@@ -57,7 +59,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
     }
   }
 
-  const descriptionVariants = {
+  const descriptionVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 10 
@@ -68,7 +70,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
     }
   }
 
-  const buttonVariants = {
+  const buttonVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 12,
@@ -89,7 +91,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
       animate={entryRevealReady ? "show" : "hidden"}
       transition={{
         duration: 0.6,
-        ease: [0.16, 1, 0.3, 1]
+        ease: EASE_OUT
       }}
     >
       <div className="max-w-3xl text-center md:text-start md:max-w-[42ch] lg:max-w-3xl">

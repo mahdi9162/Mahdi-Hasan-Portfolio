@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { Mail, MapPin, Phone } from 'lucide-react'
+import { EASE_OUT_QUART } from '@/lib/animations'
 
 interface FormData {
   name: string
@@ -29,14 +31,14 @@ const ContactSection = () => {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success'>('idle')
 
   // Animation variants - same pattern as Projects/About sections
-  const containerVariants = {
+  const containerVariants: Variants = {
     show: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1], 
+        ease: EASE_OUT_QUART, 
         staggerChildren: 0.08, 
         delayChildren: 0 
       }
@@ -48,12 +50,12 @@ const ContactSection = () => {
       filter: "blur(2px)",        // light blur only
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
 
-  const leftVariants = {
+  const leftVariants: Variants = {
     show: { 
       opacity: 1, 
       x: 0, 
@@ -61,7 +63,7 @@ const ContactSection = () => {
       filter: "blur(0px)",
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     },
     hide: { 
@@ -71,12 +73,12 @@ const ContactSection = () => {
       filter: "blur(3px)",
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
 
-  const rightVariants = {
+  const rightVariants: Variants = {
     show: { 
       opacity: 1, 
       x: 0, 
@@ -84,7 +86,7 @@ const ContactSection = () => {
       filter: "blur(0px)",
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     },
     hide: { 
@@ -94,7 +96,7 @@ const ContactSection = () => {
       filter: "blur(3px)",
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }

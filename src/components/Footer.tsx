@@ -1,11 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { motion, useInView } from 'framer-motion'
 
 const Footer = () => {
   const [currentTime, setCurrentTime] = useState('')
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const footerRef = useRef<HTMLElement>(null)
+  
+  // Trigger when 20-30% of footer is visible, allow re-trigger
+  const isInView = useInView(footerRef, { 
+    once: false, 
+    margin: "-20% 0px -70% 0px" // Start animation earlier
+  })
 
   useEffect(() => {
+    // Check for reduced motion preference
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    
     const updateTime = () => {
       const now = new Date()
       const dhakaTime = new Intl.DateTimeFormat('en-US', {
@@ -24,8 +37,26 @@ const Footer = () => {
   }, [])
 
   return (
-    <footer className="section-gap bg-black px-6 md:px-8 overflow-hidden mt-28 pb-16 md:pb-12">
-      <div className="max-w-7xl mx-auto relative">
+    <footer 
+      ref={footerRef}
+      className="section-gap bg-black px-6 md:px-8 overflow-hidden mt-28 pb-16 md:pb-12"
+    >
+      {/* Single animated wrapper - fade + slide-up on scroll reveal */}
+      <motion.div 
+        className="max-w-7xl mx-auto relative"
+        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 14 }}
+        animate={{ 
+          opacity: isInView ? 1 : 0, 
+          y: isInView ? 0 : (prefersReducedMotion ? 0 : 14)
+        }}
+        transition={{ 
+          duration: isInView ? 0.55 : 0.35, 
+          ease: [0.22, 1, 0.36, 1] // Smooth cubic-bezier easing
+        }}
+        style={{ 
+          willChange: 'transform, opacity' // Performance optimization
+        }}
+      >
         <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-12 relative z-10">
           <div className="space-y-6 w-full md:w-auto">
             <div className="w-full overflow-visible">
@@ -111,7 +142,7 @@ const Footer = () => {
             </a>
           </div>
         </div>
-      </div>
+      </motion.div>
     </footer>
   )
 }

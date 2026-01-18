@@ -1,14 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import Image from 'next/image'
+import { EASE_OUT } from '@/lib/animations'
 
 interface ProfileImageProps {
   entryRevealReady?: boolean
 }
 
 const ProfileImage = ({ entryRevealReady = true }: ProfileImageProps) => {
-  const imageVariants = {
+  const imageVariants: Variants = {
     hidden: { 
       opacity: 0,
       filter: "blur(14px)",
@@ -21,7 +23,7 @@ const ProfileImage = ({ entryRevealReady = true }: ProfileImageProps) => {
       transition: {
         duration: 0.8,
         delay: 0.2,
-        ease: [0.16, 1, 0.3, 1]
+        ease: EASE_OUT
       }
     }
   }

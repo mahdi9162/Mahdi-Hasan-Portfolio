@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import Image from 'next/image'
 import Container from '@/components/shared/Container'
+import { EASE_OUT_QUART } from '@/lib/animations'
 
 interface Project {
   id: number
@@ -100,14 +102,14 @@ const ProjectsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null)
 
   // Animation variants - proper in/out with no layout issues
-  const containerVariants = {
+  const containerVariants: Variants = {
     show: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1], 
+        ease: EASE_OUT_QUART, 
         staggerChildren: 0.08, 
         delayChildren: 0 
       }
@@ -119,19 +121,19 @@ const ProjectsSection = () => {
       filter: "blur(2px)",        // light blur only
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
 
-  const childVariants = {
+  const childVariants: Variants = {
     show: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     },
     hide: { 
@@ -141,7 +143,7 @@ const ProjectsSection = () => {
       filter: "blur(3px)",
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
@@ -329,7 +331,7 @@ const ProjectsSection = () => {
                   exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                   transition={{ 
                     duration: 0.24, 
-                    ease: [0.22, 1, 0.36, 1] 
+                    ease: EASE_OUT_QUART 
                   }}
                   className="min-h-0 lg:min-h-[600px]" // Stable height to prevent layout jump
                 >
@@ -342,7 +344,7 @@ const ProjectsSection = () => {
                         initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: 0.3, ease: EASE_OUT_QUART }}
                         className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden"
                       >
                         {/* Top: Hero Image */}
@@ -478,7 +480,7 @@ const ProjectsSection = () => {
                           initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
-                          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                          transition={{ duration: 0.3, ease: EASE_OUT_QUART }}
                           className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden h-full flex flex-col min-h-0"
                         >
                           {/* Image Zone - 60% */}
@@ -604,7 +606,7 @@ const ProjectsSection = () => {
                                 initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -10 }}
-                                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                                transition={{ duration: 0.25, ease: EASE_OUT_QUART }}
                                 onClick={() => handleMiniClick(project.id)}
                                 className="group relative bg-white/[0.04] border border-white/[0.12] rounded-xl overflow-hidden hover:border-brand-gold/40 hover:bg-white/[0.06] hover:shadow-[0_6px_24px_rgba(207,174,82,0.14)] transition-all duration-300 text-left w-full"
                               >

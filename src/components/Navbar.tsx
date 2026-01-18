@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+import { EASE_OUT } from '@/lib/animations'
 
 const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => {
   const [scrolled, setScrolled] = useState(false)
@@ -113,14 +115,14 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
     { id: 'contact', label: 'Contact' }
   ]
 
-  const navbarVariants = {
+  const navbarVariants: Variants = {
     hidden: { opacity: 0, y: -10 },
     show: { 
       opacity: 1, 
       y: 0,
       transition: { 
         duration: 0.45, 
-        ease: [0.16, 1, 0.3, 1] 
+        ease: EASE_OUT 
       }
     }
   }

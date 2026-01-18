@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useInView, useReducedMotion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { useRef } from 'react'
 import Image from 'next/image'
 import { 
@@ -11,20 +12,21 @@ import {
 } from 'lucide-react'
 import Container from '@/components/shared/Container'
 import SectionHeader from '@/components/shared/SectionHeader'
+import { EASE_OUT_QUART } from '@/lib/animations'
 
 const AboutSection = () => {
   // Animation setup - safe intersection observer
   const shouldReduceMotion = useReducedMotion()
 
   // Animation variants - container stays visible, children animate
-  const containerVariants = {
+  const containerVariants: Variants = {
     in: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1], 
+        ease: EASE_OUT_QUART, 
         staggerChildren: 0.08, 
         delayChildren: 0 
       }
@@ -35,19 +37,19 @@ const AboutSection = () => {
       filter: "blur(2px)",
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
 
-  const childVariants = {
+  const childVariants: Variants = {
     in: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)", 
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     },
     out: { 
@@ -56,12 +58,12 @@ const AboutSection = () => {
       filter: "blur(3px)",
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
 
-  const leftVariants = {
+  const leftVariants: Variants = {
     in: { 
       opacity: 1, 
       y: 0, 
@@ -69,7 +71,7 @@ const AboutSection = () => {
       filter: "blur(0px)", 
       transition: { 
         duration: 0.6, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     },
     out: { 
@@ -79,12 +81,12 @@ const AboutSection = () => {
       filter: "blur(3px)",
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }
 
-  const listVariants = {
+  const listVariants: Variants = {
     in: {
       transition: {
         staggerChildren: 0.06,
@@ -98,13 +100,13 @@ const AboutSection = () => {
     }
   }
 
-  const listItemVariants = {
+  const listItemVariants: Variants = {
     in: { 
       opacity: 1, 
       x: 0, 
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     },
     out: { 
@@ -112,7 +114,7 @@ const AboutSection = () => {
       x: -8, 
       transition: { 
         duration: 0.35, 
-        ease: [0.22, 1, 0.36, 1] 
+        ease: EASE_OUT_QUART 
       }
     }
   }

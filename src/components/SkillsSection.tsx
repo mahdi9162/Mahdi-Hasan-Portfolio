@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { 
   SiReact, 
   SiJavascript,
@@ -14,6 +15,7 @@ import {
   SiNetlify 
 } from 'react-icons/si'
 import { FaCode, FaServer, FaDatabase, FaTools } from 'react-icons/fa'
+import { EASE_OUT, EASE_OUT_QUART } from '@/lib/animations'
 
 interface OrbitalIcon {
   id: string
@@ -70,7 +72,7 @@ const SkillsSection = () => {
   const [touchEnd, setTouchEnd] = useState(0)
 
   // Animation variants for section
-  const sectionVariants = {
+  const sectionVariants: Variants = {
     hidden: { opacity: 0 },
     show: { 
       opacity: 1,
@@ -181,7 +183,7 @@ const SkillsSection = () => {
           variants={titleVariants}
           transition={{
             duration: 0.5,
-            ease: [0.16, 1, 0.3, 1]
+            ease: EASE_OUT
           }}
         >
           {/* Title with kicker styling + thin line accent */}
@@ -211,7 +213,7 @@ const SkillsSection = () => {
             transition={{
               type: "tween",
               duration: 0.6,
-              ease: [0.16, 1, 0.3, 1]
+              ease: EASE_OUT
             }}
             style={{
               willChange: "transform, opacity",
@@ -235,7 +237,7 @@ const SkillsSection = () => {
             transition={{
               type: "tween",
               duration: 0.6,
-              ease: [0.16, 1, 0.3, 1],
+              ease: EASE_OUT,
               when: "beforeChildren",
               delayChildren: 0,
               staggerChildren: 0.04
@@ -684,7 +686,7 @@ const StackedSkillCard = ({
       }}
       transition={{
         duration: prefersReducedMotion ? 0 : 0.55,
-        ease: [0.22, 1, 0.36, 1]
+        ease: EASE_OUT_QUART
       }}
     >
       <div 
@@ -773,7 +775,7 @@ const StackedSkillCard = ({
                 variants={listItem}
                 transition={{ 
                   duration: 0.22, 
-                  ease: [0.22, 1, 0.36, 1] 
+                  ease: EASE_OUT_QUART 
                 }}
                 className="w-full px-4 py-2.5 flex items-center space-x-3 rounded-full border transition-all duration-[500ms] hover:border-white/[0.28] hover:bg-white/[0.09] cursor-default"
                 style={{
