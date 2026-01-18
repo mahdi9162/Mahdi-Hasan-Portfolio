@@ -261,7 +261,7 @@ const ProjectsSection = () => {
 
   return (
     <>
-      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black my-12 sm:my-16 md:my-26">
+      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black my-12 sm:my-16 md:my-0">
         <Container>
           <motion.div 
             ref={sectionRef}

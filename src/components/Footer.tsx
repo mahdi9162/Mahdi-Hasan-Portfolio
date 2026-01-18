@@ -8,10 +8,10 @@ const Footer = () => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const footerRef = useRef<HTMLElement>(null)
   
-  // Trigger when 20-30% of footer is visible, allow re-trigger
+  // Trigger when footer top is 100px away from bottom of viewport
   const isInView = useInView(footerRef, { 
-    once: false, 
-    margin: "-20% 0px -70% 0px" // Start animation earlier
+    once: true, 
+    margin: "0px 0px -100px 0px"
   })
 
   useEffect(() => {
@@ -44,14 +44,14 @@ const Footer = () => {
       {/* Single animated wrapper - fade + slide-up on scroll reveal */}
       <motion.div 
         className="max-w-7xl mx-auto relative"
-        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 14 }}
+        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
         animate={{ 
           opacity: isInView ? 1 : 0, 
-          y: isInView ? 0 : (prefersReducedMotion ? 0 : 14)
+          y: isInView ? 0 : (prefersReducedMotion ? 0 : 20)
         }}
         transition={{ 
-          duration: isInView ? 0.55 : 0.35, 
-          ease: [0.22, 1, 0.36, 1] // Smooth cubic-bezier easing
+          duration: 0.4, 
+          ease: "easeOut" // Snappier easing for faster initial movement
         }}
         style={{ 
           willChange: 'transform, opacity' // Performance optimization

@@ -120,7 +120,7 @@ const AboutSection = () => {
   }
 
   return (
-    <section id="about" className="scroll-mt-24 section-gap w-full bg-background-dark my-12 sm:my-16 md:my-28">
+    <section id="about" className="scroll-mt-24 section-gap w-full bg-background-dark my-12 sm:my-16 md:my-0">
       <Container>
         <motion.div 
           className="space-y-8 md:space-y-10"
