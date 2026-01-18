@@ -37,6 +37,10 @@ const epilogue = Epilogue({
 export const metadata: Metadata = {
   title: 'Mahdi Hasan | Frontend Developer',
   description: 'Frontend Developer focused on React and modern JavaScript, building clean, responsive interfaces and practical web applications.',
+  icons: {
+    icon: '/mh(4x).png',
+    apple: '/mh_1x.png',
+  },
 }
 
 export default function RootLayout({
