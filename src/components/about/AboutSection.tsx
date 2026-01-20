@@ -163,12 +163,12 @@ const AboutSection = () => {
               
               {/* Main Portrait Card */}
               <div className="relative z-10 bg-card-dark border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-                <div className="aspect-[16/10] md:aspect-[4/5] relative portrait-image">
+                <div className="aspect-[4/5] md:aspect-[4/5] relative portrait-image bg-zinc-900/50 md:bg-transparent p-2 md:p-0">
                   <Image
                     src="/formal_about.webp"
                     alt="Modern professional portrait of Mahdi Hasan in a minimalist setting"
                     fill
-                    className="object-cover object-center"
+                    className="object-contain md:object-cover object-center rounded-2xl md:rounded-none"
                     priority
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
                   />
