@@ -41,7 +41,7 @@ const skillCategories = [
   {
     title: 'Frontend',
     icon: FaCode,
-    skills: ['React', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3', 'Responsive Design'],
+    skills: ['React', 'Next.js', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3', 'Responsive Design'],
     relatedOrbIcons: ['react', 'javascript', 'tailwind']
   },
   {
@@ -51,43 +51,61 @@ const skillCategories = [
     relatedOrbIcons: ['nodejs', 'express']
   },
   {
-    title: 'Database',
+    title: 'Database & Auth',
     icon: FaDatabase,
-    skills: ['MongoDB', 'Firebase'],
+    skills: ['MongoDB', 'Firebase', 'JWT'],
     relatedOrbIcons: ['mongodb', 'firebase']
   },
   {
     title: 'Tools & Workflow',
     icon: FaTools,
-    skills: ['Git', 'GitHub', 'VS Code', 'Postman', 'Netlify', 'Docker', 'Figma'],
+    skills: ['Git', 'GitHub', 'VS Code', 'Postman', 'Netlify', 'Vercel'],
     relatedOrbIcons: ['git', 'netlify']
   }
 ]
 
 const SkillsSection = () => {
+  // Mobile detection for optimized animations
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   const [selectedIcon, setSelectedIcon] = useState<OrbitalIcon | null>(null)
   const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
 
-  // Animation variants for section
+  // Animation variants for section - mobile-optimized
   const sectionVariants: Variants = {
     hidden: { opacity: 0 },
     show: { 
       opacity: 1,
       transition: {
         staggerChildren: 0.08,
-        delayChildren: 0
+        delayChildren: 0,
+        duration: isMobile ? 0.4 : 0.6
       }
     }
   }
 
   const titleVariants = {
-    hidden: { opacity: 0, y: 14 },
+    hidden: { opacity: 0, y: isMobile ? 20 : 14 },
     show: { 
       opacity: 1, 
-      y: 0
+      y: 0,
+      transition: {
+        duration: isMobile ? 0.4 : 0.5,
+        ease: EASE_OUT
+      }
     }
   }
 
@@ -169,17 +187,17 @@ const SkillsSection = () => {
   return (
     <motion.section 
       id="skills" 
-      className="scroll-mt-24 section-gap w-full bg-black overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 py-16 sm:py-18 md:py-0"
+      className="scroll-mt-24 section-gap w-full bg-black/20 overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 py-16 sm:py-18 md:py-0"
       variants={sectionVariants}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, amount: 0.25, margin: "0px 0px -15% 0px" }}
+      viewport={{ once: true, amount: 0.1, margin: "-50px 0px" }}
     >
       {/* Section Container - Max width and centered */}
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8">
+      <div className="max-w-[1280px] mx-auto px-6 md:px-8 relative z-10">
         {/* Header - Simplified with kicker styling on main title */}
         <motion.div 
-          className="mb-10 sm:mb-12 md:mb-16 text-left"
+          className="mb-8 md:mb-14 lg:mb-16 text-left"
           variants={titleVariants}
           transition={{
             duration: 0.5,

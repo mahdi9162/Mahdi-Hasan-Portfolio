@@ -14,8 +14,8 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Smooth easeOut
       lerp: 0.04, // Very smooth, controlled
       smoothWheel: true,
-      wheelMultiplier: 0.6, // Slow, luxury feel
-      touchMultiplier: 1.2,
+      wheelMultiplier: 1.15, // Balanced mouse wheel sensitivity
+      touchMultiplier: 1.1, // Controlled trackpad sensitivity
       infinite: false,
     })
 

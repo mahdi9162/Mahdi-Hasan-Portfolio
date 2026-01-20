@@ -51,7 +51,7 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
         },
         { 
           threshold: [0, 0.1, 0.25, 0.4, 0.6], // Multiple thresholds for precise detection
-          rootMargin: '-110px 0px -60% 0px' // Navbar offset + bottom margin
+          rootMargin: '-96px 0px -60% 0px' // Match navbar offset + bottom margin
         }
       )
 
@@ -86,7 +86,7 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       const element = document.getElementById(sectionId)
       if (element && (window as any).lenis) {
         ;(window as any).lenis.scrollTo(element, {
-          offset: -90,
+          offset: -96, // Match CSS scroll-padding-top
           duration: 2.0,
           easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
         })

@@ -39,7 +39,7 @@ const Footer = () => {
   return (
     <footer 
       ref={footerRef}
-      className="section-gap bg-black px-6 md:px-8 overflow-hidden mt-28 pb-16 md:pb-12"
+      className="section-gap bg-transparent px-6 md:px-8 overflow-hidden mt-28 pb-16 md:pb-12"
     >
       {/* Single animated wrapper - fade + slide-up on scroll reveal */}
       <motion.div 
@@ -80,13 +80,38 @@ const Footer = () => {
 
             {/* Single Email Action */}
             <div className="mt-4">
-              <a 
-                href="mailto:hasanmahdi6060@gmail.com"
-                className="inline-flex items-center px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-zinc-300 transition-all hover:bg-primary/10 hover:border-primary/40 hover:text-white hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 text-sm font-medium"
-                aria-label="Email Mahdi"
+              <motion.div 
+                className="relative p-[1px] overflow-hidden rounded-lg bg-white/10 w-fit"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
               >
-                Email me
-              </a>
+                {/* The Glow (Sharp Laser Beam) */}
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, #D4AF37 180deg, transparent 200deg)`,
+                    filter: 'blur(4px)'
+                  }}
+                  animate={{
+                    rotate: [0, 360]
+                  }}
+                  transition={{
+                    duration: 3,
+                    ease: "linear",
+                    repeat: Infinity
+                  }}
+                />
+                
+                {/* The Button */}
+                <a 
+                  href="mailto:hasanmahdi6060@gmail.com"
+                  className="relative z-10 bg-black rounded-[7px] flex items-center justify-center px-4 py-2 text-zinc-300 hover:text-white transition-colors duration-300 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40"
+                  style={{ margin: '1px' }}
+                  aria-label="Email Mahdi"
+                >
+                  Email me
+                </a>
+              </motion.div>
             </div>
           </div>
           
@@ -114,7 +139,7 @@ const Footer = () => {
           
           <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center">
             <a 
-              href="https://linkedin.com/in/your-profile" 
+              href="https://www.linkedin.com/in/mahdi9162/" 
               target="_blank"
               rel="noreferrer"
               className="text-xs uppercase tracking-widest text-white/60 hover:text-primary hover:underline underline-offset-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
@@ -123,7 +148,7 @@ const Footer = () => {
               LinkedIn
             </a>
             <a 
-              href="https://github.com/your-username" 
+              href="https://github.com/mahdi9162" 
               target="_blank"
               rel="noreferrer"
               className="text-xs uppercase tracking-widest text-white/60 hover:text-primary hover:underline underline-offset-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
@@ -132,13 +157,13 @@ const Footer = () => {
               GitHub
             </a>
             <a 
-              href="https://x.com/your-username" 
+              href="https://www.facebook.com/mahdi916/" 
               target="_blank"
               rel="noreferrer"
               className="text-xs uppercase tracking-widest text-white/60 hover:text-primary hover:underline underline-offset-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
               data-lens="on"
             >
-              X (Twitter)
+              Facbook
             </a>
           </div>
         </div>

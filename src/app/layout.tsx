@@ -56,18 +56,17 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${syne.variable} ${manrope.variable} ${spaceGrotesk.variable} ${epilogue.variable} antialiased`} suppressHydrationWarning>
-        <div className="relative min-h-screen">
-          {/* Global Fall Beam Background */}
+      <body className={`${syne.variable} ${manrope.variable} ${spaceGrotesk.variable} ${epilogue.variable} antialiased bg-black`} suppressHydrationWarning>
+        <div className="relative min-h-screen flex flex-col">
+          {/* Global Fall Beam Background - Full page coverage */}
           <FallBeamBackground 
-            lineCount={40} 
             beamColorClass="golden" 
-            className="z-0" 
+            className="z-1" 
           />
           
           <CustomCursor />
           <SmoothScrollProvider>
-            <div className="relative z-10">
+            <div className="relative z-10 flex-1">
               {children}
             </div>
           </SmoothScrollProvider>

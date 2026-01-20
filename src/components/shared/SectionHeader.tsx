@@ -17,7 +17,7 @@ const SectionHeader = ({
   const maxWidthClass = align === 'center' ? 'mx-auto' : ''
   
   return (
-    <div className={`mb-14 md:mb-16 ${alignClass}`}>
+    <div className={`mb-8 md:mb-14 lg:mb-16 ${alignClass}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           {/* Title with Divider Line - Matching Skills Style */}

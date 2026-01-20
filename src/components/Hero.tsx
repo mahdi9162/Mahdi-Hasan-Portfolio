@@ -125,7 +125,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
         >
           {/* Primary CTA - Resume */}
           <motion.a
-            href="/Mahdi-Hasan-CV.pdf"
+            href="/Mahdi_Hasan's_Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto px-6 py-3 text-sm font-medium bg-brand-gold text-black rounded-md text-center sm:text-left min-w-[140px]"
@@ -143,7 +143,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
               duration: 0.8
             }}
           >
-            Download CV
+            Download Resume
           </motion.a>
           
           {/* Secondary CTA - View Projects */}

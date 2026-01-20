@@ -21,6 +21,19 @@ interface Project {
 }
 
 const ProjectsSection = () => {
+  // Mobile detection for optimized animations
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   const projects: Project[] = [
     {
       id: 1,
@@ -101,14 +114,14 @@ const ProjectsSection = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLDivElement>(null)
 
-  // Animation variants - proper in/out with no layout issues
+  // Animation variants - mobile-optimized
   const containerVariants: Variants = {
     show: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
       transition: { 
-        duration: 0.6, 
+        duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART, 
         staggerChildren: 0.08, 
         delayChildren: 0 
@@ -117,10 +130,10 @@ const ProjectsSection = () => {
     hide: { 
       // IMPORTANT: never fully hide the whole section
       opacity: 1,                 // was 0
-      y: 8,                       // small move only
-      filter: "blur(2px)",        // light blur only
+      y: isMobile ? 20 : 8,       // Reduced y-offset on mobile
+      filter: isMobile ? "blur(4px)" : "blur(2px)", // Reduced blur on mobile
       transition: { 
-        duration: 0.35, 
+        duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
       }
     }
@@ -132,17 +145,17 @@ const ProjectsSection = () => {
       y: 0, 
       filter: "blur(0px)",
       transition: { 
-        duration: 0.6, 
+        duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART 
       }
     },
     hide: { 
       // IMPORTANT: also avoid vanishing children completely
       opacity: 0.65,              // was 0
-      y: 10,
-      filter: "blur(3px)",
+      y: isMobile ? 20 : 10,      // Reduced y-offset on mobile
+      filter: isMobile ? "blur(4px)" : "blur(3px)", // Reduced blur on mobile
       transition: { 
-        duration: 0.35, 
+        duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
       }
     }
@@ -261,20 +274,20 @@ const ProjectsSection = () => {
 
   return (
     <>
-      <section id="projects" className="scroll-mt-24 section-gap w-full bg-black my-12 sm:my-16 md:my-0">
+      <section id="projects" className="w-full bg-black/20 my-12 sm:my-16 md:my-0 md:pt-8 lg:pt-12 xl:pt-16 md:pb-20 lg:pb-28 xl:pb-32">
         <Container>
           <motion.div 
             ref={sectionRef}
-            className="space-y-8 md:space-y-10"
+            className="space-y-5 md:space-y-8 lg:space-y-10 relative z-10"
             variants={containerVariants}
             initial="hide"
             whileInView="show"
-            viewport={{ amount: 0.18, once: false }}
+            viewport={{ amount: 0.1, margin: "-50px 0px", once: true }}
             style={{ willChange: "transform, opacity, filter" }}
           >
             {/* Header */}
             <motion.div 
-              className="mb-14 md:mb-16 text-left"
+              className="mb-8 md:mb-14 lg:mb-16 text-left scroll-mt-24 md:scroll-mt-28"
               variants={childVariants}
             >
               <div className="flex items-center gap-4 mb-3">
@@ -293,12 +306,12 @@ const ProjectsSection = () => {
 
             {/* Tab Navigation */}
             <motion.div 
-              className="flex gap-1 p-1 bg-white/[0.04] rounded-xl border border-white/[0.08] w-fit"
+              className="flex gap-1 md:gap-1 p-1 bg-white/[0.04] rounded-xl border border-white/[0.08] w-fit"
               variants={childVariants}
             >
               <button
                 onClick={() => setActiveTab('frontend')}
-                className={`px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                className={`py-2 px-4 md:py-3 md:px-6 rounded-lg font-medium text-sm transition-all duration-300 ${
                   activeTab === 'frontend'
                     ? 'bg-brand-gold text-black shadow-md'
                     : 'text-white/70 hover:text-white/90 hover:bg-white/[0.06]'
@@ -308,7 +321,7 @@ const ProjectsSection = () => {
               </button>
               <button
                 onClick={() => setActiveTab('client')}
-                className={`px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                className={`py-2 px-4 md:py-3 md:px-6 rounded-lg font-medium text-sm transition-all duration-300 ${
                   activeTab === 'client'
                     ? 'bg-brand-gold text-black shadow-md'
                     : 'text-white/70 hover:text-white/90 hover:bg-white/[0.06]'
@@ -348,19 +361,24 @@ const ProjectsSection = () => {
                         className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden"
                       >
                         {/* Top: Hero Image */}
-                        <div className="relative h-[240px] md:h-[280px] overflow-hidden">
+                        <div className="relative h-[240px] md:h-[280px] overflow-hidden p-3 md:p-0 bg-black/30 md:bg-transparent">
                           <Image
                             src={active.image}
                             alt={`${active.title} project preview`}
                             fill
-                            className="object-cover"
-                            style={{ objectPosition: '50% 20%' }}
+                            className="object-contain md:object-cover object-center md:object-[50%_20%]"
                             priority
                             sizes="(max-width: 768px) 100vw, 1024px"
                           />
                           
-                          {/* Lighter gradient overlay for crispness */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 via-60% to-transparent" />
+                          {/* Mobile: Single Consistent Overlay */}
+                          <div className="md:hidden absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/25 pointer-events-none"></div>
+                          
+                          {/* Mobile: Subtle Glass Haze */}
+                          <div className="md:hidden absolute inset-0 bg-white/5 pointer-events-none"></div>
+                          
+                          {/* Desktop: Lighter gradient overlay for crispness */}
+                          <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 via-60% to-transparent" />
                           
                           {/* Client Work Badge */}
                           <div className="absolute top-4 left-4 z-10">
@@ -470,7 +488,7 @@ const ProjectsSection = () => {
                   </div>
                 ) : (
                   /* Projects: 2-Column Layout */
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 min-h-0 lg:items-stretch lg:[height:calc(100vh-16rem)] lg:[max-height:clamp(640px,78vh,820px)]">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 h-auto min-h-0 lg:items-stretch lg:[height:calc(100vh-14rem)]">
                     
                     {/* Left: Featured Card */}
                     <div className="lg:col-span-8 min-h-0">
@@ -481,76 +499,86 @@ const ProjectsSection = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
                           transition={{ duration: 0.3, ease: EASE_OUT_QUART }}
-                          className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden h-full flex flex-col min-h-0"
+                          className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden flex flex-col h-full"
                         >
-                          {/* Image Zone - 60% */}
-                          <div className="relative overflow-hidden bg-neutral-900" style={{ flexBasis: '60%', minHeight: 0 }}>
+                          {/* Zone A: Full Card Hero + Inner Cinema Frame */}
+                          <div className="relative overflow-hidden bg-neutral-900 w-full h-[220px] md:h-[300px] lg:h-[340px] flex-shrink-0">
+                            {/* Blurred background layer */}
                             <Image
                               src={active.image}
                               alt=""
                               fill
-                              className="object-cover object-center blur-xl scale-110 opacity-30"
+                              className="object-cover object-center blur-2xl scale-110 opacity-40"
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
                             />
                             
                             <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70" />
                             
-                            <Image
-                              src={active.image}
-                              alt={`${active.title} project preview`}
-                              fill
-                              className="object-contain group-hover:scale-[1.02] transition-transform duration-700 relative z-10"
-                              priority
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
-                            />
+                            {/* Inner cinema frame */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-[92%] h-[88%] md:w-[92%] md:h-[78%] lg:w-[92%] lg:h-[80%] rounded-xl md:rounded-2xl overflow-hidden relative p-3 md:p-0 border border-white/10 md:border-0">
+                                <Image
+                                  src={active.image}
+                                  alt={`${active.title} project preview`}
+                                  fill
+                                  className="object-contain md:object-cover object-center max-h-full max-w-full group-hover:scale-[1.02] transition-transform duration-700"
+                                  priority
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
+                                />
+                              </div>
+                            </div>
                             
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent via-transparent to-black/25 z-20 pointer-events-none" />
+                            {/* Subtle vignette overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent via-30% via-70% to-black/25 z-20 pointer-events-none hidden md:block" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent via-transparent to-black/25 z-20 pointer-events-none md:hidden" />
                           </div>
 
-                          {/* Content Zone - 40% */}
-                          <div className="flex-1 min-h-0 p-5 md:p-6 flex flex-col">
-                            <h3 className="text-xl md:text-2xl text-white font-bold mb-2 line-clamp-1 flex-shrink-0" data-lens="on">
+                          {/* Zone B: Content Area */}
+                          <div className="flex-1 min-h-0 p-5 md:px-6 lg:px-8 md:mt-4 lg:mt-5 flex flex-col gap-4 overflow-y-auto md:overflow-visible">
+                            <h3 className="text-xl md:text-3xl lg:text-4xl text-white font-bold line-clamp-1 flex-shrink-0" data-lens="on">
                               {active.title}
                             </h3>
                             
-                            <p className="text-white/75 text-sm leading-relaxed mb-3 line-clamp-2 flex-shrink-0" data-lens="on">
+                            <p className="text-white/75 text-xs md:text-base leading-relaxed md:leading-relaxed lg:leading-7 line-clamp-4 md:line-clamp-4 lg:line-clamp-5 flex-shrink-0" data-lens="on">
                               {active.description}
                             </p>
+                          </div>
 
-                            <div className="mt-auto space-y-4 flex-shrink-0">
-                              {/* Tech Stack */}
-                              <div className="flex flex-wrap gap-3 overflow-hidden" style={{ maxHeight: '2.25rem' }}>
-                                {active.tech.map((tech) => (
-                                  <span 
-                                    key={tech}
-                                    className="px-4 py-2 bg-white/[0.08] text-white/80 rounded-full text-sm font-medium border border-white/[0.12] whitespace-nowrap h-8 flex items-center"
-                                  >
-                                    {tech}
-                                  </span>
-                                ))}
-                              </div>
+                          {/* Zone C: Bottom CTA Area (always visible) */}
+                          <div className="p-5 md:px-6 lg:px-8 md:sticky md:bottom-0 md:pt-8 md:pb-5 md:bg-black/30 md:backdrop-blur-md md:border-t md:border-white/10 space-y-4 flex-shrink-0">
+                            {/* Tech Stack */}
+                            <div className="flex flex-wrap gap-2 pb-5">
+                              {active.tech.map((tech) => (
+                                <span 
+                                  key={tech}
+                                  className="px-4 py-2 md:px-5 md:py-2 bg-white/[0.08] text-white/80 rounded-full text-xs md:text-sm font-medium border border-white/[0.12] whitespace-nowrap h-8 md:h-9 flex items-center"
+                                >
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
 
-                              {/* Buttons */}
-                              <div className="flex gap-3">
-                                <a 
-                                  href={active.liveUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="flex items-center justify-center gap-2 px-5 py-3 bg-brand-gold text-black font-mono font-medium rounded-lg shadow-md hover:bg-brand-gold-dark transition-all duration-300 text-sm whitespace-nowrap h-11"
+                            {/* Buttons */}
+                            <div className="flex flex-col md:flex-row gap-2 md:gap-3">
+                              <a 
+                                href={active.liveUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full md:flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-brand-gold text-black font-mono font-medium rounded-lg shadow-md hover:bg-brand-gold-dark transition-all duration-300 text-[10px] md:text-sm lg:text-base whitespace-nowrap h-9 md:h-11"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                {active.category === 'client' ? 'Live Website' : 'Live Demo'}
+                              </a>
+                              
+                              {active.category === 'client' ? (
+                                <button 
+                                  onClick={() => setShowWorkSummary(true)}
+                                  className="w-full md:flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-transparent text-white/85 font-mono font-medium rounded-lg border border-white/25 hover:bg-white/[0.08] hover:border-white/35 hover:text-white/95 transition-all duration-300 text-[10px] md:text-sm lg:text-base whitespace-nowrap h-9 md:h-11"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                  </svg>
-                                  {active.category === 'client' ? 'Live Website' : 'Live Demo'}
-                                </a>
-                                
-                                {active.category === 'client' ? (
-                                  <button 
-                                    onClick={() => setShowWorkSummary(true)}
-                                    className="flex items-center justify-center gap-2 px-5 py-3 bg-transparent text-white/85 font-mono font-medium rounded-lg border border-white/25 hover:bg-white/[0.08] hover:border-white/35 hover:text-white/95 transition-all duration-300 text-sm whitespace-nowrap h-11"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     Work Summary
                                   </button>
@@ -559,7 +587,7 @@ const ProjectsSection = () => {
                                     href={active.sourceUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center justify-center gap-2 px-5 py-3 bg-transparent text-white/85 font-mono font-medium rounded-lg border border-white/25 hover:bg-white/[0.08] hover:border-white/35 hover:text-white/95 transition-all duration-300 text-sm whitespace-nowrap h-11"
+                                    className="w-full md:flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-transparent text-white/85 font-mono font-medium rounded-lg border border-white/25 hover:bg-white/[0.08] hover:border-white/35 hover:text-white/95 transition-all duration-300 text-[10px] md:text-sm lg:text-base whitespace-nowrap h-9 md:h-11"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -567,7 +595,6 @@ const ProjectsSection = () => {
                                     Source Code
                                   </a>
                                 )}
-                              </div>
                             </div>
                           </div>
                         </motion.div>
@@ -586,7 +613,6 @@ const ProjectsSection = () => {
                             ref={scrollContainerRef}
                             className="h-full overflow-y-auto overflow-x-hidden p-5 pr-8 space-y-4 focus:outline-none min-h-0 hidden-scrollbar-container"
                             style={{
-                              overscrollBehavior: 'contain',
                               overscrollBehaviorY: 'contain',
                               WebkitOverflowScrolling: 'touch',
                               scrollBehavior: 'auto',

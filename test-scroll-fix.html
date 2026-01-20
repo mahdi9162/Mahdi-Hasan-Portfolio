@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Fix Test</title>
+    <style>
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 96px;
+        }
+        
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+        }
+        
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            z-index: 90;
+        }
+        
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #CFAE52;
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            scroll-margin-top: 96px;
+        }
+        
+        #hero { background: #111; }
+        #skills { background: #222; }
+        #projects { background: #333; }
+        #about { background: #444; }
+        #contact { background: #555; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#hero">Home</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    
+    <section id="hero" class="section">
+        <div>Hero Section</div>
+    </section>
+    
+    <section id="skills" class="section">
+        <div>Skills Section</div>
+    </section>
+    
+    <section id="projects" class="section">
+        <div>Projects Section</div>
+    </section>
+    
+    <section id="about" class="section">
+        <div>About Section</div>
+    </section>
+    
+    <section id="contact" class="section">
+        <div>Contact Section</div>
+    </section>
+</body>
+</html>

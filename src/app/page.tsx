@@ -78,7 +78,7 @@ export default function Home() {
             delay: showEntryLoader || showRefreshLoader ? 0 : 0 // No delay if no loader
           }}
         >
-          <main className="bg-background-light dark:bg-background-dark text-neutral-800 dark:text-neutral-200 min-h-screen relative">
+          <main className="text-neutral-800 dark:text-neutral-200 min-h-screen relative">
             <MouseSpotlight />
             
             {/* Fixed Navbar with reveal key */}
@@ -86,7 +86,7 @@ export default function Home() {
             
             {/* Hero Section */}
             <section id="hero" className="scroll-mt-24 flex flex-col md:flex-row md:gap-10 md:items-center lg:flex-row lg:gap-0 lg:items-stretch lg:min-h-screen relative z-10 pt-[28px] md:pt-16 mb-12 sm:mb-16 md:mb-28">
-              <div className="w-full md:w-[55%] lg:w-[55%] bg-background-light dark:bg-background-dark lg:border-r lg:border-neutral-200/20 dark:lg:border-neutral-800/80 p-6 sm:p-8 md:p-12 relative z-20">
+              <div className="w-full md:w-[55%] lg:w-[55%] bg-black/20 lg:border-r lg:border-neutral-200/20 dark:lg:border-neutral-800/80 p-6 sm:p-8 md:p-12 relative z-20">
                 {/* Force Hero re-mount with key to ensure animation always plays */}
                 <Hero 
                   key={`hero-${revealKey}`}

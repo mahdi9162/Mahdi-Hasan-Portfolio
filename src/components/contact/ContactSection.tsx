@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Mail, MapPin, Phone } from 'lucide-react'
@@ -20,6 +20,19 @@ interface FormErrors {
 }
 
 const ContactSection = () => {
+  // Mobile detection for optimized animations
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -30,14 +43,14 @@ const ContactSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success'>('idle')
 
-  // Animation variants - same pattern as Projects/About sections
+  // Animation variants - mobile-optimized
   const containerVariants: Variants = {
     show: { 
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
       transition: { 
-        duration: 0.6, 
+        duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART, 
         staggerChildren: 0.08, 
         delayChildren: 0 
@@ -46,10 +59,10 @@ const ContactSection = () => {
     hide: { 
       // IMPORTANT: never fully hide the whole section
       opacity: 1,                 // was 0
-      y: 8,                       // small move only
-      filter: "blur(2px)",        // light blur only
+      y: isMobile ? 20 : 8,       // Reduced y-offset on mobile
+      filter: isMobile ? "blur(4px)" : "blur(2px)", // Reduced blur on mobile
       transition: { 
-        duration: 0.35, 
+        duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
       }
     }
@@ -62,17 +75,17 @@ const ContactSection = () => {
       y: 0, 
       filter: "blur(0px)",
       transition: { 
-        duration: 0.6, 
+        duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART 
       }
     },
     hide: { 
       opacity: 0.65,              // was 0
-      x: -10,
-      y: 8,
-      filter: "blur(3px)",
+      x: isMobile ? -20 : -10,    // Reduced x-offset on mobile
+      y: isMobile ? 20 : 8,       // Reduced y-offset on mobile
+      filter: isMobile ? "blur(4px)" : "blur(3px)", // Reduced blur on mobile
       transition: { 
-        duration: 0.35, 
+        duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
       }
     }
@@ -85,17 +98,17 @@ const ContactSection = () => {
       y: 0, 
       filter: "blur(0px)",
       transition: { 
-        duration: 0.6, 
+        duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART 
       }
     },
     hide: { 
       opacity: 0.65,              // was 0
-      x: 10,
-      y: 8,
-      filter: "blur(3px)",
+      x: isMobile ? 20 : 10,      // Reduced x-offset on mobile
+      y: isMobile ? 20 : 8,       // Reduced y-offset on mobile
+      filter: isMobile ? "blur(4px)" : "blur(3px)", // Reduced blur on mobile
       transition: { 
-        duration: 0.35, 
+        duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
       }
     }
@@ -152,13 +165,13 @@ const ContactSection = () => {
   }
 
   return (
-    <section id="contact" className="scroll-mt-24 section-gap w-full bg-background-dark font-display my-12 sm:my-16 md:my-28 md:pt-10 md:pb-12">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
+    <section id="contact" className="scroll-mt-24 section-gap w-full bg-black/20 font-display my-12 sm:my-16 md:my-28 md:pt-10 md:pb-12">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
         <motion.div 
           className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20 items-start"
           initial="hide"
           whileInView="show"
-          viewport={{ amount: 0.18, once: false }}
+          viewport={{ amount: 0.1, margin: "-50px 0px", once: true }}
           variants={containerVariants}
           style={{ willChange: "transform, opacity, filter" }}
         >
@@ -256,7 +269,7 @@ const ContactSection = () => {
               <div className="relative z-10 flex flex-col gap-6 md:gap-8 min-w-0">
                 <div>
                   <h2 className="text-xl md:text-[38px] leading-[1.1] font-semibold tracking-[-0.02em] text-white mb-2">Send me a message</h2>
-                  <p className="text-zinc-500 text-xs md:text-sm leading-relaxed mt-2">Direct packet transfer to my terminal.</p>
+                  <p className="text-zinc-500 text-xs md:text-sm leading-relaxed mt-2">Tell me what you’re building — I usually reply within 24 hours.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6 min-w-0">
@@ -272,7 +285,7 @@ const ContactSection = () => {
                         className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition ${
                           errors.name ? 'border-red-500' : ''
                         }`}
-                        placeholder="Your full name"
+                        placeholder="Full name"
                         type="text"
                       />
                       {errors.name && (
@@ -291,7 +304,7 @@ const ContactSection = () => {
                         className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition ${
                           errors.email ? 'border-red-500' : ''
                         }`}
-                        placeholder="your.email@example.com"
+                        placeholder="Email address"
                         type="email"
                       />
                       {errors.email && (
@@ -309,7 +322,7 @@ const ContactSection = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
-                      placeholder="Your phone number (optional)"
+                      placeholder="Phone number (optional)"
                       type="text"
                     />
                   </div>
@@ -325,7 +338,7 @@ const ContactSection = () => {
                       className={`w-full rounded-xl bg-zinc-800/40 border border-white/10 px-2 py-3 md:py-4 text-xs leading-[1.6] text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition resize-none min-h-[120px] md:min-h-[160px] max-h-[140px] md:max-h-[170px] ${
                         errors.message ? 'border-red-500' : ''
                       }`}
-                      placeholder="Tell me about your project, timeline, and any specific requirements..."
+                      placeholder="How can I help?"
                       rows={5}
                     />
                     {errors.message && (

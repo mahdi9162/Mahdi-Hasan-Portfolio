@@ -65,6 +65,8 @@
   html {
     overflow-x: hidden;
     max-width: 100vw;
+    /* scroll-behavior: smooth; - Removed to prevent double-smoothing with Lenis */
+    scroll-padding-top: 96px; /* Match navbar height + padding (64px + 32px) */
   }
   
   body {
@@ -212,7 +214,7 @@ section,
 #skills, 
 #experience, 
 #about {
-  scroll-margin-top: 100px;
+  scroll-margin-top: 96px; /* Match navbar height + padding (64px + 32px) */
 }
 
 /* Ensure other elements are visible by default */
@@ -455,7 +457,7 @@ section,
 .projects-panel-scroll {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth; - Removed to prevent double-smoothing with Lenis */
 }
 
 /* Projects panel class for scroll isolation */
