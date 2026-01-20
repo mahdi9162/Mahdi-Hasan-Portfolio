@@ -175,7 +175,7 @@ const AboutSection = () => {
                 </div>
                 
                 {/* Integrated Academic Card */}
-                <div className="p-6 bg-zinc-900/40 backdrop-blur-sm border-t border-zinc-800">
+                <div className="p-6 bg-zinc-900/40 md:backdrop-blur-sm border-t border-zinc-800">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                       <GraduationCap className="w-6 h-6" />

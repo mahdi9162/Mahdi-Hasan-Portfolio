@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Lenis from 'lenis'
 
 interface SmoothScrollProviderProps {
@@ -8,7 +8,29 @@ interface SmoothScrollProviderProps {
 }
 
 export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
+  const [isMobile, setIsMobile] = useState(false)
+
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768) // md breakpoint
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    // Only initialize Lenis on desktop (md+)
+    if (isMobile) {
+      // Clear any existing Lenis instance
+      if ((window as any).lenis) {
+        ;(window as any).lenis.destroy()
+        ;(window as any).lenis = null
+      }
+      return
+    }
+
     const lenis = new Lenis({
       duration: 2.2, // Luxury slow timing
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Smooth easeOut
@@ -31,8 +53,9 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
 
     return () => {
       lenis.destroy()
+      ;(window as any).lenis = null
     }
-  }, [])
+  }, [isMobile])
 
   return <>{children}</>
 }

@@ -358,7 +358,7 @@ const ProjectsSection = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
                         transition={{ duration: 0.3, ease: EASE_OUT_QUART }}
-                        className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden"
+                        className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] md:backdrop-blur-sm overflow-hidden"
                       >
                         {/* Top: Hero Image */}
                         <div className="relative h-[240px] md:h-[280px] overflow-hidden p-3 md:p-0 bg-black/30 md:bg-transparent">
@@ -382,7 +382,7 @@ const ProjectsSection = () => {
                           
                           {/* Client Work Badge */}
                           <div className="absolute top-4 left-4 z-10">
-                            <span className="px-3 py-1.5 bg-black/60 backdrop-blur-sm text-brand-gold text-xs font-medium rounded-full border border-brand-gold/30">
+                            <span className="px-3 py-1.5 bg-black/60 md:backdrop-blur-sm text-brand-gold text-xs font-medium rounded-full border border-brand-gold/30">
                               Client Work
                             </span>
                           </div>
@@ -499,7 +499,7 @@ const ProjectsSection = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
                           transition={{ duration: 0.3, ease: EASE_OUT_QUART }}
-                          className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm overflow-hidden flex flex-col h-full"
+                          className="bg-white/[0.05] border border-white/[0.14] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] md:backdrop-blur-sm overflow-hidden flex flex-col h-full"
                         >
                           {/* Zone A: Full Card Hero + Inner Cinema Frame */}
                           <div className="relative overflow-hidden bg-neutral-900 w-full h-[220px] md:h-[300px] lg:h-[340px] flex-shrink-0">
@@ -508,7 +508,7 @@ const ProjectsSection = () => {
                               src={active.image}
                               alt=""
                               fill
-                              className="object-cover object-center blur-2xl scale-110 opacity-40"
+                              className="object-cover object-center md:blur-2xl scale-110 opacity-40"
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
                             />
                             
@@ -647,7 +647,7 @@ const ProjectsSection = () => {
                                   
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                                   
-                                  <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-brand-gold/20 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-brand-gold/20 md:backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                     <svg className="w-3.5 h-3.5 text-brand-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -743,7 +743,7 @@ const ProjectsSection = () => {
                         {/* Scroll Hint */}
                         {scrollState.canScrollDown && scrollState.isAtTop && (
                           <div className="absolute bottom-6 right-6 z-20 pointer-events-none">
-                            <div className="flex flex-col items-center gap-1 px-3 py-2 bg-black/60 backdrop-blur-sm rounded-lg border border-white/10">
+                            <div className="flex flex-col items-center gap-1 px-3 py-2 bg-black/60 md:backdrop-blur-sm rounded-lg border border-white/10">
                               <span className="text-[10px] text-white/60 font-mono uppercase tracking-wider">
                                 Scroll
                               </span>
@@ -823,8 +823,8 @@ const ProjectsSection = () => {
 
       {/* Work Summary Modal */}
       {showWorkSummary && active.category === 'client' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto desktop-hide-scrollbar">
+        <div className="fixed inset-0 bg-black/80 md:backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] md:backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto desktop-hide-scrollbar">
             <div className="p-6 md:p-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-white" data-lens="on">

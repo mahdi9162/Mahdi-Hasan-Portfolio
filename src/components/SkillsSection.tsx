@@ -275,7 +275,7 @@ const SkillsSection = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="mb-6 p-6 bg-gradient-to-br from-white/[0.08] to-white/[0.04] backdrop-blur-sm rounded-2xl border border-brand-gold/30 shadow-[0_0_30px_rgb(var(--brand-gold)_/_0.15)]"
+                  className="mb-6 p-6 bg-gradient-to-br from-white/[0.08] to-white/[0.04] md:backdrop-blur-sm rounded-2xl border border-brand-gold/30 shadow-[0_0_30px_rgb(var(--brand-gold)_/_0.15)]"
                 >
                   <div className="flex items-start space-x-4">
                     <div className="p-2.5 bg-brand-gold/10 rounded-xl">
@@ -302,7 +302,7 @@ const SkillsSection = () => {
               {/* Left Arrow Button */}
               <button
                 onClick={prevCard}
-                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
+                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] md:backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
                 aria-label="Previous card"
               >
                 <svg className="w-5 h-5 text-white/70 group-hover:text-brand-gold transition-colors duration-420" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -313,7 +313,7 @@ const SkillsSection = () => {
               {/* Right Arrow Button */}
               <button
                 onClick={nextCard}
-                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
+                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] md:backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
                 aria-label="Next card"
               >
                 <svg className="w-5 h-5 text-white/70 group-hover:text-brand-gold transition-colors duration-420" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -485,9 +485,9 @@ const TechOrb = ({
       {/* Central Orb Core */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
         <div className="relative w-32 h-32 md:w-40 md:h-40">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 blur-xl" />
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-white/[0.06] to-white/[0.02] backdrop-blur-md border border-white/20 shadow-[0_0_60px_rgb(var(--brand-gold)_/_0.2),inset_0_0_30px_rgb(var(--brand-gold)_/_0.1)]">
-            <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white/10 blur-md" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 md:blur-xl" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-white/[0.06] to-white/[0.02] md:backdrop-blur-md border border-white/20 shadow-[0_0_60px_rgb(var(--brand-gold)_/_0.2),inset_0_0_30px_rgb(var(--brand-gold)_/_0.1)]">
+            <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white/10 md:blur-md" />
             <div className="absolute inset-0 rounded-full opacity-30 mix-blend-overlay" 
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E")`
@@ -564,7 +564,7 @@ const TechOrb = ({
                 >
                   {/* Icon container - Perfect Circle */}
                   <div 
-                    className={`relative w-full h-full grid place-items-center bg-gradient-to-br from-white/[0.1] to-white/[0.05] backdrop-blur-sm border transition-all duration-420 ${
+                    className={`relative w-full h-full grid place-items-center bg-gradient-to-br from-white/[0.1] to-white/[0.05] md:backdrop-blur-sm border transition-all duration-420 ${
                       isHovered 
                         ? 'border-brand-gold/60 shadow-[0_0_25px_rgb(var(--brand-gold)_/_0.3)]' 
                         : 'border-white/10 hover:border-brand-gold/40'
@@ -605,7 +605,7 @@ const TechOrb = ({
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-sm border border-brand-gold/30 rounded-lg whitespace-nowrap pointer-events-none z-50"
+                      className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 md:backdrop-blur-sm border border-brand-gold/30 rounded-lg whitespace-nowrap pointer-events-none z-50"
                     >
                       <span className="text-xs text-white font-medium">{iconData.name}</span>
                     </motion.div>

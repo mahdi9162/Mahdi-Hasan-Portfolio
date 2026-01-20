@@ -264,7 +264,7 @@ const ContactSection = () => {
           >
             <div className="glass-card rounded-2xl p-4 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-full">
               {/* Subtle Background Pattern */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full md:blur-[100px] -mr-32 -mt-32"></div>
               
               <div className="relative z-10 flex flex-col gap-6 md:gap-8 min-w-0">
                 <div>

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import { EASE_OUT } from '@/lib/animations'
 
 /**
@@ -25,14 +26,27 @@ interface HeroProps {
 }
 
 const Hero = ({ entryRevealReady = true }: HeroProps) => {
-  // Animation variants for staggered text reveal
+  // Mobile detection for optimized animations
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Animation variants for staggered text reveal - optimized for mobile
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: { 
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.15
+        staggerChildren: isMobile ? 0.04 : 0.08, // Faster stagger on mobile
+        delayChildren: isMobile ? 0.08 : 0.15 // Shorter delay on mobile
       }
     }
   }
@@ -40,46 +54,62 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
   const itemVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      y: 18 
+      y: isMobile ? 12 : 18 // Reduced movement on mobile
     },
     show: { 
       opacity: 1, 
-      y: 0
+      y: 0,
+      transition: {
+        duration: isMobile ? 0.3 : 0.6, // Faster on mobile
+        ease: EASE_OUT
+      }
     }
   }
 
   const subtitleVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      y: 14 
+      y: isMobile ? 8 : 14 // Reduced movement on mobile
     },
     show: { 
       opacity: 1, 
-      y: 0
+      y: 0,
+      transition: {
+        duration: isMobile ? 0.3 : 0.6, // Faster on mobile
+        ease: EASE_OUT
+      }
     }
   }
 
   const descriptionVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      y: 10 
+      y: isMobile ? 6 : 10 // Reduced movement on mobile
     },
     show: { 
       opacity: 1, 
-      y: 0
+      y: 0,
+      transition: {
+        duration: isMobile ? 0.3 : 0.6, // Faster on mobile
+        ease: EASE_OUT
+      }
     }
   }
 
   const buttonVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      y: 12,
-      scale: 0.98 
+      y: isMobile ? 8 : 12, // Reduced movement on mobile
+      scale: isMobile ? 1 : 0.98 // No scale on mobile
     },
     show: { 
       opacity: 1, 
       y: 0,
-      scale: 1
+      scale: 1,
+      transition: {
+        duration: isMobile ? 0.3 : 0.6, // Faster on mobile
+        ease: EASE_OUT
+      }
     }
   }
 
@@ -90,7 +120,7 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
       initial="hidden"
       animate={entryRevealReady ? "show" : "hidden"}
       transition={{
-        duration: 0.6,
+        duration: isMobile ? 0.4 : 0.6, // Faster on mobile
         ease: EASE_OUT
       }}
     >
@@ -130,17 +160,17 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
             rel="noopener noreferrer"
             className="w-full sm:w-auto px-6 py-3 text-sm font-medium bg-brand-gold text-black rounded-md text-center sm:text-left min-w-[140px]"
             data-lens="on"
-            whileHover={{ 
+            whileHover={isMobile ? {} : { 
               scale: 1.05,
               backgroundColor: "rgb(184 152 74)",
               boxShadow: "0 0 25px rgb(207 174 82 / 0.4), 0 8px 32px rgb(207 174 82 / 0.2)"
             }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: isMobile ? 0.98 : 0.95 }} // Lighter tap on mobile
             transition={{ 
               type: "spring", 
               stiffness: 400, 
               damping: 10,
-              duration: 0.8
+              duration: isMobile ? 0.4 : 0.8 // Faster on mobile
             }}
           >
             Download Resume
@@ -160,18 +190,18 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
                 })
               }
             }}
-            whileHover={{ 
+            whileHover={isMobile ? {} : { 
               scale: 1.05,
               borderColor: "rgb(207 174 82)",
               color: "rgb(207 174 82)",
               boxShadow: "0 0 20px rgb(207 174 82 / 0.3), 0 6px 24px rgb(207 174 82 / 0.15)"
             }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: isMobile ? 0.98 : 0.95 }} // Lighter tap on mobile
             transition={{ 
               type: "spring", 
               stiffness: 400, 
               damping: 10,
-              duration: 0.8
+              duration: isMobile ? 0.4 : 0.8 // Faster on mobile
             }}
           >
             View Projects

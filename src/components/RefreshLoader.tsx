@@ -61,7 +61,7 @@ const RefreshLoader = ({ onComplete }: RefreshLoaderProps) => {
             <div className="relative w-24 h-24 flex items-center justify-center">
               {/* Golden blurred orb with pulse */}
               <div 
-                className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/50 to-transparent blur-xl rounded-full"
+                className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/50 to-transparent md:blur-xl rounded-full"
                 style={{ animation: 'pulse-slow 2s ease-in-out infinite' }}
               />
               

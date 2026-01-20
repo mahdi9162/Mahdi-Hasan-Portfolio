@@ -218,7 +218,7 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[80] bg-black/50 md:backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
           style={{ width: '100vw', maxWidth: '100%', overflowX: 'hidden' }}
         />
@@ -233,7 +233,7 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
         }`}
         style={{ maxWidth: '100vw', overflowX: 'hidden' }}
       >
-        <div className="bg-black/90 backdrop-blur-lg border-b border-white/10 shadow-lg max-w-full overflow-hidden">
+        <div className="bg-black/90 md:backdrop-blur-lg border-b border-white/10 shadow-lg max-w-full overflow-hidden">
           <nav className="px-4 py-4 max-w-7xl mx-auto">
             <ul className="space-y-4">
               {navItems.map((item) => (

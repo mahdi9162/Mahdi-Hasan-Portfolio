@@ -68,6 +68,18 @@
     /* scroll-behavior: smooth; - Removed to prevent double-smoothing with Lenis */
     scroll-padding-top: 96px; /* Match navbar height + padding (64px + 32px) */
   }
+
+  /* Mobile scroll optimization */
+  @media (max-width: 767px) {
+    html {
+      -webkit-overflow-scrolling: touch; /* Smooth native scrolling on iOS */
+      scroll-behavior: auto; /* Ensure native scroll on mobile */
+    }
+    
+    body {
+      overscroll-behavior-y: contain; /* Prevent bounce scrolling */
+    }
+  }
   
   body {
     @apply bg-background text-foreground;

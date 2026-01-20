@@ -39,6 +39,41 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Mobile detection for performance optimization
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Page Visibility API - pause beams when tab is not visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (containerRef.current) {
+        const lines = containerRef.current.querySelectorAll('.fall-beam-line')
+        lines.forEach(line => {
+          const element = line as HTMLElement
+          if (document.hidden) {
+            element.style.animationPlayState = 'paused'
+          } else {
+            element.style.animationPlayState = 'running'
+          }
+        })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
+  // Optimize line count for mobile
+  const optimizedLineCount = isMobile ? Math.floor(lineCount * 0.6) : lineCount
 
   // --- CSS Styles for the effect ---
   const dynamicStyles = `
@@ -114,12 +149,12 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
 
     const glowColor = getColorValue(beamColorClass)
 
-    for (let i = 1; i <= lineCount; i++) {
+    for (let i = 1; i <= optimizedLineCount; i++) {
       const line = document.createElement("div")
       line.classList.add("fall-beam-line")
 
       // Calculate the 'left' position with a slight random jitter
-      const leftPosition = `${i * (100 / lineCount) + Math.random() * 5 - 5}%`
+      const leftPosition = `${i * (100 / optimizedLineCount) + Math.random() * 5 - 5}%`
 
       // Randomize top position for natural asynchronous flow
       const randomStartingTop = Math.random() * -100 + "%"
@@ -131,12 +166,16 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
       const glowHeight = "150px" // Fixed 150px trail height
       const beamWidth = "1.5px" // Fixed 1.5px width
 
-      // Infinite Asynchronous Flow: Large ranges for natural effect
-      const duration = 15 + Math.random() * 30 + "s" // 15-45s range
+      // Infinite Asynchronous Flow: Optimize for mobile
+      const duration = isMobile 
+        ? 20 + Math.random() * 25 + "s" // 20-45s range (slower on mobile)
+        : 15 + Math.random() * 30 + "s" // 15-45s range
       const delay = -Math.random() * 60 + "s" // -60s to 0s range
 
       // Smooth visibility transition with randomized timing
-      const pulseDuration = 8 + Math.random() * 12 + "s" // 8-20s pulse range
+      const pulseDuration = isMobile
+        ? 10 + Math.random() * 15 + "s" // 10-25s pulse range (slower on mobile)
+        : 8 + Math.random() * 12 + "s" // 8-20s pulse range
       const pulseDelay = -Math.random() * 20 + "s" // -20s to 0s pulse delay
 
       // Apply CSS variables for the animation and styling
@@ -161,7 +200,7 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
         lines.forEach(line => line.remove())
       }
     }
-  }, [lineCount, beamColorClass]) // Re-run effect if these props change
+  }, [optimizedLineCount, beamColorClass, isMobile]) // Re-run effect if these props change
 
   return (
     <>
