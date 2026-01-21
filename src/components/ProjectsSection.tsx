@@ -1,11 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import Container from '@/components/shared/Container'
 import { EASE_OUT_QUART } from '@/lib/animations'
+
+// ✅ Dynamic import for Work Summary Modal - only loads when needed
+const WorkSummaryModal = dynamic(() => import('./WorkSummaryModal'), {
+  ssr: false, // Don't render on server
+  loading: () => null // No loading component needed
+})
 
 interface Project {
   id: number
@@ -23,18 +30,27 @@ interface Project {
 const ProjectsSection = () => {
   // Mobile detection for optimized animations
   const [isMobile, setIsMobile] = useState(false)
+  const [isMounted, setIsMounted] = useState(false) // Track component mount status
   
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    setIsMounted(true)
+    return () => setIsMounted(false)
   }, [])
+  
+  // Memoize the mobile check function to prevent recreation
+  const checkMobile = useCallback(() => {
+    if (!isMounted) return
+    setIsMobile(window.innerWidth < 768)
+  }, [isMounted])
+  
+  useEffect(() => {
+    checkMobile()
+    window.addEventListener('resize', checkMobile, { passive: true })
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [checkMobile])
 
-  const projects: Project[] = [
+  // Memoize projects array to prevent recreation on every render
+  const projects: Project[] = useMemo(() => [
     {
       id: 1,
       title: 'Voyago',
@@ -94,7 +110,7 @@ const ProjectsSection = () => {
         'Added modern sections + UI polish for a cleaner brand presentation'
       ]
     }
-  ]
+  ], [])
 
   const [activeTab, setActiveTab] = useState<'frontend' | 'client'>('frontend')
   const [activeId, setActiveId] = useState(projects.find(p => p.category === 'frontend')?.id || 1)
@@ -114,8 +130,8 @@ const ProjectsSection = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLDivElement>(null)
 
-  // Animation variants - mobile-optimized
-  const containerVariants: Variants = {
+  // ✅ Memoize animation variants to prevent recreation on every render
+  const containerVariants: Variants = useMemo(() => ({
     show: { 
       opacity: 1, 
       y: 0, 
@@ -137,9 +153,9 @@ const ProjectsSection = () => {
         ease: EASE_OUT_QUART 
       }
     }
-  }
+  }), [isMobile])
 
-  const childVariants: Variants = {
+  const childVariants: Variants = useMemo(() => ({
     show: { 
       opacity: 1, 
       y: 0, 
@@ -159,12 +175,24 @@ const ProjectsSection = () => {
         ease: EASE_OUT_QUART 
       }
     }
-  }
+  }), [isMobile])
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     setPrefersReducedMotion(mediaQuery.matches)
-  }, [])
+    
+    // Add listener for media query changes
+    const handleMediaQueryChange = (e: MediaQueryListEvent) => {
+      if (!isMounted) return
+      setPrefersReducedMotion(e.matches)
+    }
+    
+    mediaQuery.addEventListener('change', handleMediaQueryChange)
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaQueryChange)
+    }
+  }, [isMounted])
 
   // Update active project when tab changes
   useEffect(() => {
@@ -172,16 +200,19 @@ const ProjectsSection = () => {
     if (filteredProjects.length > 0) {
       setActiveId(filteredProjects[0].id)
     }
-  }, [activeTab])
+  }, [activeTab, projects])
 
   // Wheel event handler for right column scroll - Projects tab only
   useEffect(() => {
-    if (activeTab !== 'frontend') return // Only apply to Projects tab
+    if (activeTab !== 'frontend' || !isMounted) return // Only apply to Projects tab
     
     const scrollContainer = scrollContainerRef.current
     if (!scrollContainer) return
 
     const handleWheel = (e: WheelEvent) => {
+      // Prevent state updates on unmounted component
+      if (!isMounted) return
+      
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer
       const isAtTop = scrollTop <= 1
       const isAtBottom = scrollTop >= scrollHeight - clientHeight - 1
@@ -207,18 +238,34 @@ const ProjectsSection = () => {
     return () => {
       scrollContainer.removeEventListener('wheel', handleWheel, true)
     }
-  }, [activeTab])
+  }, [activeTab, isMounted])
 
-  // Filter projects by active tab
-  const filteredProjects = projects.filter(p => p.category === activeTab)
-  const active = filteredProjects.find(p => p.id === activeId) || filteredProjects[0]
-  const mini = filteredProjects.filter(p => p.id !== activeId)
+  // Filter projects by active tab - memoized to prevent recalculation
+  const filteredProjects = useMemo(() => 
+    projects.filter(p => p.category === activeTab), 
+    [projects, activeTab]
+  )
+  
+  const active = useMemo(() => 
+    filteredProjects.find(p => p.id === activeId) || filteredProjects[0], 
+    [filteredProjects, activeId]
+  )
+  
+  const mini = useMemo(() => 
+    filteredProjects.filter(p => p.id !== activeId), 
+    [filteredProjects, activeId]
+  )
 
-  const handleMiniClick = (id: number) => {
+  // Memoize click handler to prevent recreation
+  const handleMiniClick = useCallback((id: number) => {
+    if (!isMounted) return
     setActiveId(id)
-  }
+  }, [isMounted])
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  // Memoize scroll handler to prevent recreation
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!isMounted) return
+    
     const target = e.target as HTMLDivElement
     const { scrollTop, scrollHeight, clientHeight } = target
     
@@ -245,9 +292,12 @@ const ProjectsSection = () => {
       thumbHeight,
       thumbTop
     })
-  }
+  }, [isMounted])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  // Memoize keyboard handler to prevent recreation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isMounted) return
+    
     const target = e.target as HTMLDivElement
     
     switch (e.key) {
@@ -270,7 +320,7 @@ const ProjectsSection = () => {
         target.scrollTo({ top: target.scrollHeight, behavior: 'smooth' })
         break
     }
-  }
+  }, [isMounted])
 
   return (
     <>
@@ -366,9 +416,9 @@ const ProjectsSection = () => {
                             src={active.image}
                             alt={`${active.title} project preview`}
                             fill
+                            priority={true} // ✅ LCP optimization - loads immediately
                             className="object-contain md:object-cover object-center md:object-[50%_20%]"
-                            priority
-                            sizes="(max-width: 768px) 100vw, 1024px"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" // ✅ Optimized sizes
                           />
                           
                           {/* Mobile: Single Consistent Overlay */}
@@ -509,7 +559,7 @@ const ProjectsSection = () => {
                               alt=""
                               fill
                               className="object-cover object-center md:blur-2xl scale-110 opacity-40"
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px" // ✅ Optimized sizes
                             />
                             
                             <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70" />
@@ -521,9 +571,9 @@ const ProjectsSection = () => {
                                   src={active.image}
                                   alt={`${active.title} project preview`}
                                   fill
+                                  priority={true} // ✅ LCP optimization - main featured image
                                   className="object-contain md:object-cover object-center max-h-full max-w-full group-hover:scale-[1.02] transition-transform duration-700"
-                                  priority
-                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 700px" // ✅ Optimized sizes
                                 />
                               </div>
                             </div>
@@ -642,7 +692,7 @@ const ProjectsSection = () => {
                                     alt={`${project.title} preview`}
                                     fill
                                     className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                                    sizes="400px"
+                                    sizes="(max-width: 1024px) 0px, 400px" // ✅ Only loads on desktop (lg+)
                                   />
                                   
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -778,7 +828,7 @@ const ProjectsSection = () => {
                                 alt={`${project.title} preview`}
                                 fill
                                 className="object-cover object-top"
-                                sizes="256px"
+                                sizes="(max-width: 768px) 256px, 0px" // ✅ Only loads on mobile
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                             </div>
@@ -821,65 +871,12 @@ const ProjectsSection = () => {
         </Container>
       </section>
 
-      {/* Work Summary Modal */}
+      {/* Work Summary Modal - ✅ Dynamically loaded only when needed */}
       {showWorkSummary && active.category === 'client' && (
-        <div className="fixed inset-0 bg-black/80 md:backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] md:backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto desktop-hide-scrollbar">
-            <div className="p-6 md:p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-white" data-lens="on">
-                  SwashPeak Work Summary
-                </h3>
-                <button
-                  onClick={() => setShowWorkSummary(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300 flex items-center justify-center"
-                >
-                  <svg className="w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-white font-semibold mb-3" data-lens="on">What I Delivered</h4>
-                  <ul className="space-y-2">
-                    {active.bullets?.map((bullet, index) => (
-                      <li key={index} className="flex items-start gap-3" data-lens="on">
-                        <div className="w-1.5 h-1.5 rounded-full bg-brand-gold/70 mt-2.5 flex-shrink-0" />
-                        <span className="text-white/80 leading-relaxed">{bullet}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-white font-semibold mb-2" data-lens="on">Role</h4>
-                  <p className="text-white/80 leading-relaxed" data-lens="on">
-                    Frontend Developer (Client Project)
-                  </p>
-                  <p className='text-white/80 text-sm'>
-                    - Built on Shopify theme customization
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-white font-semibold mb-2" data-lens="on">Technologies</h4>
-                  <p className="text-white/80 leading-relaxed" data-lens="on">
-                    {active.tech.join(' • ')}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-white font-semibold mb-2" data-lens="on">Impact</h4>
-                  <p className="text-white/80 leading-relaxed" data-lens="on">
-                    Shipped a cleaner, fully responsive storefront with improved navigation and category structure—making it easier for customers to browse products across mobile, tablet, and desktop.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <WorkSummaryModal 
+          active={active} 
+          onClose={() => setShowWorkSummary(false)} 
+        />
       )}
     </>
   )

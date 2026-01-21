@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const Footer = () => {
@@ -14,27 +14,39 @@ const Footer = () => {
     margin: "0px 0px -100px 0px"
   })
 
+  // Memoize the time update function to prevent recreation on every render
+  const updateTime = useCallback(() => {
+    const now = new Date()
+    const dhakaTime = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Dhaka',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).format(now)
+    setCurrentTime(dhakaTime)
+  }, [])
+
   useEffect(() => {
     // Check for reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     setPrefersReducedMotion(mediaQuery.matches)
     
-    const updateTime = () => {
-      const now = new Date()
-      const dhakaTime = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Dhaka',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      }).format(now)
-      setCurrentTime(dhakaTime)
+    // Add listener for media query changes
+    const handleMediaQueryChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches)
     }
-
+    
+    mediaQuery.addEventListener('change', handleMediaQueryChange)
+    
     updateTime()
     const interval = setInterval(updateTime, 1000)
 
-    return () => clearInterval(interval)
-  }, [])
+    // Cleanup function to prevent memory leaks
+    return () => {
+      clearInterval(interval)
+      mediaQuery.removeEventListener('change', handleMediaQueryChange)
+    }
+  }, [updateTime])
 
   return (
     <footer 

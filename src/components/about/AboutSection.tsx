@@ -169,8 +169,8 @@ const AboutSection = () => {
                     alt="Modern professional portrait of Mahdi Hasan in a minimalist setting"
                     fill
                     className="object-contain md:object-cover object-center rounded-2xl md:rounded-none"
-                    priority
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
+                    priority={false} // ✅ Not critical for LCP since it's below the fold
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 520px" // ✅ Optimized sizes
                   />
                 </div>
                 

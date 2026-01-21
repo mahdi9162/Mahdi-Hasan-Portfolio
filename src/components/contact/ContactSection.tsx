@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { EASE_OUT_QUART } from '@/lib/animations'
+import { EMAILJS_CONFIG, EMAIL_TEMPLATE_VARS } from '@/lib/emailjs-config'
+import emailjs from '@emailjs/browser'
+import toast from 'react-hot-toast'
 
 interface FormData {
   name: string
@@ -22,16 +25,23 @@ interface FormErrors {
 const ContactSection = () => {
   // Mobile detection for optimized animations
   const [isMobile, setIsMobile] = useState(false)
+  const [isMounted, setIsMounted] = useState(false) // Track component mount status
+  
+  useEffect(() => {
+    setIsMounted(true)
+    return () => setIsMounted(false)
+  }, [])
   
   useEffect(() => {
     const checkMobile = () => {
+      if (!isMounted) return
       setIsMobile(window.innerWidth < 768)
     }
     
     checkMobile()
-    window.addEventListener('resize', checkMobile)
+    window.addEventListener('resize', checkMobile, { passive: true })
     return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  }, [isMounted])
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -41,10 +51,15 @@ const ContactSection = () => {
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success'>('idle')
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
-  // Animation variants - mobile-optimized
-  const containerVariants: Variants = {
+  // Initialize EmailJS
+  useEffect(() => {
+    emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY)
+  }, [])
+
+  // ✅ Memoize animation variants - mobile-optimized
+  const containerVariants: Variants = useMemo(() => ({
     show: { 
       opacity: 1, 
       y: 0, 
@@ -66,9 +81,9 @@ const ContactSection = () => {
         ease: EASE_OUT_QUART 
       }
     }
-  }
+  }), [isMobile])
 
-  const leftVariants: Variants = {
+  const leftVariants: Variants = useMemo(() => ({
     show: { 
       opacity: 1, 
       x: 0, 
@@ -89,9 +104,9 @@ const ContactSection = () => {
         ease: EASE_OUT_QUART 
       }
     }
-  }
+  }), [isMobile])
 
-  const rightVariants: Variants = {
+  const rightVariants: Variants = useMemo(() => ({
     show: { 
       opacity: 1, 
       x: 0, 
@@ -112,7 +127,7 @@ const ContactSection = () => {
         ease: EASE_OUT_QUART 
       }
     }
-  }
+  }), [isMobile])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -148,20 +163,85 @@ const ContactSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm()) return
+    if (!validateForm() || !isMounted) return
 
     setIsSubmitting(true)
+    setSubmitStatus('idle')
     
-    // Simulate processing
-    setTimeout(() => {
+    try {
+      // Send email using EmailJS
+      const result = await emailjs.send(
+        EMAILJS_CONFIG.SERVICE_ID,
+        EMAILJS_CONFIG.TEMPLATE_ID,
+        {
+          [EMAIL_TEMPLATE_VARS.NAME]: formData.name,
+          [EMAIL_TEMPLATE_VARS.EMAIL]: formData.email,
+          [EMAIL_TEMPLATE_VARS.PHONE]: formData.phone || 'Not provided',
+          [EMAIL_TEMPLATE_VARS.MESSAGE]: formData.message,
+          // Additional template variables for better email formatting
+          [EMAIL_TEMPLATE_VARS.FROM_NAME]: formData.name,
+          [EMAIL_TEMPLATE_VARS.FROM_EMAIL]: formData.email,
+          [EMAIL_TEMPLATE_VARS.TO_NAME]: 'Mahdi Hasan',
+        },
+        EMAILJS_CONFIG.PUBLIC_KEY
+      )
+
+      console.log('Email sent successfully:', result)
+      
+      // Only update state if component is still mounted
+      if (!isMounted) return
+      
+      // Show success notification
+      toast.success('Message sent successfully! I\'ll get back to you soon.', {
+        duration: 5000,
+        style: {
+          background: 'rgba(34, 197, 94, 0.1)',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          color: '#ffffff',
+        },
+      })
+      
       setSubmitStatus('success')
-      setIsSubmitting(false)
-      // Reset form after success
+      
+      // Clear form after success
       setTimeout(() => {
+        if (!isMounted) return
         setFormData({ name: '', email: '', phone: '', message: '' })
         setSubmitStatus('idle')
-      }, 2000)
-    }, 1500)
+      }, 3000)
+      
+    } catch (error) {
+      console.error('Email send failed:', error)
+      
+      // Only update state if component is still mounted
+      if (!isMounted) return
+      
+      // Show error notification with more details
+      const errorMessage = error instanceof Error 
+        ? `Failed to send message: ${error.message}` 
+        : 'Failed to send message. Please try again or contact me directly.'
+      
+      toast.error(errorMessage, {
+        duration: 6000,
+        style: {
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#ffffff',
+        },
+      })
+      
+      setSubmitStatus('error')
+      
+      // Reset error state after 5 seconds
+      setTimeout(() => {
+        if (!isMounted) return
+        setSubmitStatus('idle')
+      }, 5000)
+    } finally {
+      if (isMounted) {
+        setIsSubmitting(false)
+      }
+    }
   }
 
   return (
@@ -251,7 +331,15 @@ const ContactSection = () => {
             {/* System Status */}
             <div className="mt-8 hidden md:block">
               <p className="text-zinc-500 text-xs font-mono tracking-wide">
-                System Status: {submitStatus === 'success' ? 'Message ready to send' : 'Waiting for user input'}
+                System Status: {
+                  isSubmitting 
+                    ? 'Sending message...' 
+                    : submitStatus === 'success' 
+                      ? 'Message sent successfully' 
+                      : submitStatus === 'error'
+                        ? 'Send failed - please retry'
+                        : 'Ready to send'
+                }
               </p>
             </div>
           </motion.div>
@@ -349,17 +437,66 @@ const ContactSection = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="mt-4 flex h-10 md:h-14 items-center justify-center rounded-xl bg-primary text-black text-xs md;text-[13px] tracking-[0.24em] uppercase font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`mt-4 flex h-10 md:h-14 items-center justify-center rounded-xl text-black text-xs md:text-[13px] tracking-[0.24em] uppercase font-bold transition-all shadow-lg group disabled:cursor-not-allowed ${
+                      isSubmitting 
+                        ? 'bg-primary/70 scale-[0.98]' 
+                        : submitStatus === 'success'
+                          ? 'bg-green-500 scale-[1.02]'
+                          : submitStatus === 'error'
+                            ? 'bg-red-500 scale-[0.98]'
+                            : 'bg-primary hover:scale-[1.02] active:scale-[0.98] shadow-primary/20'
+                    }`}
                   >
-                    <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
-                    <svg 
-                      className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
+                    <span>
+                      {isSubmitting 
+                        ? 'SENDING...' 
+                        : submitStatus === 'success'
+                          ? 'MESSAGE SENT!'
+                          : submitStatus === 'error'
+                            ? 'SEND FAILED'
+                            : 'SEND MESSAGE'
+                      }
+                    </span>
+                    {!isSubmitting && submitStatus === 'idle' && (
+                      <svg 
+                        className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                    )}
+                    {isSubmitting && (
+                      <svg 
+                        className="w-4 h-4 ml-3 animate-spin" 
+                        fill="none" 
+                        viewBox="0 0 24 24"
+                      >
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {submitStatus === 'success' && (
+                      <svg 
+                        className="w-5 h-5 ml-3" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {submitStatus === 'error' && (
+                      <svg 
+                        className="w-5 h-5 ml-3" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
                   </button>
                 </form>
               </div>

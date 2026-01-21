@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { 
@@ -84,8 +84,8 @@ const SkillsSection = () => {
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
 
-  // Animation variants for section - mobile-optimized
-  const sectionVariants: Variants = {
+  // ✅ Memoize animation variants for section - mobile-optimized
+  const sectionVariants: Variants = useMemo(() => ({
     hidden: { opacity: 0 },
     show: { 
       opacity: 1,
@@ -95,9 +95,9 @@ const SkillsSection = () => {
         duration: isMobile ? 0.4 : 0.6
       }
     }
-  }
+  }), [isMobile])
 
-  const titleVariants = {
+  const titleVariants = useMemo(() => ({
     hidden: { opacity: 0, y: isMobile ? 20 : 14 },
     show: { 
       opacity: 1, 
@@ -107,9 +107,9 @@ const SkillsSection = () => {
         ease: EASE_OUT
       }
     }
-  }
+  }), [isMobile])
 
-  const orbitVariants = {
+  const orbitVariants = useMemo(() => ({
     hidden: { 
       opacity: 0, 
       scale: 0.96
@@ -118,9 +118,9 @@ const SkillsSection = () => {
       opacity: 1, 
       scale: 1
     }
-  }
+  }), [])
 
-  const cardStackVariants = {
+  const cardStackVariants = useMemo(() => ({
     hidden: { 
       opacity: 0, 
       x: 24
@@ -129,7 +129,7 @@ const SkillsSection = () => {
       opacity: 1, 
       x: 0
     }
-  }
+  }), [])
 
   // Map orb icon hover to related card
   const handleOrbIconHover = (iconId: string | null) => {
