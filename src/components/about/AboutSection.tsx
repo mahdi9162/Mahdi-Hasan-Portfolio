@@ -150,11 +150,11 @@ const AboutSection = () => {
             />
           </motion.div>
 
-          <div className="flex flex-col md:flex-row md:justify-between gap-10 lg:gap-14 items-start w-full">
+          <div className="w-full flex flex-col md:flex-row md:justify-between items-start gap-10 lg:gap-14">
             
             {/* Left Side: Portrait & Academic Detail */}
             <motion.div 
-              className="w-full md:w-[40%] relative group portrait-hover max-w-[520px] md:max-w-none mx-auto md:mx-0"
+              className="w-full md:w-[35%] relative group portrait-hover max-w-[520px] mx-auto md:mx-0"
               variants={leftVariants}
               style={{ willChange: "transform, opacity, filter" }}
             >
@@ -197,7 +197,7 @@ const AboutSection = () => {
             </motion.div>
 
             {/* Right Side: Content */}
-            <div className="w-full md:w-[55%] self-center">
+            <div className="w-full md:w-[58%] self-center">
               <div className="w-full">
                 {/* Main Content - Story Area */}
                 <motion.div 
