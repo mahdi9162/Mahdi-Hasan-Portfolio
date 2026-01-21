@@ -182,12 +182,21 @@ const Hero = ({ entryRevealReady = true }: HeroProps) => {
             data-lens="on"
             onClick={() => {
               const element = document.getElementById('projects')
-              if (element && (window as any).lenis) {
-                ;(window as any).lenis.scrollTo(element, {
-                  offset: -90,
-                  duration: 2.0,
-                  easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-                })
+              if (element) {
+                if ((window as any).lenis) {
+                  ;(window as any).lenis.scrollTo(element, {
+                    offset: -90,
+                    duration: 2.0,
+                    easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+                  })
+                } else {
+                  // Fallback to native scroll for mobile
+                  const elementTop = element.offsetTop - 96 // Account for navbar height
+                  window.scrollTo({
+                    top: elementTop,
+                    behavior: 'smooth'
+                  })
+                }
               }
             }}
             whileHover={isMobile ? {} : { 

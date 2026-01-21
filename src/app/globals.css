@@ -73,7 +73,7 @@
   @media (max-width: 767px) {
     html {
       -webkit-overflow-scrolling: touch; /* Smooth native scrolling on iOS */
-      scroll-behavior: auto; /* Ensure native scroll on mobile */
+      scroll-behavior: smooth; /* Enable smooth scroll for mobile native scrolling */
     }
     
     body {

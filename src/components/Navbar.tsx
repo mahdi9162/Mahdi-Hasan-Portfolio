@@ -81,15 +81,30 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
           duration: 2.0,
           easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
         })
+      } else {
+        // Fallback to native scroll for mobile
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        })
       }
     } else {
       const element = document.getElementById(sectionId)
-      if (element && (window as any).lenis) {
-        ;(window as any).lenis.scrollTo(element, {
-          offset: -96, // Match CSS scroll-padding-top
-          duration: 2.0,
-          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-        })
+      if (element) {
+        if ((window as any).lenis) {
+          ;(window as any).lenis.scrollTo(element, {
+            offset: -96, // Match CSS scroll-padding-top
+            duration: 2.0,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+          })
+        } else {
+          // Fallback to native scroll for mobile
+          const elementTop = element.offsetTop - 96 // Account for navbar height
+          window.scrollTo({
+            top: elementTop,
+            behavior: 'smooth'
+          })
+        }
       }
     }
   }
@@ -103,6 +118,12 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       ;(window as any).lenis.scrollTo(0, {
         duration: 2.0,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+      })
+    } else {
+      // Fallback to native scroll for mobile
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
       })
     }
   }
@@ -239,13 +260,23 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
               {navItems.map((item) => (
                 <li key={item.id}>
                   <button
-                    onClick={() => handleNavClick(item.id)}
-                    className={`block w-full text-left py-3 px-4 rounded-lg transition-all duration-300 ${
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleNavClick(item.id)
+                    }}
+                    className={`block w-full text-left py-3 px-4 rounded-lg transition-all duration-300 touch-manipulation ${
                       activeSection === item.id
                         ? 'bg-brand-gold/20 text-brand-gold border-l-4 border-brand-gold'
-                        : 'text-white/80 hover:text-brand-gold hover:bg-white/5'
+                        : 'text-white/80 hover:text-brand-gold hover:bg-white/5 active:bg-white/10'
                     }`}
                     data-lens="on"
+                    style={{ 
+                      minHeight: '48px', // Ensure touch target is large enough
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
                   >
                     {item.label}
                   </button>
