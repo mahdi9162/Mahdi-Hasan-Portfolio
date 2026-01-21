@@ -166,7 +166,7 @@ const ContactSection = () => {
 
   return (
     <section id="contact" className="scroll-mt-24 section-gap w-full bg-black/20 font-display my-12 sm:my-16 md:my-28 md:pt-10 md:pb-12">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-8 relative z-10">
         <motion.div 
           className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20 items-start"
           initial="hide"

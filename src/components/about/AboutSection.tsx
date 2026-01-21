@@ -150,11 +150,11 @@ const AboutSection = () => {
             />
           </motion.div>
 
-          <div className="grid md:grid-cols-12 gap-10 lg:gap-14 items-start">
+          <div className="flex flex-col md:flex-row md:justify-between gap-10 lg:gap-14 items-start w-full">
             
             {/* Left Side: Portrait & Academic Detail */}
             <motion.div 
-              className="md:col-span-5 lg:col-span-4 relative group portrait-hover max-w-[520px]"
+              className="w-full md:w-[40%] relative group portrait-hover max-w-[520px] md:max-w-none mx-auto md:mx-0"
               variants={leftVariants}
               style={{ willChange: "transform, opacity, filter" }}
             >
@@ -197,8 +197,8 @@ const AboutSection = () => {
             </motion.div>
 
             {/* Right Side: Content */}
-            <div className="md:col-span-7 lg:col-span-8 self-start">
-              <div className="max-w-[680px]">
+            <div className="w-full md:w-[55%] self-center">
+              <div className="w-full">
                 {/* Main Content - Story Area */}
                 <motion.div 
                   className="space-y-5 md:space-y-6"
@@ -230,7 +230,7 @@ const AboutSection = () => {
                 </motion.div>
 
                 {/* Sub-sections: Expertise & Beyond Code */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 mt-6 border-t border-zinc-800">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 mt-6 border-t border-zinc-800">
                 
                 {/* Expertise */}
                 <motion.div 

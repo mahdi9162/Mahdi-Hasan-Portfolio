@@ -193,8 +193,8 @@ const SkillsSection = () => {
       whileInView="show"
       viewport={{ once: true, amount: 0.1, margin: "-50px 0px" }}
     >
-      {/* Section Container - Max width and centered */}
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8 relative z-10">
+      {/* Section Container - Max width and centered with Navbar alignment */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-8 relative z-10 w-full overflow-x-hidden">
         {/* Header - Simplified with kicker styling on main title */}
         <motion.div 
           className="mb-8 md:mb-14 lg:mb-16 text-left"
