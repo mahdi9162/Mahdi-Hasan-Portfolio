@@ -26,39 +26,18 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       document.documentElement.style.overflowX = 'hidden' // Critical for layout stability
       
       return () => {
-        // Restore original overflow values, but ensure overflow-x stays protected
+        // ✅ CRITICAL FIX: Properly restore scroll without forcing overflowX to hidden
+        // This was causing the scroll freeze - we were forcing overflowX to 'hidden' instead of restoring original values
         document.body.style.overflow = originalBodyOverflow || ''
-        document.body.style.overflowX = originalBodyOverflowX || 'hidden' // Keep horizontal locked
+        document.body.style.overflowX = originalBodyOverflowX || ''
         document.documentElement.style.overflow = originalHtmlOverflow || ''
-        document.documentElement.style.overflowX = originalHtmlOverflowX || 'hidden' // Keep horizontal locked
+        document.documentElement.style.overflowX = originalHtmlOverflowX || ''
+        
+        // Let CSS handle the overflow-x: clip from globals.css
+        // Don't force it to 'hidden' which conflicts with the CSS
       }
     }
   }, [mobileMenuOpen])
-
-  // Global overflow-x protection for mobile layout stability
-  useEffect(() => {
-    // Ensure overflow-x is always hidden on mobile to prevent layout shifts
-    const ensureOverflowXHidden = () => {
-      if (window.innerWidth < 768) { // Mobile only
-        if (!document.body.style.overflowX || document.body.style.overflowX === 'unset') {
-          document.body.style.overflowX = 'hidden'
-        }
-        if (!document.documentElement.style.overflowX || document.documentElement.style.overflowX === 'unset') {
-          document.documentElement.style.overflowX = 'hidden'
-        }
-      }
-    }
-
-    // Set initial protection
-    ensureOverflowXHidden()
-
-    // Re-apply on resize (mobile/desktop transitions)
-    window.addEventListener('resize', ensureOverflowXHidden, { passive: true })
-    
-    return () => {
-      window.removeEventListener('resize', ensureOverflowXHidden)
-    }
-  }, [])
 
   // Auto-close menu on scroll (UX improvement)
   useEffect(() => {
@@ -139,6 +118,16 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
   const handleNavClick = (sectionId: string) => {
     // Close mobile menu when nav item is clicked
     setMobileMenuOpen(false)
+    
+    // ✅ SAFETY FIX: Ensure scroll is always restored after navigation
+    // Add a small delay to ensure the useEffect cleanup has run
+    setTimeout(() => {
+      // Force restore scroll if it's still locked
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }, 100)
     
     if (sectionId === 'home') {
       // Scroll to very top for Home

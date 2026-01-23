@@ -78,7 +78,7 @@ export default function Home() {
             delay: showEntryLoader || showRefreshLoader ? 0 : 0 // No delay if no loader
           }}
         >
-          <main className="text-neutral-800 dark:text-neutral-200 min-h-screen relative">
+          <main className="text-neutral-800 dark:text-neutral-200 min-h-screen relative" style={{ touchAction: 'pan-y' }}>
             <MouseSpotlight />
             
             {/* Fixed Navbar with reveal key */}
