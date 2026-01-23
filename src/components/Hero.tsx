@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { EASE_OUT } from '@/lib/animations'
+import { useMobile } from '@/hooks/useMediaQueries'
 
 /**
  * MOBILE TYPOGRAPHY SCALE PATTERN (Reusable across all sections):
@@ -26,18 +27,8 @@ interface HeroProps {
 }
 
 const Hero = ({ entryRevealReady = true }: HeroProps) => {
-  // Mobile detection for optimized animations
-  const [isMobile, setIsMobile] = useState(false)
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Use shared mobile detection hook for better performance
+  const isMobile = useMobile()
 
   // Animation variants for staggered text reveal - optimized for mobile
   const containerVariants: Variants = {

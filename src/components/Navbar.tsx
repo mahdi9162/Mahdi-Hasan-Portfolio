@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { EASE_OUT } from '@/lib/animations'
 
@@ -339,89 +339,100 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
         </div>
       </motion.header>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <motion.div 
-          className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm md:hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          onClick={() => setMobileMenuOpen(false)}
-          style={{ width: '100vw', maxWidth: '100%', overflowX: 'hidden' }}
-        />
-      )}
+      {/* Mobile Menu Overlay - Only render when open */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            className="fixed inset-0 z-[80] bg-black/70 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ width: '100vw', maxWidth: '100%', overflowX: 'hidden' }}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Mobile Menu - Modern Redesign */}
-      <motion.div
-        className="fixed top-16 left-0 right-0 z-[85] md:hidden"
-        variants={mobileMenuVariants}
-        initial="hidden"
-        animate={mobileMenuOpen ? "show" : "hidden"}
-        style={{ maxWidth: '100vw', overflowX: 'hidden' }}
-      >
-        <div className="bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] max-w-full overflow-hidden">
-          <motion.nav 
-            className="px-6 py-6 max-w-7xl mx-auto"
+      {/* Mobile Menu - Only render when open to prevent invisible touch interception */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="fixed top-16 left-0 right-0 z-[85] md:hidden"
             variants={mobileMenuVariants}
+            initial="hidden"
+            animate="show"
+            exit="hidden"
+            style={{ 
+              maxWidth: '100vw', 
+              overflowX: 'hidden',
+              pointerEvents: 'auto' // Ensure pointer events work when open
+            }}
           >
-            <motion.ul className="space-y-2" variants={mobileMenuVariants}>
-              {navItems.map((item) => (
-                <motion.li key={item.id} variants={mobileMenuItemVariants}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      handleNavClick(item.id)
-                    }}
-                    className={`block w-full text-left py-4 px-5 rounded-xl transition-all duration-300 touch-manipulation relative overflow-hidden ${
-                      activeSection === item.id
-                        ? 'bg-gradient-to-r from-brand-gold/10 to-brand-gold/5 text-brand-gold border-l-4 border-brand-gold shadow-[0_0_20px_rgba(207,174,82,0.15)]'
-                        : 'text-white/85 hover:text-white hover:bg-white/5 active:bg-white/8 border-l-4 border-transparent'
-                    }`}
-                    data-lens="on"
-                    style={{ 
-                      minHeight: '56px', // Larger touch target
-                      display: 'flex',
-                      alignItems: 'center',
-                      fontSize: '16px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {/* Active item glow effect */}
-                    {activeSection === item.id && (
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-brand-gold/5 to-transparent rounded-xl"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    )}
-                    
-                    <span className="relative z-10">{item.label}</span>
-                    
-                    {/* Active indicator arrow */}
-                    {activeSection === item.id && (
-                      <motion.svg
-                        className="w-4 h-4 ml-auto text-brand-gold relative z-10"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+            <div className="bg-black/95 border-b border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] max-w-full overflow-hidden">
+              <motion.nav 
+                className="px-6 py-6 max-w-7xl mx-auto"
+                variants={mobileMenuVariants}
+              >
+                <motion.ul className="space-y-2" variants={mobileMenuVariants}>
+                  {navItems.map((item) => (
+                    <motion.li key={item.id} variants={mobileMenuItemVariants}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleNavClick(item.id)
+                        }}
+                        className={`block w-full text-left py-4 px-5 rounded-xl transition-all duration-300 touch-manipulation relative overflow-hidden ${
+                          activeSection === item.id
+                            ? 'bg-gradient-to-r from-brand-gold/10 to-brand-gold/5 text-brand-gold border-l-4 border-brand-gold shadow-[0_0_20px_rgba(207,174,82,0.15)]'
+                            : 'text-white/85 hover:text-white hover:bg-white/5 active:bg-white/8 border-l-4 border-transparent'
+                        }`}
+                        data-lens="on"
+                        style={{ 
+                          minHeight: '56px', // Larger touch target
+                          display: 'flex',
+                          alignItems: 'center',
+                          fontSize: '16px',
+                          fontWeight: '500'
+                        }}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </motion.svg>
-                    )}
-                  </button>
-                </motion.li>
-              ))}
-            </motion.ul>
-          </motion.nav>
-        </div>
-      </motion.div>
+                        {/* Active item glow effect */}
+                        {activeSection === item.id && (
+                          <motion.div
+                            className="absolute inset-0 bg-gradient-to-r from-brand-gold/5 to-transparent rounded-xl"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        )}
+                        
+                        <span className="relative z-10">{item.label}</span>
+                        
+                        {/* Active indicator arrow */}
+                        {activeSection === item.id && (
+                          <motion.svg
+                            className="w-4 h-4 ml-auto text-brand-gold relative z-10"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: 0.1 }}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </motion.svg>
+                        )}
+                      </button>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              </motion.nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

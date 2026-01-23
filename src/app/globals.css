@@ -701,3 +701,137 @@ section,
 body {
   overflow-x: clip;  /* Prevent horizontal scroll without affecting vertical layout */
 }
+/* Mobile touch scroll fixes - prevent scroll hijacking */
+@media (max-width: 767px) {
+  /* Ensure main page scroll is never blocked */
+  body, html {
+    touch-action: pan-y !important;
+  }
+  
+  /* Allow vertical scrolling through all major containers */
+  .skills-section,
+  .about-section,
+  .projects-section,
+  .contact-section {
+    touch-action: pan-y !important;
+  }
+  
+  /* Ensure image containers don't block scroll */
+  .portrait-image,
+  .profile-image,
+  .project-image {
+    touch-action: pan-y !important;
+  }
+  
+  /* Disable nested scrolling on mobile for skill cards */
+  .skills-scroll {
+    overflow-y: visible !important;
+    max-height: none !important;
+  }
+  
+  /* Ensure decorative elements don't interfere with touch */
+  .bloom-effect,
+  .glow-effect,
+  .background-decoration {
+    pointer-events: none !important;
+    touch-action: none !important;
+  }
+  
+  /* Fix for any remaining scroll containers */
+  [style*="overflow-y: auto"],
+  [style*="overflow: auto"] {
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+/* Mobile performance: reduce expensive visual effects */
+@media (max-width: 767px) {
+  /* Content visibility optimization for below-the-fold sections */
+  .mobile-content-visibility {
+    content-visibility: auto;
+    contain-intrinsic-size: 1280px 600px;
+  }
+  
+  /* Reduce shadow intensity on mobile */
+  .shadow-2xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .shadow-xl {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Reduce glow effects on mobile */
+  [class*="shadow-[0_0_"] {
+    box-shadow: none !important;
+  }
+  
+  /* Disable expensive hover effects on mobile */
+  .group:hover .group-hover\:scale-105 {
+    transform: none !important;
+  }
+  
+  .group:hover .group-hover\:scale-\[1\.02\] {
+    transform: none !important;
+  }
+  
+  /* Reduce filter effects on mobile */
+  .filter,
+  .blur-xl,
+  .blur-lg,
+  .blur-md {
+    filter: none !important;
+  }
+  
+  /* Keep only essential blur for backdrop elements */
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Reduce animation complexity */
+  .animate-pulse {
+    animation: none !important;
+  }
+  
+  /* Disable expensive transforms on mobile */
+  .hover\:scale-105:hover,
+  .hover\:scale-110:hover,
+  .hover\:scale-\[1\.02\]:hover {
+    transform: none !important;
+  }
+  
+  /* Prefer transform over filter for animations */
+  .mobile-optimized-animation {
+    will-change: transform, opacity;
+    transform: translateZ(0); /* Force hardware acceleration */
+  }
+}
+
+/* Content visibility optimization for all screen sizes */
+.content-visibility-auto {
+  content-visibility: auto;
+}
+
+/* Specific intrinsic sizes for different sections */
+.skills-section.content-visibility-auto {
+  contain-intrinsic-size: 1280px 600px;
+}
+
+.projects-section.content-visibility-auto {
+  contain-intrinsic-size: 1280px 800px;
+}
+
+.about-section.content-visibility-auto {
+  contain-intrinsic-size: 1280px 700px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-content-visibility,
+  .content-visibility-auto {
+    content-visibility: visible; /* Ensure content is always visible */
+  }
+}

@@ -3,25 +3,30 @@
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { EASE_OUT } from '@/lib/animations'
+import { useMobile } from '@/hooks/useMediaQueries'
 
 interface ProfileImageProps {
   entryRevealReady?: boolean
 }
 
 const ProfileImage = ({ entryRevealReady = true }: ProfileImageProps) => {
+  // Use shared mobile detection hook for better performance
+  const isMobile = useMobile()
+
   const imageVariants: Variants = {
     hidden: { 
       opacity: 0,
-      filter: "blur(14px)",
+      filter: isMobile ? "none" : "blur(14px)", // No blur animation on mobile
       scale: 1.03
     },
     show: { 
       opacity: 1,
-      filter: "blur(0px)",
+      filter: isMobile ? "none" : "blur(0px)", // No blur animation on mobile
       scale: 1,
       transition: {
-        duration: 0.8,
+        duration: isMobile ? 0.5 : 0.8, // Faster on mobile
         delay: 0.2,
         ease: EASE_OUT
       }
@@ -43,13 +48,13 @@ const ProfileImage = ({ entryRevealReady = true }: ProfileImageProps) => {
         variants={imageVariants}
         initial="hidden"
         animate={entryRevealReady ? "show" : "hidden"}
-        whileHover={{ scale: 1.05 }}
+        whileHover={!isMobile ? { scale: 1.05 } : {}} // Disable hover on mobile
         style={{ 
           opacity: 1, 
           visibility: 'visible', 
           display: 'block',
           // Fallback to ensure no permanent blur
-          filter: entryRevealReady ? "blur(0px)" : undefined
+          filter: entryRevealReady ? (isMobile ? "none" : "blur(0px)") : undefined
         }}
       >
         <Image

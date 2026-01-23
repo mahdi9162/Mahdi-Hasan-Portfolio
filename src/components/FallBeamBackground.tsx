@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { useMobile } from '@/hooks/useMediaQueries'
 
 // Define the component's props for flexibility and professionalism
 interface FallBeamBackgroundProps {
@@ -39,18 +40,8 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-
-  // Mobile detection for performance optimization
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Use shared mobile detection hook for better performance
+  const isMobile = useMobile()
 
   // Page Visibility API - pause beams when tab is not visible
   useEffect(() => {

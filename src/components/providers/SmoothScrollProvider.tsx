@@ -2,23 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import Lenis from 'lenis'
+import { useMobile } from '@/hooks/useMediaQueries'
 
 interface SmoothScrollProviderProps {
   children: React.ReactNode
 }
 
 export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768) // md breakpoint
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Use shared mobile detection hook for better performance
+  const isMobile = useMobile()
 
   useEffect(() => {
     // Only initialize Lenis on desktop (md+)

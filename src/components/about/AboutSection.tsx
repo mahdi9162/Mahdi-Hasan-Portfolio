@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView, useReducedMotion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
@@ -13,30 +13,20 @@ import {
 import Container from '@/components/shared/Container'
 import SectionHeader from '@/components/shared/SectionHeader'
 import { EASE_OUT_QUART } from '@/lib/animations'
+import { useMediaPreferences } from '@/hooks/useMediaQueries'
 
 const AboutSection = () => {
-  // Mobile detection for optimized animations
-  const [isMobile, setIsMobile] = useState(false)
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Use shared media query hooks for better performance
+  const { isMobile } = useMediaPreferences()
 
   // Animation setup - safe intersection observer
-  const shouldReduceMotion = useReducedMotion()
 
-  // Animation variants - mobile-optimized
+  // Animation variants - mobile-optimized (no blur on mobile)
   const containerVariants: Variants = {
     in: { 
       opacity: 1, 
       y: 0, 
-      filter: "blur(0px)",
+      filter: isMobile ? "none" : "blur(0px)", // No blur animation on mobile
       transition: { 
         duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART, 
@@ -47,7 +37,7 @@ const AboutSection = () => {
     out: { 
       opacity: 1,             // was 0
       y: isMobile ? 20 : 8,   // Reduced y-offset on mobile
-      filter: isMobile ? "blur(4px)" : "blur(2px)", // Reduced blur on mobile
+      filter: isMobile ? "none" : "blur(2px)", // No blur animation on mobile
       transition: { 
         duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
@@ -59,7 +49,7 @@ const AboutSection = () => {
     in: { 
       opacity: 1, 
       y: 0, 
-      filter: "blur(0px)", 
+      filter: isMobile ? "none" : "blur(0px)", // No blur animation on mobile
       transition: { 
         duration: isMobile ? 0.4 : 0.6, 
         ease: EASE_OUT_QUART 
@@ -68,7 +58,7 @@ const AboutSection = () => {
     out: { 
       opacity: 0.65,          // was 0
       y: isMobile ? 20 : 10,  // Reduced y-offset on mobile
-      filter: isMobile ? "blur(4px)" : "blur(3px)", // Reduced blur on mobile
+      filter: isMobile ? "none" : "blur(3px)", // No blur animation on mobile
       transition: { 
         duration: isMobile ? 0.4 : 0.35, 
         ease: EASE_OUT_QUART 
@@ -81,7 +71,7 @@ const AboutSection = () => {
       opacity: 1, 
       y: 0, 
       scale: 1, 
-      filter: "blur(0px)", 
+      filter: isMobile ? "none" : "blur(0px)", // No blur animation on mobile
       transition: { 
         duration: 0.6, 
         ease: EASE_OUT_QUART 
@@ -91,7 +81,7 @@ const AboutSection = () => {
       opacity: 0.75,          // was 0
       y: 8,
       scale: 0.99,
-      filter: "blur(3px)",
+      filter: isMobile ? "none" : "blur(3px)", // No blur animation on mobile
       transition: { 
         duration: 0.35, 
         ease: EASE_OUT_QUART 
@@ -133,7 +123,7 @@ const AboutSection = () => {
   }
 
   return (
-    <section id="about" className="scroll-mt-24 w-full bg-black/20 my-28 sm:my-16 md:my-0 md:pt-16 lg:pt-14 md:pb-20 lg:pb-28 xl:pb-32">
+    <section id="about" className="scroll-mt-24 w-full bg-black/20 my-28 sm:my-16 md:my-0 md:pt-16 lg:pt-14 md:pb-20 lg:pb-28 xl:pb-32 about-section content-visibility-auto" style={{ touchAction: 'pan-y' }}>
       <Container>
         <motion.div 
           className="space-y-8 md:space-y-10 relative z-10"
@@ -141,6 +131,7 @@ const AboutSection = () => {
           whileInView="in"
           viewport={{ amount: 0.1, margin: "-50px 0px", once: true }}
           variants={containerVariants}
+          style={{ touchAction: 'pan-y' }}
         >
           {/* Section Header */}
           <motion.div variants={childVariants} style={{ willChange: "transform, opacity, filter" }}>
@@ -156,7 +147,10 @@ const AboutSection = () => {
             <motion.div 
               className="w-full md:w-[35%] relative group portrait-hover max-w-[520px] mx-auto md:mx-0"
               variants={leftVariants}
-              style={{ willChange: "transform, opacity, filter" }}
+              style={{ 
+                willChange: "transform, opacity, filter",
+                touchAction: 'pan-y' // Allow vertical scrolling through this element
+              }}
             >
               {/* Background Glow Bloom */}
               <div className="absolute -inset-20 bloom-effect opacity-60 pointer-events-none"></div>

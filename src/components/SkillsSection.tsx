@@ -16,6 +16,7 @@ import {
 } from 'react-icons/si'
 import { FaCode, FaServer, FaDatabase, FaTools } from 'react-icons/fa'
 import { EASE_OUT, EASE_OUT_QUART } from '@/lib/animations'
+import { useMediaPreferences } from '@/hooks/useMediaQueries'
 
 interface OrbitalIcon {
   id: string
@@ -65,18 +66,8 @@ const skillCategories = [
 ]
 
 const SkillsSection = () => {
-  // Mobile detection for optimized animations
-  const [isMobile, setIsMobile] = useState(false)
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Use shared media query hooks for better performance
+  const { isMobile, prefersReducedMotion } = useMediaPreferences()
 
   const [selectedIcon, setSelectedIcon] = useState<OrbitalIcon | null>(null)
   const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
@@ -187,11 +178,12 @@ const SkillsSection = () => {
   return (
     <motion.section 
       id="skills" 
-      className="scroll-mt-24 section-gap w-full bg-black/20 overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 py-16 sm:py-18 md:py-0"
+      className="scroll-mt-24 section-gap w-full bg-black/20 overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 sm:py-18 md:py-0 skills-section content-visibility-auto"
       variants={sectionVariants}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.1, margin: "-50px 0px" }}
+      style={{ touchAction: 'pan-y' }}
     >
       {/* Section Container - Max width and centered */}
       <div className="max-w-[1280px] mx-auto px-6 md:px-8 relative z-10">
@@ -239,11 +231,12 @@ const SkillsSection = () => {
             }}
           >
             {/* Orbit Stage - Dedicated container with proper height for mobile */}
-            <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full">
+            <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full" style={{ touchAction: 'pan-y' }}>
               <TechOrb 
                 icons={orbitalIcons}
                 onIconClick={setSelectedIcon}
                 onIconHover={handleOrbIconHover}
+                isMobile={isMobile}
               />
             </div>
           </motion.div>
@@ -263,7 +256,8 @@ const SkillsSection = () => {
             style={{
               willChange: "transform, opacity",
               transform: "translateZ(0)",
-              backfaceVisibility: "hidden"
+              backfaceVisibility: "hidden",
+              touchAction: 'pan-y'
             }}
           >
             {/* Selected Skill Detail Card */}
@@ -346,6 +340,7 @@ const SkillsSection = () => {
                         isPreview2={isPreview2}
                         isVisible={isVisible}
                         isHighlighted={highlightedCard === category.title}
+                        isMobile={isMobile}
                       />
                     )
                   })}
@@ -381,23 +376,16 @@ const SkillsSection = () => {
 const TechOrb = ({ 
   icons, 
   onIconClick,
-  onIconHover
+  onIconHover,
+  isMobile
 }: { 
   icons: OrbitalIcon[]
   onIconClick: (icon: OrbitalIcon) => void
   onIconHover?: (iconId: string | null) => void
+  isMobile: boolean
 }) => {
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
-    
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
-  }, [])
+  const prefersReducedMotion = useMediaPreferences().prefersReducedMotion
 
   const handleIconHover = (iconId: string | null) => {
     setHoveredIcon(iconId)
@@ -457,7 +445,7 @@ const TechOrb = ({
   }, [])
 
   return (
-    <div className="w-full flex justify-center overflow-visible p-2 max-w-full">
+    <div className="w-full flex justify-center overflow-visible p-2 max-w-full" style={{ touchAction: 'pan-y' }}>
       <div 
         className="relative mx-auto max-w-full"
         style={{
@@ -465,7 +453,8 @@ const TechOrb = ({
           '--iconSize': `${orbitConfig.iconSize}px`,
           width: `${orbitConfig.containerSize}px`,
           height: `${orbitConfig.containerSize}px`,
-          maxWidth: '100%'
+          maxWidth: '100%',
+          touchAction: 'pan-y'
         } as React.CSSProperties}
       >
       {/* Crisp Dashed Ring */}
@@ -497,7 +486,7 @@ const TechOrb = ({
         </div>
       </div>
 
-      {/* Orbit Track - Rotating container with locked transform */}
+      {/* Orbit Track - Keep rotating on all devices including mobile */}
       <motion.div
         className="absolute left-1/2 top-1/2 pointer-events-none"
         style={{
@@ -538,7 +527,7 @@ const TechOrb = ({
                 willChange: 'transform'
               } as React.CSSProperties}
             >
-              {/* Floating animation */}
+              {/* Floating animation - keep on all devices */}
               <motion.div
                 animate={!prefersReducedMotion && !isHovered ? {
                   y: [-4, 4, -4]
@@ -554,7 +543,7 @@ const TechOrb = ({
                   onClick={() => onIconClick(iconData)}
                   onMouseEnter={() => handleIconHover(iconData.id)}
                   onMouseLeave={() => handleIconHover(null)}
-                  whileHover={{ scale: 1.2 }}
+                  whileHover={!isMobile ? { scale: 1.2 } : {}} // Disable hover on mobile
                   whileTap={{ scale: 0.95 }}
                   className="relative group w-full h-full"
                   style={{
@@ -628,7 +617,8 @@ const StackedSkillCard = ({
   isPreview1,
   isPreview2,
   isVisible,
-  isHighlighted 
+  isHighlighted,
+  isMobile
 }: { 
   category: { title: string; icon: any; skills: string[]; relatedOrbIcons: string[] }
   isActive: boolean
@@ -636,14 +626,10 @@ const StackedSkillCard = ({
   isPreview2: boolean
   isVisible: boolean
   isHighlighted?: boolean
+  isMobile: boolean
 }) => {
   const IconComponent = category.icon
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
-  }, [])
+  const prefersReducedMotion = useMediaPreferences().prefersReducedMotion
 
   // List container and item variants for fast stagger
   const listContainer = {
@@ -724,8 +710,8 @@ const StackedSkillCard = ({
           boxShadow: !isActive ? 'inset 0 1px 0 rgba(255, 255, 255, 0.06)' : undefined
         }}
       >
-        {/* Animated Running Border Glow - Active Card Only */}
-        {isActive && !prefersReducedMotion && (
+        {/* Animated Running Border Glow - Active Card Only (Desktop only for performance) */}
+        {isActive && !prefersReducedMotion && !isMobile && (
           <>
             {/* Rotating conic gradient border */}
             <div 
@@ -780,9 +766,15 @@ const StackedSkillCard = ({
             </span>
           </div>
 
-          {/* Full-width skill rows - Mobile overflow fix with scrollbar spacing */}
+          {/* Full-width skill rows - Mobile: no nested scroll, Desktop: allow scroll */}
           <motion.div 
-            className="flex-1 space-y-2 overflow-y-auto overflow-x-hidden skills-scroll pr-2 md:pr-0"
+            className="flex-1 space-y-2 md:overflow-y-auto overflow-x-hidden skills-scroll pr-2 md:pr-0"
+            style={{
+              // Allow vertical pan gestures to pass through to main page scroll
+              touchAction: 'pan-y',
+              // Ensure touch events don't get trapped
+              WebkitOverflowScrolling: 'touch'
+            }}
             variants={listContainer}
             initial={false}
             animate={isActive ? "show" : "hidden"}

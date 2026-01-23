@@ -7,6 +7,7 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import Container from '@/components/shared/Container'
 import { EASE_OUT_QUART } from '@/lib/animations'
+import { useMediaPreferences } from '@/hooks/useMediaQueries'
 
 // ✅ Dynamic import for Work Summary Modal - only loads when needed
 const WorkSummaryModal = dynamic(() => import('./WorkSummaryModal'), {
@@ -28,26 +29,14 @@ interface Project {
 }
 
 const ProjectsSection = () => {
-  // Mobile detection for optimized animations
-  const [isMobile, setIsMobile] = useState(false)
+  // Use shared media query hooks for better performance
+  const { isMobile, prefersReducedMotion } = useMediaPreferences()
   const [isMounted, setIsMounted] = useState(false) // Track component mount status
   
   useEffect(() => {
     setIsMounted(true)
     return () => setIsMounted(false)
   }, [])
-  
-  // Memoize the mobile check function to prevent recreation
-  const checkMobile = useCallback(() => {
-    if (!isMounted) return
-    setIsMobile(window.innerWidth < 768)
-  }, [isMounted])
-  
-  useEffect(() => {
-    checkMobile()
-    window.addEventListener('resize', checkMobile, { passive: true })
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [checkMobile])
 
   // Memoize projects array to prevent recreation on every render
   const projects: Project[] = useMemo(() => [
@@ -114,7 +103,6 @@ const ProjectsSection = () => {
 
   const [activeTab, setActiveTab] = useState<'frontend' | 'client'>('frontend')
   const [activeId, setActiveId] = useState(projects.find(p => p.category === 'frontend')?.id || 1)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [showWorkSummary, setShowWorkSummary] = useState(false)
   const [scrollState, setScrollState] = useState({
     isAtTop: true,
@@ -135,21 +123,21 @@ const ProjectsSection = () => {
     show: { 
       opacity: 1, 
       y: 0, 
-      filter: "blur(0px)",
+      filter: isMobile ? "none" : "blur(0px)", // No blur animation on mobile
       transition: { 
-        duration: isMobile ? 0.4 : 0.6, 
+        duration: isMobile ? 0.3 : 0.6, // Faster on mobile
         ease: EASE_OUT_QUART, 
-        staggerChildren: 0.08, 
+        staggerChildren: isMobile ? 0.04 : 0.08, // Faster stagger on mobile
         delayChildren: 0 
       }
     },
     hide: { 
       // IMPORTANT: never fully hide the whole section
       opacity: 1,                 // was 0
-      y: isMobile ? 20 : 8,       // Reduced y-offset on mobile
-      filter: isMobile ? "blur(4px)" : "blur(2px)", // Reduced blur on mobile
+      y: isMobile ? 15 : 8,       // Reduced y-offset on mobile
+      filter: isMobile ? "none" : "blur(2px)", // No blur animation on mobile
       transition: { 
-        duration: isMobile ? 0.4 : 0.35, 
+        duration: isMobile ? 0.3 : 0.35, // Faster on mobile
         ease: EASE_OUT_QUART 
       }
     }
@@ -159,42 +147,24 @@ const ProjectsSection = () => {
     show: { 
       opacity: 1, 
       y: 0, 
-      filter: "blur(0px)",
+      filter: isMobile ? "none" : "blur(0px)", // No blur animation on mobile
       transition: { 
-        duration: isMobile ? 0.4 : 0.6, 
+        duration: isMobile ? 0.3 : 0.6, // Faster on mobile
         ease: EASE_OUT_QUART 
       }
     },
     hide: { 
       // IMPORTANT: also avoid vanishing children completely
       opacity: 0.65,              // was 0
-      y: isMobile ? 20 : 10,      // Reduced y-offset on mobile
-      filter: isMobile ? "blur(4px)" : "blur(3px)", // Reduced blur on mobile
+      y: isMobile ? 15 : 10,      // Reduced y-offset on mobile
+      filter: isMobile ? "none" : "blur(3px)", // No blur animation on mobile
       transition: { 
-        duration: isMobile ? 0.4 : 0.35, 
+        duration: isMobile ? 0.3 : 0.35, // Faster on mobile
         ease: EASE_OUT_QUART 
       }
     }
   }), [isMobile])
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
-    
-    // Add listener for media query changes
-    const handleMediaQueryChange = (e: MediaQueryListEvent) => {
-      if (!isMounted) return
-      setPrefersReducedMotion(e.matches)
-    }
-    
-    mediaQuery.addEventListener('change', handleMediaQueryChange)
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleMediaQueryChange)
-    }
-  }, [isMounted])
-
-  // Update active project when tab changes
   useEffect(() => {
     const filteredProjects = projects.filter(p => p.category === activeTab)
     if (filteredProjects.length > 0) {
@@ -203,6 +173,7 @@ const ProjectsSection = () => {
   }, [activeTab, projects])
 
   // Wheel event handler for right column scroll - Projects tab only
+  // ✅ Fixed: Use exact same options for addEventListener and removeEventListener
   useEffect(() => {
     if (activeTab !== 'frontend' || !isMounted) return // Only apply to Projects tab
     
@@ -232,11 +203,12 @@ const ProjectsSection = () => {
       // If at limits, allow page scroll (don't preventDefault)
     }
 
-    // Add wheel listener to the scroll container with proper options
-    scrollContainer.addEventListener('wheel', handleWheel, { passive: false, capture: true })
+    // ✅ Fixed: Use consistent options object for both add and remove
+    const wheelOptions = { passive: false, capture: true }
+    scrollContainer.addEventListener('wheel', handleWheel, wheelOptions)
 
     return () => {
-      scrollContainer.removeEventListener('wheel', handleWheel, true)
+      scrollContainer.removeEventListener('wheel', handleWheel, wheelOptions)
     }
   }, [activeTab, isMounted])
 
@@ -324,7 +296,7 @@ const ProjectsSection = () => {
 
   return (
     <>
-      <section id="projects" className="w-full bg-black/20 my-12 sm:my-16 md:my-0 md:pt-8 lg:pt-12 xl:pt-16 md:pb-20 lg:pb-28 xl:pb-32">
+      <section id="projects" className="w-full bg-black/20 my-12 sm:my-16 md:my-0 md:pt-8 lg:pt-12 xl:pt-16 md:pb-20 lg:pb-28 xl:pb-32 projects-section content-visibility-auto">
         <Container>
           <motion.div 
             ref={sectionRef}

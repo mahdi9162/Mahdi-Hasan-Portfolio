@@ -8,6 +8,7 @@ import { EASE_OUT_QUART } from '@/lib/animations'
 import { EMAILJS_CONFIG, EMAIL_TEMPLATE_VARS } from '@/lib/emailjs-config'
 import emailjs from '@emailjs/browser'
 import toast from 'react-hot-toast'
+import { useMobile } from '@/hooks/useMediaQueries'
 
 interface FormData {
   name: string
@@ -23,25 +24,14 @@ interface FormErrors {
 }
 
 const ContactSection = () => {
-  // Mobile detection for optimized animations
-  const [isMobile, setIsMobile] = useState(false)
+  // Use shared mobile detection hook for better performance
+  const isMobile = useMobile()
   const [isMounted, setIsMounted] = useState(false) // Track component mount status
   
   useEffect(() => {
     setIsMounted(true)
     return () => setIsMounted(false)
   }, [])
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      if (!isMounted) return
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile, { passive: true })
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [isMounted])
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
