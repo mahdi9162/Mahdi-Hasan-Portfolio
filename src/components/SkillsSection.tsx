@@ -42,7 +42,7 @@ const skillCategories = [
   {
     title: 'Frontend',
     icon: FaCode,
-    skills: ['React', 'Next.js', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3', 'Responsive Design'],
+    skills: ['React', 'Next.js', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3'],
     relatedOrbIcons: ['react', 'javascript', 'tailwind']
   },
   {
