@@ -33,31 +33,43 @@ const WorkSummaryModal = ({ active, onClose }: WorkSummaryModalProps) => {
     return () => document.removeEventListener('keydown', handleEscape)
   }, [onClose])
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open - Enhanced for mobile/tablet
   useEffect(() => {
+    // Store original overflow value
+    const originalOverflow = document.body.style.overflow
+    
+    // Disable scroll
     document.body.style.overflow = 'hidden'
+    
+    // Also prevent scroll on document element for better mobile support
+    document.documentElement.style.overflow = 'hidden'
+    
     return () => {
-      document.body.style.overflow = 'unset'
+      // Restore original overflow
+      document.body.style.overflow = originalOverflow
+      document.documentElement.style.overflow = 'unset'
     }
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black/80 md:backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] md:backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto desktop-hide-scrollbar">
-        <div className="p-6 md:p-8">
-          <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 bg-[#0a0a0a] md:bg-black/80 backdrop-blur-md md:backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white/[0.08] border border-white/[0.16] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] md:backdrop-blur-md max-w-2xl w-full max-h-[80vh] overflow-y-auto desktop-hide-scrollbar relative">
+        {/* Close Button - Positioned absolutely in top-right corner */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-10 h-10 flex-shrink-0 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors duration-300 flex items-center justify-center z-[60]"
+          aria-label="Close modal"
+        >
+          <svg className="w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        <div className="p-6 md:p-8 pb-10">
+          <div className="mb-6 pr-12">
             <h3 className="text-2xl font-bold text-white" data-lens="on">
               SwashPeak Work Summary
             </h3>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300 flex items-center justify-center"
-              aria-label="Close modal"
-            >
-              <svg className="w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
 
           <div className="space-y-6">

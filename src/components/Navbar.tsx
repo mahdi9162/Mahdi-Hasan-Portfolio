@@ -10,6 +10,72 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
   const [activeSection, setActiveSection] = useState('home') // Default to home instead of projects
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  // Enhanced scroll lock effect for mobile menu - preserves overflow-x behavior
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      // Store original overflow values for both body and html
+      const originalBodyOverflow = document.body.style.overflow
+      const originalBodyOverflowX = document.body.style.overflowX
+      const originalHtmlOverflow = document.documentElement.style.overflow
+      const originalHtmlOverflowX = document.documentElement.style.overflowX
+      
+      // Disable vertical scroll but preserve horizontal overflow protection
+      document.body.style.overflow = 'hidden'
+      document.body.style.overflowX = 'hidden' // Ensure horizontal is locked
+      document.documentElement.style.overflow = 'hidden'
+      document.documentElement.style.overflowX = 'hidden' // Critical for layout stability
+      
+      return () => {
+        // Restore original overflow values, but ensure overflow-x stays protected
+        document.body.style.overflow = originalBodyOverflow || ''
+        document.body.style.overflowX = originalBodyOverflowX || 'hidden' // Keep horizontal locked
+        document.documentElement.style.overflow = originalHtmlOverflow || ''
+        document.documentElement.style.overflowX = originalHtmlOverflowX || 'hidden' // Keep horizontal locked
+      }
+    }
+  }, [mobileMenuOpen])
+
+  // Global overflow-x protection for mobile layout stability
+  useEffect(() => {
+    // Ensure overflow-x is always hidden on mobile to prevent layout shifts
+    const ensureOverflowXHidden = () => {
+      if (window.innerWidth < 768) { // Mobile only
+        if (!document.body.style.overflowX || document.body.style.overflowX === 'unset') {
+          document.body.style.overflowX = 'hidden'
+        }
+        if (!document.documentElement.style.overflowX || document.documentElement.style.overflowX === 'unset') {
+          document.documentElement.style.overflowX = 'hidden'
+        }
+      }
+    }
+
+    // Set initial protection
+    ensureOverflowXHidden()
+
+    // Re-apply on resize (mobile/desktop transitions)
+    window.addEventListener('resize', ensureOverflowXHidden, { passive: true })
+    
+    return () => {
+      window.removeEventListener('resize', ensureOverflowXHidden)
+    }
+  }, [])
+
+  // Auto-close menu on scroll (UX improvement)
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+
+    const handleScroll = () => {
+      setMobileMenuOpen(false)
+    }
+
+    // Add scroll listener when menu is open
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [mobileMenuOpen])
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 80)
@@ -148,6 +214,43 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
     }
   }
 
+  // Mobile menu animation variants
+  const mobileMenuVariants: Variants = {
+    hidden: { 
+      opacity: 0, 
+      y: -20,
+      transition: { 
+        duration: 0.3, 
+        ease: EASE_OUT 
+      }
+    },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.4, 
+        ease: EASE_OUT,
+        staggerChildren: 0.08,
+        delayChildren: 0.1
+      }
+    }
+  }
+
+  const mobileMenuItemVariants: Variants = {
+    hidden: { 
+      opacity: 0, 
+      x: -20 
+    },
+    show: { 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        duration: 0.3, 
+        ease: EASE_OUT 
+      }
+    }
+  }
+
   return (
     <>
       <motion.header 
@@ -238,27 +341,33 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 z-[80] bg-black/50 md:backdrop-blur-sm md:hidden"
+        <motion.div 
+          className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm md:hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
           onClick={() => setMobileMenuOpen(false)}
           style={{ width: '100vw', maxWidth: '100%', overflowX: 'hidden' }}
         />
       )}
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Modern Redesign */}
       <motion.div
-        className={`fixed top-16 left-0 right-0 z-[85] md:hidden transition-all duration-300 ease-out ${
-          mobileMenuOpen 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 -translate-y-4 pointer-events-none'
-        }`}
+        className="fixed top-16 left-0 right-0 z-[85] md:hidden"
+        variants={mobileMenuVariants}
+        initial="hidden"
+        animate={mobileMenuOpen ? "show" : "hidden"}
         style={{ maxWidth: '100vw', overflowX: 'hidden' }}
       >
-        <div className="bg-black/90 md:backdrop-blur-lg border-b border-white/10 shadow-lg max-w-full overflow-hidden">
-          <nav className="px-4 py-4 max-w-7xl mx-auto">
-            <ul className="space-y-4">
+        <div className="bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] max-w-full overflow-hidden">
+          <motion.nav 
+            className="px-6 py-6 max-w-7xl mx-auto"
+            variants={mobileMenuVariants}
+          >
+            <motion.ul className="space-y-2" variants={mobileMenuVariants}>
               {navItems.map((item) => (
-                <li key={item.id}>
+                <motion.li key={item.id} variants={mobileMenuItemVariants}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -266,24 +375,51 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
                       e.stopPropagation()
                       handleNavClick(item.id)
                     }}
-                    className={`block w-full text-left py-3 px-4 rounded-lg transition-all duration-300 touch-manipulation ${
+                    className={`block w-full text-left py-4 px-5 rounded-xl transition-all duration-300 touch-manipulation relative overflow-hidden ${
                       activeSection === item.id
-                        ? 'bg-brand-gold/20 text-brand-gold border-l-4 border-brand-gold'
-                        : 'text-white/80 hover:text-brand-gold hover:bg-white/5 active:bg-white/10'
+                        ? 'bg-gradient-to-r from-brand-gold/10 to-brand-gold/5 text-brand-gold border-l-4 border-brand-gold shadow-[0_0_20px_rgba(207,174,82,0.15)]'
+                        : 'text-white/85 hover:text-white hover:bg-white/5 active:bg-white/8 border-l-4 border-transparent'
                     }`}
                     data-lens="on"
                     style={{ 
-                      minHeight: '48px', // Ensure touch target is large enough
+                      minHeight: '56px', // Larger touch target
                       display: 'flex',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      fontSize: '16px',
+                      fontWeight: '500'
                     }}
                   >
-                    {item.label}
+                    {/* Active item glow effect */}
+                    {activeSection === item.id && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-brand-gold/5 to-transparent rounded-xl"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                    
+                    <span className="relative z-10">{item.label}</span>
+                    
+                    {/* Active indicator arrow */}
+                    {activeSection === item.id && (
+                      <motion.svg
+                        className="w-4 h-4 ml-auto text-brand-gold relative z-10"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </motion.svg>
+                    )}
                   </button>
-                </li>
+                </motion.li>
               ))}
-            </ul>
-          </nav>
+            </motion.ul>
+          </motion.nav>
         </div>
       </motion.div>
     </>

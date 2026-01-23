@@ -780,9 +780,9 @@ const StackedSkillCard = ({
             </span>
           </div>
 
-          {/* Full-width skill rows - Improved readability */}
+          {/* Full-width skill rows - Mobile overflow fix with scrollbar spacing */}
           <motion.div 
-            className="flex-1 space-y-2 overflow-y-auto skills-scroll"
+            className="flex-1 space-y-2 overflow-y-auto overflow-x-hidden skills-scroll pr-2 md:pr-0"
             variants={listContainer}
             initial={false}
             animate={isActive ? "show" : "hidden"}
@@ -795,7 +795,7 @@ const StackedSkillCard = ({
                   duration: 0.22, 
                   ease: EASE_OUT_QUART 
                 }}
-                className="w-full px-4 py-2.5 flex items-center space-x-3 rounded-full border transition-all duration-[500ms] hover:border-white/[0.28] hover:bg-white/[0.09] cursor-default"
+                className="w-full max-w-full px-3 md:px-4 py-2.5 flex items-center space-x-3 rounded-full border transition-all duration-[500ms] hover:border-white/[0.28] hover:bg-white/[0.09] cursor-default overflow-hidden"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.04)',
                   borderColor: 'rgba(255, 255, 255, 0.16)'
@@ -803,10 +803,10 @@ const StackedSkillCard = ({
                 data-lens="on"
               >
                 {/* Tiny dot indicator */}
-                <div className="w-1.5 h-1.5 rounded-full bg-brand-gold/70" />
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-gold/70 flex-shrink-0" />
                 
-                {/* Skill text - Crisp and readable */}
-                <span className="text-sm font-medium flex-1 text-white/92">
+                {/* Skill text - Mobile-optimized with text truncation */}
+                <span className="text-sm font-medium flex-1 text-white/92 truncate min-w-0">
                   {skill}
                 </span>
               </motion.div>
