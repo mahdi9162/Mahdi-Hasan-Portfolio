@@ -114,7 +114,7 @@ const Footer = () => {
                 
                 {/* The Button */}
                 <a 
-                  href="mailto:hasanmahdi6060@gmail.com"
+                  href="mailto:contact@thisismahdihasan.com"
                   className="relative z-10 bg-black rounded-[7px] flex items-center justify-center px-4 py-2 text-zinc-300 hover:text-white transition-colors duration-300 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40"
                   style={{ margin: '1px' }}
                   aria-label="Email Mahdi"

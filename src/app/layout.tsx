@@ -5,6 +5,7 @@ import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvide
 import CustomCursor from '@/components/CustomCursor'
 import { Toaster } from 'react-hot-toast'
 import { siteConfig, PersonJsonLd } from '@/lib/seo'
+import { clientEnv } from '@/config/env.client'
 
 const syne = Syne({ 
   subsets: ['latin'],
@@ -29,8 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
   let seoDescription: string | null = null
 
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const url = clientEnv.supabaseUrl
+    const key = clientEnv.supabaseAnonKey
 
     if (url && key) {
       const res = await fetch(

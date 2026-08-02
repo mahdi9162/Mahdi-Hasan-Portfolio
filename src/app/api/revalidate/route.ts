@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
+import { serverEnv } from '@/config/env.server'
 
 // ── Server-only Supabase admin client ────────────────────────────────────────
 // The service role key is NEVER sent to the browser — it only exists here on
 // the server. NEXT_PUBLIC_ vars are intentionally not used for this client.
 function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceKey) {
-    throw new Error('Missing Supabase server env vars')
-  }
-
-  return createClient(url, serviceKey, {
+  return createClient(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
     auth: { persistSession: false },
   })
 }

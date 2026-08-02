@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { Resend } from 'resend'
+import { serverEnv } from '@/config/env.server'
 
 // ── Email validation ──────────────────────────────────────────────────────────
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -75,15 +76,7 @@ async function sendLeadNotification(params: {
   sourcePage: string
   submittedAt: string
 }): Promise<void> {
-  const apiKey  = process.env.RESEND_API_KEY
-  const from    = process.env.RESEND_FROM
-  const to      = process.env.RESEND_TO
-
-  if (!apiKey || !from || !to) {
-    console.warn('[/api/contact] Resend env vars missing — skipping notification',
-      { hasKey: !!apiKey, hasFrom: !!from, hasTo: !!to })
-    return
-  }
+  const { resendApiKey: apiKey, resendFrom: from, resendTo: to } = serverEnv
 
   const resend = new Resend(apiKey)
 
@@ -153,7 +146,7 @@ async function sendLeadNotification(params: {
 </html>`
 
   const { error } = await resend.emails.send({
-    from,
+    from: `Mahdi Hasan <${from}>`,
     to,
     replyTo: params.email,
     subject: `New Portfolio Lead — ${params.name}`,
@@ -174,13 +167,7 @@ async function sendThankYouEmail(params: {
   phone: string | null
   message: string
 }): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY
-  const from   = process.env.RESEND_FROM
-
-  if (!apiKey || !from) {
-    console.warn('[/api/contact] Resend env vars missing — skipping thank-you email')
-    return
-  }
+  const { resendApiKey: apiKey, resendFrom: from } = serverEnv
 
   const resend = new Resend(apiKey)
 
@@ -232,7 +219,7 @@ async function sendThankYouEmail(params: {
     <div class="footer">
       <p class="sig-name">Mahdi Hasan</p>
       <p>Full-Stack Developer</p>
-      <p><a href="mailto:contact@mahdihasan.pro.bd">contact@mahdihasan.pro.bd</a></p>
+      <p><a href="mailto:contact@thisismahdihasan.com">contact@thisismahdihasan.com</a></p>
       <p class="sig-sub">This is an automated confirmation. Your message has been saved.</p>
     </div>
   </div>
@@ -244,7 +231,7 @@ async function sendThankYouEmail(params: {
     `Thanks for reaching out — I've received your message and will review it shortly. I typically reply within 24 hours.\n\n` +
     `Your message:\n"${params.message.slice(0, 300)}${params.message.length > 300 ? '…' : ''}"\n\n` +
     `If you need to reach me directly, reply to this email.\n\n` +
-    `— Mahdi Hasan\nFull-Stack Developer\ncontact@mahdihasan.pro.bd`
+    `— Mahdi Hasan\nFull-Stack Developer\ncontact@thisismahdihasan.com`
 
   const { error } = await resend.emails.send({
     from: `Mahdi Hasan <${from}>`,
@@ -323,13 +310,9 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Env vars ──────────────────────────────────────────────────────────────
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const { supabaseUrl, supabaseServiceRoleKey: serviceKey } = serverEnv
 
-  if (!supabaseUrl || !serviceKey) {
-    console.error('[/api/contact] Missing Supabase env vars')
-    return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 })
-  }
+  // serverEnv validates all vars at startup — no runtime undefined check needed here
 
   // ── IP hash ───────────────────────────────────────────────────────────────
   const ipHash = extractIpHash(req)

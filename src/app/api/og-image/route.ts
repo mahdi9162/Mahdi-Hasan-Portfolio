@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { clientEnv } from '@/config/env.client'
 
 /**
  * /api/og-image — same-origin OG image proxy.
@@ -29,8 +30,8 @@ const CACHE_HEADERS = 'public, max-age=300, s-maxage=300, stale-while-revalidate
 
 export async function GET(): Promise<Response> {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl = clientEnv.supabaseUrl
+    const supabaseKey = clientEnv.supabaseAnonKey
 
     // ── Step 1: fetch og_image_url from seo_settings ──────────────────────
     let ogImageUrl: string | null = null
@@ -101,7 +102,7 @@ export async function GET(): Promise<Response> {
     // Use a 302 temporary redirect so crawlers follow to the generated image.
     // This keeps /api/og-image as the stable og:image URL in metadata.
     return NextResponse.redirect(
-      new URL('/api/og', process.env.NEXT_PUBLIC_SITE_URL ?? 'https://thisismahdihasan.com'),
+      new URL('/api/og', clientEnv.siteUrl),
       {
         status: 302,
         headers: {
@@ -112,7 +113,7 @@ export async function GET(): Promise<Response> {
   } catch {
     // Last-resort fallback — should never reach here
     return NextResponse.redirect(
-      new URL('/api/og', process.env.NEXT_PUBLIC_SITE_URL ?? 'https://thisismahdihasan.com'),
+      new URL('/api/og', clientEnv.siteUrl),
       { status: 302 }
     )
   }

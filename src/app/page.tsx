@@ -2,6 +2,7 @@ import PortfolioClient from '@/components/PortfolioClient'
 import type { Project } from '@/types/project'
 import type { HeroContent } from '@/types/hero'
 import type { AboutContent } from '@/types/about'
+import { clientEnv } from '@/config/env.client'
 
 // Serializable skill data (no React components)
 export interface SerializableSkillCategory {
@@ -27,8 +28,8 @@ const HERO_FALLBACK: HeroContent = {
 
 async function getHeroContent(): Promise<HeroContent> {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const url = clientEnv.supabaseUrl
+    const key = clientEnv.supabaseAnonKey
     if (!url || !key) return HERO_FALLBACK
 
     const res = await fetch(
@@ -95,8 +96,8 @@ const ABOUT_FALLBACK: AboutContent = {
 
 async function getAboutContent(): Promise<AboutContent> {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const url = clientEnv.supabaseUrl
+    const key = clientEnv.supabaseAnonKey
     if (!url || !key) return ABOUT_FALLBACK
 
     const res = await fetch(
@@ -141,8 +142,8 @@ async function getAboutContent(): Promise<AboutContent> {
 
 async function getInitialProjects(): Promise<{ data: Project[] | undefined; fromSupabase: boolean }> {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const url = clientEnv.supabaseUrl
+    const key = clientEnv.supabaseAnonKey
     if (!url || !key) return { data: undefined, fromSupabase: false }
 
     const res = await fetch(
@@ -190,8 +191,8 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
 
 async function getInitialSkillCategories(): Promise<{ data: SerializableSkillCategory[] | undefined; fromSupabase: boolean }> {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const url = clientEnv.supabaseUrl
+    const key = clientEnv.supabaseAnonKey
     if (!url || !key) return { data: undefined, fromSupabase: false }
 
     const headers = {

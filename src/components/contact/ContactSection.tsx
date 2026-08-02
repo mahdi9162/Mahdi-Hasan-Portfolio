@@ -289,10 +289,10 @@ const ContactSection = () => {
                   <Mail className="text-primary/80 text-[18px]" />
                   <div className="flex-1 min-w-0">
                     <a 
-                      href="mailto:hasanmahdi6060@gmail.com" 
+                      href="mailto:contact@thisismahdihasan.com" 
                       className="text-zinc-300 text-[14px] leading-relaxed hover:text-zinc-100 hover:drop-shadow-[0_0_14px_rgba(223,181,42,0.18)] transition-all duration-300"
                     >
-                      hasanmahdi6060@gmail.com
+                      contact@thisismahdihasan.com
                     </a>
                   </div>
                 </div>
