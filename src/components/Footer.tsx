@@ -149,7 +149,7 @@ const Footer = () => {
           
           <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center">
             <a 
-              href="https://www.linkedin.com/in/mahdi9162/" 
+              href="https://www.linkedin.com/in/thisismahdihasan/" 
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs uppercase tracking-widest text-white/60 hover:text-primary hover:underline underline-offset-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
@@ -158,7 +158,7 @@ const Footer = () => {
               LinkedIn
             </a>
             <a 
-              href="https://github.com/mahdi9162" 
+              href="https://github.com/thisismahdihasan/" 
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs uppercase tracking-widest text-white/60 hover:text-primary hover:underline underline-offset-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
@@ -167,7 +167,7 @@ const Footer = () => {
               GitHub
             </a>
             <a 
-              href="https://www.facebook.com/mahdi916/" 
+              href="https://www.facebook.com/thisismahdihasan/" 
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs uppercase tracking-widest text-white/60 hover:text-primary hover:underline underline-offset-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
