@@ -465,6 +465,29 @@ section,
   scrollbar-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.02);
 }
 
+/* Technical Highlight icon picker — scoped dropdown scrollbar */
+.technical-highlight-icon-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+}
+
+.technical-highlight-icon-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.technical-highlight-icon-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.technical-highlight-icon-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.technical-highlight-icon-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 /* Panel scroll container */
 .projects-panel-scroll {
   overscroll-behavior: contain;

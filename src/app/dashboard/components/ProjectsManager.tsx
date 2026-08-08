@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { normalizeTechnicalHighlights } from '@/types/project'
 import ProjectForm, { type ProjectRow, storagePathFromUrl } from './ProjectForm'
 import Toast from './Toast'
 import ConfirmDialog from './ConfirmDialog'
@@ -42,7 +43,7 @@ async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
     key_features: Array.isArray(project.key_features) ? project.key_features : [],
     gallery_images: Array.isArray(project.gallery_images) ? project.gallery_images : [],
     show_technical_highlights: project.show_technical_highlights ?? false,
-    technical_highlights: Array.isArray(project.technical_highlights) ? project.technical_highlights : [],
+    technical_highlights: normalizeTechnicalHighlights(project.technical_highlights),
   })) as ProjectRow[]
 }
 

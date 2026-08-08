@@ -7,7 +7,7 @@ import Container from '@/components/shared/Container'
 import SectionHeader from '@/components/shared/SectionHeader'
 import { EASE_OUT_QUART } from '@/lib/animations'
 import { projects as fallbackProjects } from '@/data/projects'
-import type { Project } from '@/types/project'
+import { normalizeTechnicalHighlights, type Project } from '@/types/project'
 import { supabase } from '@/lib/supabase'
 
 type ProjectFilter = 'production' | 'personal'
@@ -94,7 +94,7 @@ export default function ProjectsSection({
               keyFeatures: Array.isArray(row.key_features) ? row.key_features : [],
               galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
               showTechnicalHighlights: row.show_technical_highlights ?? false,
-              technicalHighlights: Array.isArray(row.technical_highlights) ? row.technical_highlights : [],
+              technicalHighlights: normalizeTechnicalHighlights(row.technical_highlights),
               bullets: Array.isArray(row.bullets) ? row.bullets : undefined,
               status: row.status ?? 'published',
             }

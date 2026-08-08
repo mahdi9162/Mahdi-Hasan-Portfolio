@@ -1,7 +1,31 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import {
+  Ban,
+  Check,
+  ChevronDown,
+  CreditCard,
+  Database,
+  Gauge,
+  Globe2,
+  Layers3,
+  Lock,
+  MessagesSquare,
+  Server,
+  Shield,
+  Sparkles,
+  Workflow,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import {
+  normalizeTechnicalHighlights,
+  TECHNICAL_HIGHLIGHT_ICON_KEYS,
+  type TechnicalHighlight,
+  type TechnicalHighlightIcon,
+} from '@/types/project'
 import DashboardSelect from './DashboardSelect'
 
 export interface ProjectRow {
@@ -21,12 +45,12 @@ export interface ProjectRow {
   key_features: string[]
   gallery_images: string[]
   show_technical_highlights: boolean
-  technical_highlights: string[]
+  technical_highlights: TechnicalHighlight[]
   status: 'published' | 'draft'
   sort_order: number
 }
 
-type ListField = 'key_features' | 'gallery_images' | 'technical_highlights'
+type ListField = 'key_features' | 'gallery_images'
 
 export const MAX_KEY_FEATURES = 6
 export const MAX_GALLERY_IMAGES = 4
@@ -35,7 +59,191 @@ export const MAX_TECHNICAL_HIGHLIGHTS = 5
 const LIST_LIMITS: Record<ListField, number> = {
   key_features: MAX_KEY_FEATURES,
   gallery_images: MAX_GALLERY_IMAGES,
-  technical_highlights: MAX_TECHNICAL_HIGHLIGHTS,
+}
+
+const TECHNICAL_HIGHLIGHT_ICON_OPTIONS: Array<{
+  key: TechnicalHighlightIcon
+  label: string
+  Icon: LucideIcon
+}> = [
+  { key: 'shield', label: 'Shield', Icon: Shield },
+  { key: 'lock', label: 'Lock', Icon: Lock },
+  { key: 'database', label: 'Database', Icon: Database },
+  { key: 'workflow', label: 'Workflow', Icon: Workflow },
+  { key: 'globe', label: 'Globe', Icon: Globe2 },
+  { key: 'messages', label: 'Messages', Icon: MessagesSquare },
+  { key: 'credit-card', label: 'Payment', Icon: CreditCard },
+  { key: 'gauge', label: 'Performance', Icon: Gauge },
+  { key: 'layers', label: 'Layers', Icon: Layers3 },
+  { key: 'server', label: 'Server', Icon: Server },
+  { key: 'zap', label: 'Speed', Icon: Zap },
+  { key: 'sparkles', label: 'Sparkles', Icon: Sparkles },
+]
+
+function TechnicalHighlightIconPicker({
+  value,
+  onValueChange,
+  label,
+}: {
+  value: TechnicalHighlightIcon | null
+  onValueChange: (value: TechnicalHighlightIcon | null) => void
+  label: string
+}) {
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const listboxId = useId()
+  const options = [{ key: null, label: 'No icon', Icon: Ban }, ...TECHNICAL_HIGHLIGHT_ICON_OPTIONS]
+  const selectedIndex = Math.max(0, options.findIndex(option => option.key === value))
+  const selected = options[selectedIndex]
+  const [open, setOpen] = useState(false)
+  const [opensUpward, setOpensUpward] = useState(false)
+  const [menuMaxHeight, setMenuMaxHeight] = useState(288)
+  const [focusedIndex, setFocusedIndex] = useState(selectedIndex)
+  const SelectedIcon = selected.Icon
+
+  const updateMenuPosition = () => {
+    const trigger = triggerRef.current
+    if (!trigger) return
+
+    const collisionPadding = 12
+    const maxHeight = 288
+    const rect = trigger.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom - collisionPadding
+    const spaceAbove = rect.top - collisionPadding
+    const nextOpensUpward = spaceBelow < maxHeight && spaceAbove > spaceBelow
+    const availableHeight = nextOpensUpward ? spaceAbove : spaceBelow
+
+    setOpensUpward(nextOpensUpward)
+    setMenuMaxHeight(Math.max(1, Math.min(maxHeight, availableHeight)))
+  }
+
+  useEffect(() => {
+    if (!open) return
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+
+    updateMenuPosition()
+    document.addEventListener('pointerdown', closeOnOutsidePointer)
+    window.addEventListener('resize', updateMenuPosition)
+    window.addEventListener('scroll', updateMenuPosition, true)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePointer)
+      window.removeEventListener('resize', updateMenuPosition)
+      window.removeEventListener('scroll', updateMenuPosition, true)
+    }
+  }, [open])
+
+  const closeAndRestoreFocus = () => {
+    setOpen(false)
+    requestAnimationFrame(() => triggerRef.current?.focus())
+  }
+
+  const focusOption = (index: number) => {
+    setFocusedIndex(index)
+    requestAnimationFrame(() => optionRefs.current[index]?.focus())
+  }
+
+  const selectOption = (index: number) => {
+    onValueChange(options[index].key)
+    closeAndRestoreFocus()
+  }
+
+  const openListbox = () => {
+    updateMenuPosition()
+    setFocusedIndex(selectedIndex)
+    setOpen(true)
+    requestAnimationFrame(() => optionRefs.current[selectedIndex]?.focus())
+  }
+
+  const handleOptionKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeAndRestoreFocus()
+      return
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      const direction = event.key === 'ArrowDown' ? 1 : -1
+      focusOption((focusedIndex + direction + options.length) % options.length)
+      return
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      focusOption(event.key === 'Home' ? 0 : options.length - 1)
+      return
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      selectOption(focusedIndex)
+    }
+  }
+
+  return (
+    <div ref={pickerRef} className="relative w-full lg:w-48">
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
+        onClick={() => open ? closeAndRestoreFocus() : openListbox()}
+        onKeyDown={event => {
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault()
+            openListbox()
+          }
+        }}
+        className="flex min-h-10 w-full items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.045] px-3 text-sm text-white/75 transition-colors hover:border-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4AF37]"
+      >
+        <SelectedIcon className={selected.key ? 'h-4 w-4 shrink-0 text-[#D4AF37]' : 'h-4 w-4 shrink-0 text-white/35'} aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate text-left">{selected.label}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-white/35 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label={label}
+          data-lenis-prevent
+          style={{ maxHeight: `${menuMaxHeight}px` }}
+          className={`technical-highlight-icon-scroll absolute right-0 z-[300] w-full min-w-[12rem] touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain rounded-lg border border-white/[0.12] bg-[#171717] p-1 shadow-[0_12px_32px_rgba(0,0,0,0.55)] ${
+            opensUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
+          {options.map((option, index) => {
+            const Icon = option.Icon
+            const isSelected = option.key === value
+            return (
+              <button
+                key={option.key ?? 'no-icon'}
+                ref={element => { optionRefs.current[index] = element }}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={index === focusedIndex ? 0 : -1}
+                onClick={() => selectOption(index)}
+                onFocus={() => setFocusedIndex(index)}
+                onKeyDown={handleOptionKeyDown}
+                className={`flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm outline-none transition-colors ${
+                  isSelected
+                    ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                    : 'text-white/70 hover:bg-white/[0.06] focus:bg-[#D4AF37]/10 focus:text-[#D4AF37]'
+                }`}
+              >
+                <Icon className={`h-4 w-4 shrink-0 ${isSelected ? 'text-[#D4AF37]' : 'text-white/45'}`} aria-hidden="true" />
+                <span className="flex-1">{option.label}</span>
+                {isSelected && <Check className="h-4 w-4 text-[#D4AF37]" aria-hidden="true" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
 }
 
 const EMPTY: ProjectRow = {
@@ -110,7 +318,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       key_features:      Array.isArray(base.key_features) ? base.key_features : [],
       gallery_images:    Array.isArray(base.gallery_images) ? base.gallery_images : [],
       show_technical_highlights: base.show_technical_highlights ?? false,
-      technical_highlights: Array.isArray(base.technical_highlights) ? base.technical_highlights : [],
+      technical_highlights: normalizeTechnicalHighlights(base.technical_highlights),
       status:            base.status            ?? 'draft',
       sort_order:        base.sort_order        ?? initialSortOrder ?? 0,
     }
@@ -217,7 +425,12 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       project_context: form.project_context.trim() || null,
       key_features: form.key_features.map(value => value.trim()).filter(Boolean),
       gallery_images: form.gallery_images.map(value => value.trim()).filter(Boolean),
-      technical_highlights: form.technical_highlights.map(value => value.trim()).filter(Boolean),
+      technical_highlights: form.technical_highlights
+        .map(({ text, icon }) => ({
+          text: text.trim(),
+          icon: TECHNICAL_HIGHLIGHT_ICON_KEYS.includes(icon as TechnicalHighlightIcon) ? icon : null,
+        }))
+        .filter((highlight) => Boolean(highlight.text)),
     }
 
     const { error } = id
@@ -265,6 +478,24 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
 
   const removeListValue = (field: ListField, index: number) =>
     set(field, form[field].filter((_, itemIndex) => itemIndex !== index))
+
+  const updateTechnicalHighlight = (
+    index: number,
+    field: keyof TechnicalHighlight,
+    value: string | TechnicalHighlightIcon | null,
+  ) => {
+    const next = [...form.technical_highlights]
+    next[index] = { ...next[index], [field]: value }
+    set('technical_highlights', next)
+  }
+
+  const addTechnicalHighlight = () => {
+    if (form.technical_highlights.length >= MAX_TECHNICAL_HIGHLIGHTS) return
+    set('technical_highlights', [...form.technical_highlights, { text: '', icon: null }])
+  }
+
+  const removeTechnicalHighlight = (index: number) =>
+    set('technical_highlights', form.technical_highlights.filter((_, itemIndex) => itemIndex !== index))
 
   const repeatableFields = (
     field: ListField,
@@ -578,12 +809,56 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
             <p className="mt-1.5 text-xs leading-5 text-white/40">Use this only for implementation details worth calling out.</p>
           </div>
 
-          {form.show_technical_highlights && repeatableFields(
-            'technical_highlights',
-            'Technical Highlights',
-            'Optional implementation details that support the project story.',
-            'e.g. Role-based access control',
-            'Add Highlight'
+          {form.show_technical_highlights && (
+            <section className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-medium text-white/80">Technical Highlights</label>
+                <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] text-white/50">
+                  {form.technical_highlights.length} / {MAX_TECHNICAL_HIGHLIGHTS} {form.technical_highlights.length === 1 ? 'highlight' : 'highlights'}
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-5 text-white/40">Optional implementation details that support the project story.</p>
+
+              <div className="space-y-2">
+                {form.technical_highlights.map((highlight, index) => {
+                  return (
+                    <div key={`technical-highlight-${index}`} className="mt-3 flex min-w-0 flex-col gap-2 lg:flex-row">
+                      <input
+                        type="text"
+                        value={highlight.text}
+                        onChange={event => updateTechnicalHighlight(index, 'text', event.target.value)}
+                        placeholder="e.g. Role-based access control"
+                        className={inputCls}
+                      />
+                      <TechnicalHighlightIconPicker
+                        value={highlight.icon}
+                        onValueChange={icon => updateTechnicalHighlight(index, 'icon', icon)}
+                        label={`Icon for technical highlight ${index + 1}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeTechnicalHighlight(index)}
+                        className="min-h-10 shrink-0 rounded-lg border border-white/[0.12] px-3.5 text-sm text-white/55 transition-colors hover:border-red-400/45 hover:bg-red-400/[0.06] hover:text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {fieldErrors.technical_highlights && (
+                <p className="mt-2 text-xs text-red-400/75">{fieldErrors.technical_highlights}</p>
+              )}
+              <button
+                type="button"
+                onClick={addTechnicalHighlight}
+                disabled={form.technical_highlights.length >= MAX_TECHNICAL_HIGHLIGHTS}
+                className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-white/[0.14] bg-white/[0.045] px-3.5 text-sm font-medium text-white/70 transition-colors hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:border-white/[0.07] disabled:bg-transparent disabled:text-white/25"
+              >
+                + Add Highlight
+              </button>
+            </section>
           )}
         </div>
       )}
