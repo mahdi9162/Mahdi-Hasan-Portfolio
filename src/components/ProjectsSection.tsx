@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Container from '@/components/shared/Container'
@@ -9,6 +9,7 @@ import { EASE_OUT_QUART } from '@/lib/animations'
 import { projects as fallbackProjects } from '@/data/projects'
 import { normalizeTechnicalHighlights, type Project } from '@/types/project'
 import { supabase } from '@/lib/supabase'
+import ProjectDetailsModal from '@/components/ProjectDetailsModal'
 
 type ProjectFilter = 'production' | 'personal'
 
@@ -37,6 +38,110 @@ const getInitialProjectId = (projectList: Project[]) => {
   return projectList.find((project) => getClassification(project) === filter)?.id ?? null
 }
 
+function MobileTechnologyPreview({ technologies }: { technologies: string[] }) {
+  const measureRef = useRef<HTMLDivElement>(null)
+  const [visibleCount, setVisibleCount] = useState(0)
+  const safeVisibleCount = Math.min(visibleCount, technologies.length)
+  const remainingCount = technologies.length - safeVisibleCount
+
+  useEffect(() => {
+    const container = measureRef.current
+    if (!container || technologies.length === 0) return
+
+    const measure = () => {
+      const availableWidth = container.clientWidth
+      const techChips = Array.from(container.querySelectorAll<HTMLElement>('[data-mobile-tech-measure]'))
+      const overflowChip = container.querySelector<HTMLElement>('[data-mobile-tech-overflow]')
+
+      if (!availableWidth || techChips.length !== technologies.length || !overflowChip) return
+
+      const gap = Number.parseFloat(window.getComputedStyle(container).columnGap) || 10
+      const techWidths = techChips.map(chip => chip.offsetWidth)
+      const overflowWidth = overflowChip.offsetWidth
+      const fitsInTwoRows = (count: number) => {
+        const widths = count === technologies.length
+          ? techWidths.slice(0, count)
+          : [...techWidths.slice(0, count), overflowWidth]
+        let rows = 1
+        let rowWidth = 0
+
+        for (const width of widths) {
+          if (rowWidth > 0 && rowWidth + gap + width > availableWidth) {
+            rows += 1
+            rowWidth = width
+          } else {
+            rowWidth += rowWidth > 0 ? gap + width : width
+          }
+        }
+
+        return rows <= 2
+      }
+
+      let nextVisibleCount = 0
+      for (let count = technologies.length; count >= 0; count -= 1) {
+        if (fitsInTwoRows(count)) {
+          nextVisibleCount = count
+          break
+        }
+      }
+
+      setVisibleCount(current => current === nextVisibleCount ? current : nextVisibleCount)
+    }
+
+    const frame = requestAnimationFrame(measure)
+    const resizeObserver = new ResizeObserver(measure)
+    resizeObserver.observe(container)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      resizeObserver.disconnect()
+    }
+  }, [technologies])
+
+  if (technologies.length === 0) return null
+
+  return (
+    <div className="relative mt-5 sm:hidden" aria-label="Technology preview">
+      <div className="flex max-h-[4.375rem] flex-wrap gap-2.5 overflow-hidden">
+        {technologies.slice(0, safeVisibleCount).map(technology => (
+          <span
+            key={technology}
+            className="rounded-md border border-white/[0.18] bg-black/20 px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-white/75"
+          >
+            {technology}
+          </span>
+        ))}
+        {remainingCount > 0 && (
+          <span
+            className="rounded-md border border-brand-gold/40 bg-brand-gold/10 px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-brand-gold"
+            aria-label={`${remainingCount} more technologies`}
+          >
+            +{remainingCount}
+          </span>
+        )}
+      </div>
+
+      <div ref={measureRef} aria-hidden="true" className="pointer-events-none invisible absolute inset-x-0 top-0 -z-10 flex flex-wrap gap-2.5">
+        {technologies.map(technology => (
+          <span
+            key={technology}
+            data-mobile-tech-measure
+            className="rounded-md border border-white/[0.18] bg-black/20 px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-white/75"
+          >
+            {technology}
+          </span>
+        ))}
+        <span
+          data-mobile-tech-overflow
+          className="rounded-md border border-brand-gold/40 bg-brand-gold/10 px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-brand-gold"
+        >
+          +{technologies.length}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function ProjectsSection({
   initialProjects,
   projectsFromSupabase = true,
@@ -53,6 +158,8 @@ export default function ProjectsSection({
   const [activeId, setActiveId] = useState<string | number | null>(() =>
     getInitialProjectId(initialProjects?.length ? initialProjects : fallbackProjects)
   )
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
+  const viewProjectTriggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (initialProjects?.length || !projectsFromSupabase) return
@@ -163,6 +270,10 @@ export default function ProjectsSection({
 
   const techPreview = activeProject?.tech.slice(0, 5) ?? []
   const remainingTechCount = Math.max(0, (activeProject?.tech.length ?? 0) - techPreview.length)
+  const closeProjectModal = useCallback(() => {
+    setIsProjectModalOpen(false)
+    requestAnimationFrame(() => viewProjectTriggerRef.current?.focus())
+  }, [])
 
   return (
     <section
@@ -191,14 +302,14 @@ export default function ProjectsSection({
                 transition={{ duration: 0.28, ease: EASE_OUT_QUART }}
                 className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/[0.12] bg-white/[0.035] lg:h-full"
               >
-                <div className="relative h-56 shrink-0 overflow-hidden rounded-t-xl bg-black/35 sm:h-72 lg:aspect-[16/6] lg:h-auto xl:aspect-[16/7]">
+                <div className="relative aspect-[16/10] shrink-0 overflow-hidden rounded-t-xl bg-black/35 sm:h-72 sm:aspect-auto lg:aspect-[16/6] lg:h-auto xl:aspect-[16/7]">
                   <Image
                     src={activeProject.image}
                     alt={`${activeProject.title} project screenshot`}
                     fill
                     priority
                     sizes="(max-width: 1023px) 100vw, (max-width: 1280px) 62vw, 760px"
-                    className="object-cover object-top"
+                    className="object-contain object-center sm:object-cover sm:object-top"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />
                 </div>
@@ -214,7 +325,9 @@ export default function ProjectsSection({
                     {activeProject.description}
                   </p>
 
-                  <div className="mt-5 flex flex-wrap gap-2.5" aria-label="Technology preview">
+                  <MobileTechnologyPreview technologies={activeProject.tech} />
+
+                  <div className="mt-5 hidden flex-wrap gap-2.5 sm:flex" aria-label="Technology preview">
                     {techPreview.map((technology) => (
                       <span
                         key={technology}
@@ -243,10 +356,10 @@ export default function ProjectsSection({
                     )}
                     {activeProject.showViewProject && (
                       <button
+                        ref={viewProjectTriggerRef}
                         type="button"
-                        disabled
-                        title="Project details will be available soon"
-                        className="inline-flex items-center rounded-md border border-white/[0.18] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white/45 disabled:cursor-not-allowed"
+                        onClick={() => setIsProjectModalOpen(true)}
+                        className="inline-flex items-center rounded-md border border-white/[0.18] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white/70 hover:border-white/35 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
                       >
                         View Project →
                       </button>
@@ -283,7 +396,7 @@ export default function ProjectsSection({
                           aria-selected={displayedFilter === filter}
                           aria-disabled={!hasProjects}
                           onClick={() => selectFilter(filter)}
-                          className={`border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                          className={`border rounded-lg px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
                             displayedFilter === filter
                               ? 'border-brand-gold/60 bg-brand-gold/10 text-brand-gold'
                               : hasProjects
@@ -299,7 +412,7 @@ export default function ProjectsSection({
                 </div>
 
                 <div
-                  className="projects-scrollbar flex gap-3 overflow-x-auto p-3 pb-4 sm:p-4 lg:min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto lg:overscroll-contain lg:flex-col"
+                  className="projects-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain p-3 pb-4 scroll-px-3 [-webkit-overflow-scrolling:touch] sm:snap-none sm:p-4 lg:min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto lg:overscroll-contain lg:flex-col"
                   role="tabpanel"
                   aria-label={`${displayedFilter} projects`}
                 >
@@ -311,7 +424,7 @@ export default function ProjectsSection({
                         type="button"
                         onClick={() => setActiveId(project.id)}
                         aria-pressed={isActive}
-                        className={`group relative flex w-52 shrink-0 gap-3 overflow-hidden rounded-lg border p-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold sm:w-60 lg:w-full lg:shrink ${
+                        className={`group relative flex w-[88%] shrink-0 snap-start gap-3 overflow-hidden rounded-lg border p-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold sm:w-60 sm:snap-none lg:w-full lg:shrink ${
                           isActive
                             ? 'border-brand-gold/60 bg-white/[0.075]'
                             : 'border-white/[0.08] bg-white/[0.025] hover:border-white/[0.2] hover:bg-white/[0.055]'
@@ -349,6 +462,14 @@ export default function ProjectsSection({
           )}
         </motion.div>
       </Container>
+      {isProjectModalOpen && activeProject && (
+        <ProjectDetailsModal
+          project={activeProject}
+          projects={filteredProjects}
+          onProjectChange={setActiveId}
+          onClose={closeProjectModal}
+        />
+      )}
     </section>
   )
 }
