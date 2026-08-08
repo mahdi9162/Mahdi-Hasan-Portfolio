@@ -33,7 +33,7 @@ interface Props {
 
 export default function PortfolioClient({ initialProjects, projectsFromSupabase = true, initialSkillCategories, skillsFromSupabase = true, initialHeroContent, initialAboutContent }: Props) {
   const { isVisible: showReloadShutter, complete: completeReloadShutter } = useReloadShutter()
-  const { isVisible: showFirstEntryIntro, complete: completeFirstEntryIntro } = useFirstEntryIntro()
+  const { isChecking: isCheckingFirstEntryIntro, isVisible: showFirstEntryIntro, complete: completeFirstEntryIntro } = useFirstEntryIntro()
   const [introReleaseStarted, setIntroReleaseStarted] = useState(false)
   const [reloadReleaseStarted, setReloadReleaseStarted] = useState(false)
   const startIntroRelease = useCallback(() => setIntroReleaseStarted(true), [])
@@ -42,7 +42,7 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
   const introIsCoveringPage = showFirstEntryIntro && !introReleaseStarted
   const reloadIsCoveringPage = showReloadShutter && !reloadReleaseStarted
   const loaderReleaseStarted = introReleaseStarted || reloadReleaseStarted
-  const pagePresentation = introIsCoveringPage
+  const pagePresentation = isCheckingFirstEntryIntro || introIsCoveringPage
     ? { opacity: 0, scale: 1.02, filter: 'blur(6px)' }
     : reloadIsCoveringPage
       ? { opacity: 0.72, scale: 1.008, filter: 'blur(4px)' }
@@ -50,6 +50,7 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
 
   return (
     <>
+      {isCheckingFirstEntryIntro && <div aria-hidden="true" className="fixed inset-0 z-[9999] bg-[#050505]" />}
       {showFirstEntryIntro && (
         <FirstEntryLoader
           onComplete={completeFirstEntryIntro}
