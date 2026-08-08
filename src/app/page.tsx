@@ -178,18 +178,28 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
         if (!row.id || !row.title) return null
         const image = row.image_url ?? ''
         if (!image) return null
+        const sourceUrl = getOptionalUrl(row.github_url)
         return {
           id: row.id,
           title: row.title,
-          description: row.full_description ?? row.short_description ?? '',
-          summary: row.short_description ?? '',
+          description: row.full_description ?? '',
           tech: Array.isArray(row.tech_stack) ? row.tech_stack : [],
           image,
-          liveUrl: row.live_url ?? '',
-          sourceUrl: getOptionalUrl(row.github_url),
+          liveUrl: getOptionalUrl(row.live_url) ?? '',
+          sourceUrl,
+          showViewProject: row.show_view_project ?? true,
+          showSource: row.show_source ?? Boolean(sourceUrl),
           classification: row.classification === 'production' || row.classification === 'personal'
             ? row.classification
             : 'personal',
+          year: typeof row.project_year === 'number' ? row.project_year : null,
+          projectContext: typeof row.project_context === 'string' && row.project_context.trim()
+            ? row.project_context
+            : null,
+          keyFeatures: Array.isArray(row.key_features) ? row.key_features : [],
+          galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
+          showTechnicalHighlights: row.show_technical_highlights ?? false,
+          technicalHighlights: Array.isArray(row.technical_highlights) ? row.technical_highlights : [],
           bullets: Array.isArray(row.bullets) ? row.bullets : undefined,
           status: (row.status ?? 'published') as 'published' | 'draft',
         }

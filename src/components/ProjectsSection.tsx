@@ -25,8 +25,6 @@ const getOptionalUrl = (value: unknown): string | undefined => {
   }
 }
 
-const getProjectSummary = (project: Project) => project.description || project.summary
-
 const getDefaultFilter = (projectList: Project[]): ProjectFilter =>
   projectList.some((project) => getClassification(project) === 'production')
     ? 'production'
@@ -75,18 +73,28 @@ export default function ProjectsSection({
             const image = row.image_url ?? row.image ?? ''
             if (!row.id || !row.title || !image) return null
 
+            const sourceUrl = getOptionalUrl(row.github_url)
             return {
               id: row.id,
               title: row.title,
-              description: row.full_description ?? row.short_description ?? '',
-              summary: row.short_description ?? '',
+              description: row.full_description ?? '',
               tech: Array.isArray(row.tech_stack) ? row.tech_stack : [],
               image,
-              liveUrl: row.live_url ?? '',
-              sourceUrl: getOptionalUrl(row.github_url),
+              liveUrl: getOptionalUrl(row.live_url) ?? '',
+              sourceUrl,
+              showViewProject: row.show_view_project ?? true,
+              showSource: row.show_source ?? Boolean(sourceUrl),
               classification: row.classification === 'production' || row.classification === 'personal'
                 ? row.classification
                 : 'personal',
+              year: typeof row.project_year === 'number' ? row.project_year : null,
+              projectContext: typeof row.project_context === 'string' && row.project_context.trim()
+                ? row.project_context
+                : null,
+              keyFeatures: Array.isArray(row.key_features) ? row.key_features : [],
+              galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
+              showTechnicalHighlights: row.show_technical_highlights ?? false,
+              technicalHighlights: Array.isArray(row.technical_highlights) ? row.technical_highlights : [],
               bullets: Array.isArray(row.bullets) ? row.bullets : undefined,
               status: row.status ?? 'published',
             }
@@ -202,9 +210,8 @@ export default function ProjectsSection({
                   <h3 className="mt-2 text-2xl font-semibold leading-tight text-white sm:text-3xl">
                     {activeProject.title}
                   </h3>
-                  <p className="mt-2 text-sm text-white/60 sm:text-base">{activeProject.summary}</p>
                   <p className="mt-4 line-clamp-3 max-w-3xl text-sm leading-6 text-white/75 sm:text-[15px]">
-                    {getProjectSummary(activeProject)}
+                    {activeProject.description}
                   </p>
 
                   <div className="mt-5 flex flex-wrap gap-2.5" aria-label="Technology preview">
@@ -234,15 +241,17 @@ export default function ProjectsSection({
                         Live Site ↗
                       </a>
                     )}
-                    <button
-                      type="button"
-                      disabled
-                      title="Project details will be available soon"
-                      className="inline-flex items-center rounded-md border border-white/[0.18] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white/45 disabled:cursor-not-allowed"
-                    >
-                      View Project →
-                    </button>
-                    {displayedFilter === 'personal' && activeProject.sourceUrl && (
+                    {activeProject.showViewProject && (
+                      <button
+                        type="button"
+                        disabled
+                        title="Project details will be available soon"
+                        className="inline-flex items-center rounded-md border border-white/[0.18] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white/45 disabled:cursor-not-allowed"
+                      >
+                        View Project →
+                      </button>
+                    )}
+                    {activeProject.showSource && activeProject.sourceUrl && (
                       <a
                         href={activeProject.sourceUrl}
                         target="_blank"
@@ -325,7 +334,7 @@ export default function ProjectsSection({
                           <span className={`mt-1 block truncate text-sm font-semibold ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                             {project.title}
                           </span>
-                          <span className="mt-0.5 block truncate text-xs text-white/45">{project.summary}</span>
+                          <span className="mt-0.5 block truncate text-xs text-white/45">{project.description}</span>
                         </span>
                       </button>
                     )

@@ -2,38 +2,21 @@
 
 import type { ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-
-type Section = 'overview' | 'home' | 'about' | 'projects' | 'skills' | 'analytics' | 'inbox' | 'settings' | 'seo'
-
-interface NavItem {
-  id: Section
-  label: string
-  icon: string
-}
-
-const NAV: NavItem[] = [
-  { id: 'overview',   label: 'Overview',   icon: 'grid_view' },
-  { id: 'home',       label: 'Home',       icon: 'cottage' },
-  { id: 'about',      label: 'About',      icon: 'menu_book' },
-  { id: 'projects',   label: 'Projects',   icon: 'folder_open' },
-  { id: 'skills',     label: 'Skills',     icon: 'auto_awesome' },
-  { id: 'analytics',  label: 'Analytics',  icon: 'insights' },
-  { id: 'inbox',      label: 'Inbox',      icon: 'inbox' },
-  { id: 'seo',        label: 'SEO',        icon: 'search' },
-  { id: 'settings',   label: 'Settings',   icon: 'settings' },
-]
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { DASHBOARD_NAV, isDashboardNavActive } from './dashboardNavigation'
 
 interface Props {
   user: User
-  active: Section
-  onNavigate: (s: Section) => void
   onSignOut: () => void
   unreadCount?: number
   children: ReactNode
 }
 
-export default function DashboardLayout({ user, active, onNavigate, onSignOut, unreadCount = 0, children }: Props) {
+export default function DashboardLayout({ user, onSignOut, unreadCount = 0, children }: Props) {
   const initials = user.email?.slice(0, 2).toUpperCase() ?? 'AD'
+  const pathname = usePathname()
+  const activeItem = DASHBOARD_NAV.find(item => isDashboardNavActive(pathname, item.href)) ?? DASHBOARD_NAV[0]
 
   return (
     <div className="min-h-screen bg-[#111111] text-white">
@@ -48,12 +31,12 @@ export default function DashboardLayout({ user, active, onNavigate, onSignOut, u
 
         {/* Nav */}
         <nav className="flex-1 px-3">
-          {NAV.map(item => {
-            const isActive = active === item.id
+          {DASHBOARD_NAV.map(item => {
+            const isActive = isDashboardNavActive(pathname, item.href)
             return (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                href={item.href}
                 className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-lg mb-0.5 text-sm transition-all duration-200 text-left
                   ${isActive
                     ? 'bg-[#D4AF37]/10 text-[#D4AF37] border-l-2 border-[#D4AF37] pl-[14px]'
@@ -67,7 +50,7 @@ export default function DashboardLayout({ user, active, onNavigate, onSignOut, u
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
-              </button>
+              </Link>
             )
           })}
         </nav>
@@ -101,7 +84,7 @@ export default function DashboardLayout({ user, active, onNavigate, onSignOut, u
             {/* Mobile brand */}
             <p className="lg:hidden text-[11px] font-bold tracking-[0.2em] uppercase text-[#D4AF37]">Portfolio Admin</p>
             {/* Desktop section title */}
-            <h1 className="hidden lg:block text-base lg:text-lg font-semibold text-white/90 capitalize">{active}</h1>
+            <h1 className="hidden lg:block text-base lg:text-lg font-semibold text-white/90">{activeItem.label}</h1>
           </div>
           <div className="flex items-center gap-3">
             {/* Sign out on mobile */}
@@ -123,12 +106,12 @@ export default function DashboardLayout({ user, active, onNavigate, onSignOut, u
 
       {/* ── Mobile Bottom Nav ── */}
       <nav className="lg:hidden fixed bottom-0 left-0 w-full h-[64px] bg-[#0e0e0e]/95 backdrop-blur-xl border-t border-white/[0.07] flex justify-around items-center z-50">
-        {NAV.map(item => {
-          const isActive = active === item.id
+        {DASHBOARD_NAV.map(item => {
+          const isActive = isDashboardNavActive(pathname, item.href)
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              href={item.href}
               className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1 transition-colors relative
                 ${isActive ? 'text-[#D4AF37]' : 'text-white/30 hover:text-white/60'}`}
             >
@@ -139,7 +122,7 @@ export default function DashboardLayout({ user, active, onNavigate, onSignOut, u
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
-            </button>
+            </Link>
           )
         })}
       </nav>

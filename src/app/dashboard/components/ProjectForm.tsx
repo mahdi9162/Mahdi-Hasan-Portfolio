@@ -9,22 +9,45 @@ export interface ProjectRow {
   title: string
   slug: string
   classification: 'production' | 'personal'
-  short_description: string
-  full_description: string
+  description: string
   image_url: string
   live_url: string
   github_url: string | null
+  show_view_project: boolean
+  show_source: boolean
   tech_stack: string[]
+  project_year: number | null
+  project_context: string
+  key_features: string[]
+  gallery_images: string[]
+  show_technical_highlights: boolean
+  technical_highlights: string[]
   status: 'published' | 'draft'
   sort_order: number
+}
+
+type ListField = 'key_features' | 'gallery_images' | 'technical_highlights'
+
+export const MAX_KEY_FEATURES = 6
+export const MAX_GALLERY_IMAGES = 4
+export const MAX_TECHNICAL_HIGHLIGHTS = 5
+
+const LIST_LIMITS: Record<ListField, number> = {
+  key_features: MAX_KEY_FEATURES,
+  gallery_images: MAX_GALLERY_IMAGES,
+  technical_highlights: MAX_TECHNICAL_HIGHLIGHTS,
 }
 
 const EMPTY: ProjectRow = {
   title: '', slug: '',
   classification: 'personal',
-  short_description: '', full_description: '',
+  description: '',
   image_url: '', live_url: '', github_url: '',
-  tech_stack: [], status: 'draft', sort_order: 0,
+  show_view_project: true, show_source: false,
+  tech_stack: [],
+  project_year: null, project_context: '', key_features: [], gallery_images: [],
+  show_technical_highlights: false, technical_highlights: [],
+  status: 'draft', sort_order: 0,
 }
 
 interface Props {
@@ -52,6 +75,16 @@ const storagePathFromUrl = (url: string, bucket: string): string | null => {
 const inputCls = 'w-full bg-white/[0.05] border border-white/[0.10] rounded-lg px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors'
 const inputErrCls = 'w-full bg-white/[0.05] border border-red-500/40 rounded-lg px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-red-500/60 transition-colors'
 
+const isValidHttpUrl = (value: string | null | undefined) => {
+  if (!value?.trim()) return false
+  try {
+    const url = new URL(value.trim())
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export default function ProjectForm({ initial, initialSortOrder, onSaved, onCancel }: Props) {
   const isNew = !initial?.id
 
@@ -65,12 +98,19 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       classification:    base.classification === 'production' || base.classification === 'personal'
         ? base.classification
         : 'personal',
-      short_description: base.short_description ?? '',
-      full_description:  base.full_description  ?? '',
+      description:       base.description       ?? '',
       image_url:         base.image_url         ?? '',
       live_url:          base.live_url          ?? '',
       github_url:        base.github_url        ?? '',
+      show_view_project: base.show_view_project ?? true,
+      show_source:       base.show_source ?? isValidHttpUrl(base.github_url),
       tech_stack:        Array.isArray(base.tech_stack) ? base.tech_stack : [],
+      project_year:      typeof base.project_year === 'number' ? base.project_year : null,
+      project_context:   base.project_context ?? '',
+      key_features:      Array.isArray(base.key_features) ? base.key_features : [],
+      gallery_images:    Array.isArray(base.gallery_images) ? base.gallery_images : [],
+      show_technical_highlights: base.show_technical_highlights ?? false,
+      technical_highlights: Array.isArray(base.technical_highlights) ? base.technical_highlights : [],
       status:            base.status            ?? 'draft',
       sort_order:        base.sort_order        ?? initialSortOrder ?? 0,
     }
@@ -108,13 +148,25 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     if (form.classification !== 'production' && form.classification !== 'personal') {
       errors.classification = 'Project type is required.'
     }
-    if (!form.short_description.trim()) errors.short_description = 'Short description is required.'
+    if (form.show_source && !isValidHttpUrl(form.github_url)) {
+      errors.github_url = 'A valid HTTP(S) source URL is required when Show Source is enabled.'
+    }
+    if (!form.description.trim())       errors.description       = 'Description is required.'
     if (!form.image_url.trim())         errors.image_url         = 'Image URL is required. Upload an image or enter a URL.'
+    if (form.key_features.length > MAX_KEY_FEATURES) {
+      errors.key_features = `Use up to ${MAX_KEY_FEATURES} key features.`
+    }
+    if (form.gallery_images.length > MAX_GALLERY_IMAGES) {
+      errors.gallery_images = `Use up to ${MAX_GALLERY_IMAGES} gallery images.`
+    }
+    if (form.technical_highlights.length > MAX_TECHNICAL_HIGHLIGHTS) {
+      errors.technical_highlights = `Use up to ${MAX_TECHNICAL_HIGHLIGHTS} technical highlights.`
+    }
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -136,10 +188,15 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     }
 
     const { data } = supabase.storage.from('project-images').getPublicUrl(path)
-    set('image_url', data.publicUrl)
+    if (galleryIndex === undefined) {
+      set('image_url', data.publicUrl)
+    } else {
+      updateListValue('gallery_images', galleryIndex, data.publicUrl)
+    }
     setUploading(false)
-    setUploadMsg({ text: 'Image uploaded.', ok: true })
+    setUploadMsg({ text: galleryIndex === undefined ? 'Image uploaded.' : 'Gallery image uploaded.', ok: true })
     if (fileInputRef.current) fileInputRef.current.value = ''
+    e.target.value = ''
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,11 +207,17 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     setSubmitErr(null)
 
     // Strip id from payload for insert
-    const { id, ...rest } = form
+    const { id, description, ...rest } = form
     const payload = {
       ...rest,
       slug: form.slug.trim(),
+      full_description: description.trim(),
       github_url: form.github_url?.trim() || null,
+      project_year: typeof form.project_year === 'number' ? form.project_year : null,
+      project_context: form.project_context.trim() || null,
+      key_features: form.key_features.map(value => value.trim()).filter(Boolean),
+      gallery_images: form.gallery_images.map(value => value.trim()).filter(Boolean),
+      technical_highlights: form.technical_highlights.map(value => value.trim()).filter(Boolean),
     }
 
     const { error } = id
@@ -187,6 +250,94 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       />
       {fieldErrors[key] && <p className="text-xs text-red-400/75 mt-1">{fieldErrors[key]}</p>}
     </div>
+  )
+
+  const updateListValue = (field: ListField, index: number, value: string) => {
+    const next = [...form[field]]
+    next[index] = value
+    set(field, next)
+  }
+
+  const addListValue = (field: ListField) => {
+    if (form[field].length >= LIST_LIMITS[field]) return
+    set(field, [...form[field], ''])
+  }
+
+  const removeListValue = (field: ListField, index: number) =>
+    set(field, form[field].filter((_, itemIndex) => itemIndex !== index))
+
+  const repeatableFields = (
+    field: ListField,
+    label: string,
+    helper: string,
+    placeholder: string,
+    addLabel: string,
+    type: 'text' | 'url' = 'text',
+  ) => (
+    <section className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
+      <div className="flex items-center justify-between gap-3">
+        <label className="text-sm font-medium text-white/80">{label}</label>
+        <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] text-white/50">
+          {form[field].length} / {LIST_LIMITS[field]} {addLabel.toLowerCase().replace('add ', '')}{form[field].length === 1 ? '' : 's'}
+        </span>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-white/40">{helper}</p>
+      <div className="space-y-2">
+        {form[field].map((value, index) => (
+          <div key={`${field}-${index}`} className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row">
+            <input
+              type={type}
+              value={value}
+              onChange={event => updateListValue(field, index, event.target.value)}
+              placeholder={placeholder}
+              className={inputCls}
+            />
+            {field === 'gallery_images' && (
+              <label
+                role="button"
+                tabIndex={uploading ? -1 : 0}
+                aria-disabled={uploading}
+                onKeyDown={event => {
+                  if (uploading || (event.key !== 'Enter' && event.key !== ' ')) return
+                  event.preventDefault()
+                  event.currentTarget.querySelector<HTMLInputElement>('input')?.click()
+                }}
+                className={`inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border px-3.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                uploading
+                  ? 'cursor-not-allowed border-white/[0.07] text-white/25'
+                  : 'border-white/[0.12] bg-white/[0.045] text-white/70 hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold'
+                }`}
+              >
+                {uploading ? 'Uploading…' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={event => handleImageUpload(event, index)}
+                  className="hidden"
+                />
+              </label>
+            )}
+            <button
+              type="button"
+              onClick={() => removeListValue(field, index)}
+              className="min-h-10 shrink-0 rounded-lg border border-white/[0.12] px-3.5 text-sm text-white/55 transition-colors hover:border-red-400/45 hover:bg-red-400/[0.06] hover:text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+      {fieldErrors[field] && <p className="mt-2 text-xs text-red-400/75">{fieldErrors[field]}</p>}
+      <button
+        type="button"
+        onClick={() => addListValue(field)}
+        disabled={form[field].length >= LIST_LIMITS[field]}
+        className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-white/[0.14] bg-white/[0.045] px-3.5 text-sm font-medium text-white/70 transition-colors hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:border-white/[0.07] disabled:bg-transparent disabled:text-white/25"
+      >
+        + {addLabel}
+      </button>
+    </section>
   )
 
   return (
@@ -254,19 +405,19 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         </div>
       </div>
 
-      {/* Short description */}
-      {fieldBlock('Short Description', 'short_description', 'text', 'One-liner summary', true)}
-
-      {/* Full description */}
+      {/* Description */}
       <div>
-        <label className="block text-xs text-white/45 mb-1">Full Description</label>
+        <label className="block text-xs text-white/45 mb-1">
+          Description<span className="text-red-400/70 ml-0.5">*</span>
+        </label>
         <textarea
-          value={form.full_description ?? ''}
-          onChange={e => set('full_description', e.target.value)}
-          rows={3}
+          value={form.description}
+          onChange={e => set('description', e.target.value)}
+          rows={4}
           placeholder="Detailed project description…"
-          className={`${inputCls} resize-none`}
+          className={`${fieldErrors.description ? inputErrCls : inputCls} resize-none`}
         />
+        {fieldErrors.description && <p className="text-xs text-red-400/75 mt-1">{fieldErrors.description}</p>}
       </div>
 
       {/* Image + Live URL */}
@@ -319,8 +470,6 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         {fieldBlock('Live URL', 'live_url', 'url', 'https://')}
       </div>
 
-      {fieldBlock('GitHub URL (optional)', 'github_url', 'url', 'https://github.com/…')}
-
       {/* Tech stack */}
       <div>
         <label className="block text-xs text-white/45 mb-1">Tech Stack (comma-separated)</label>
@@ -334,6 +483,110 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
           className={inputCls}
         />
       </div>
+
+      <div className="rounded-lg border border-white/[0.10] bg-white/[0.025] p-4">
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-white/45">Project Actions</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+          <label className="flex items-center gap-2 text-sm text-white/70">
+            <input
+              type="checkbox"
+              checked={form.show_view_project}
+              onChange={e => set('show_view_project', e.target.checked)}
+              className="h-4 w-4 accent-[#D4AF37]"
+            />
+            Show View Project
+          </label>
+          <label className="flex items-center gap-2 text-sm text-white/70">
+            <input
+              type="checkbox"
+              checked={form.show_source}
+              onChange={e => set('show_source', e.target.checked)}
+              className="h-4 w-4 accent-[#D4AF37]"
+            />
+            Show Source
+          </label>
+        </div>
+      </div>
+
+      {form.show_source && fieldBlock('Source URL', 'github_url', 'url', 'https://github.com/…')}
+
+      {form.show_view_project && (
+        <div className="space-y-5 rounded-xl border border-white/[0.14] bg-white/[0.035] p-4 sm:p-5">
+          <div className="border-b border-white/[0.1] pb-4">
+            <p className="text-sm font-semibold uppercase tracking-[0.12em] text-white/85">Project Details</p>
+            <p className="mt-1 text-xs leading-5 text-white/45">Optional information for the future View Project experience.</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs text-white/45">Year</label>
+              <input
+                type="number"
+                min="1900"
+                max="2100"
+                value={form.project_year ?? ''}
+                onChange={event => {
+                  const value = event.target.value
+                  set('project_year', value === '' ? null : Number(value))
+                }}
+                placeholder="2026"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-white/45">Project Context</label>
+              <DashboardSelect
+                value={form.project_context}
+                onChange={value => set('project_context', value)}
+                options={[
+                  { value: '', label: 'Select context (optional)' },
+                  { value: 'Personal Project', label: 'Personal Project' },
+                  { value: 'Team Project', label: 'Team Project' },
+                  { value: 'Client Project', label: 'Client Project' },
+                  { value: 'Production Project', label: 'Production Project' },
+                ]}
+              />
+            </div>
+          </div>
+
+          {repeatableFields(
+            'key_features',
+            'Key Features',
+            'Add the strongest product capabilities shown in the project.',
+            'e.g. Payment integration',
+            'Add Feature'
+          )}
+          {repeatableFields(
+            'gallery_images',
+            'Project Gallery',
+            'Additional project visuals only; the main image remains the hero image.',
+            'https://…',
+            'Add Gallery Image',
+            'url'
+          )}
+
+          <div className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
+            <label className="flex items-center gap-2 text-sm text-white/70">
+              <input
+                type="checkbox"
+                checked={form.show_technical_highlights}
+                onChange={event => set('show_technical_highlights', event.target.checked)}
+                className="h-4 w-4 accent-[#D4AF37]"
+              />
+              Show Technical Highlights
+            </label>
+            <p className="mt-1.5 text-xs leading-5 text-white/40">Use this only for implementation details worth calling out.</p>
+          </div>
+
+          {form.show_technical_highlights && repeatableFields(
+            'technical_highlights',
+            'Technical Highlights',
+            'Optional implementation details that support the project story.',
+            'e.g. Role-based access control',
+            'Add Highlight'
+          )}
+        </div>
+      )}
 
       {submitErr && <p className="text-xs text-red-400/80">{submitErr}</p>}
 

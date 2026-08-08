@@ -12,18 +12,37 @@ type ToastState = { message: string; type: 'success' | 'error' } | null
 
 const QUERY_KEY = ['dashboard-projects'] as const
 
+const hasValidSourceUrl = (value: unknown) => {
+  if (typeof value !== 'string' || !value.trim()) return false
+  try {
+    const url = new URL(value.trim())
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, slug, classification, short_description, full_description, image_url, live_url, github_url, tech_stack, status, sort_order, created_at')
+    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_year, project_context, key_features, gallery_images, show_technical_highlights, technical_highlights, status, sort_order, created_at')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
-  return (data ?? []).map((project) => ({
+  return (data ?? []).map(({ full_description, ...project }) => ({
     ...project,
+    description: full_description ?? '',
     classification: project.classification === 'production' || project.classification === 'personal'
       ? project.classification
       : 'personal',
+    show_view_project: project.show_view_project ?? true,
+    show_source: project.show_source ?? hasValidSourceUrl(project.github_url),
+    project_year: typeof project.project_year === 'number' ? project.project_year : null,
+    project_context: project.project_context ?? '',
+    key_features: Array.isArray(project.key_features) ? project.key_features : [],
+    gallery_images: Array.isArray(project.gallery_images) ? project.gallery_images : [],
+    show_technical_highlights: project.show_technical_highlights ?? false,
+    technical_highlights: Array.isArray(project.technical_highlights) ? project.technical_highlights : [],
   })) as ProjectRow[]
 }
 

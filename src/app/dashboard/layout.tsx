@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import DashboardQueryProvider from './components/DashboardQueryProvider'
+import DashboardShell from './components/DashboardShell'
 
 export default function DashboardRootLayout({ children }: { children: ReactNode }) {
   return (
@@ -9,7 +10,7 @@ export default function DashboardRootLayout({ children }: { children: ReactNode 
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
       />
-      {children}
+      <DashboardShell>{children}</DashboardShell>
     </DashboardQueryProvider>
   )
 }
