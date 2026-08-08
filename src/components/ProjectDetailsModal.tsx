@@ -9,6 +9,7 @@ import {
   ChevronRight,
   CreditCard,
   Database,
+  Eye,
   ExternalLink,
   Gauge,
   Globe2,
@@ -67,7 +68,13 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
   const dialogRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const openedWithRef = useRef<HTMLElement | null>(null)
+  const lightboxDialogRef = useRef<HTMLElement>(null)
+  const galleryTriggerRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const lightboxOriginIndexRef = useRef(0)
   const [mounted, setMounted] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const lightboxOpenRef = useRef(false)
+  lightboxOpenRef.current = lightboxIndex !== null
   const currentIndex = Math.max(0, projects.findIndex(item => item.id === project.id))
   const previousProject = currentIndex > 0 ? projects[currentIndex - 1] : null
   const nextProject = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null
@@ -92,7 +99,22 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
   const sourceUrl = project.showSource ? getHttpUrl(project.sourceUrl) : undefined
   const heroImage = getImageUrl(project.image)
   const context = project.projectContext?.trim()
+  const subtitle = project.projectSubtitle?.trim()
+  const organization = project.organization?.trim()
+  const projectMetadata = [organization, project.year].filter((value): value is string | number => Boolean(value))
   const eyebrow = [project.classification?.toUpperCase(), context?.toUpperCase()].filter(Boolean).join(' / ')
+  const previewImage = lightboxIndex === null ? null : galleryImages[lightboxIndex] ?? null
+
+  const openLightbox = (index: number) => {
+    lightboxOriginIndexRef.current = index
+    setLightboxIndex(index)
+  }
+
+  const closeLightbox = () => {
+    const trigger = galleryTriggerRefs.current[lightboxOriginIndexRef.current]
+    setLightboxIndex(null)
+    requestAnimationFrame(() => trigger?.focus())
+  }
 
   useEffect(() => setMounted(true), [])
 
@@ -106,6 +128,7 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
     requestAnimationFrame(() => dialogRef.current?.focus())
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (lightboxOpenRef.current) return
       if (event.key === 'Escape') {
         event.preventDefault()
         onClose()
@@ -141,6 +164,46 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }, [project.id])
 
+  useEffect(() => {
+    if (lightboxIndex === null || !previewImage) return
+
+    requestAnimationFrame(() => lightboxDialogRef.current?.focus())
+
+    const handleLightboxKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeLightbox()
+        return
+      }
+      if (event.key === 'ArrowLeft' && lightboxIndex > 0) {
+        event.preventDefault()
+        setLightboxIndex(lightboxIndex - 1)
+        return
+      }
+      if (event.key === 'ArrowRight' && lightboxIndex < galleryImages.length - 1) {
+        event.preventDefault()
+        setLightboxIndex(lightboxIndex + 1)
+        return
+      }
+      if (event.key !== 'Tab') return
+
+      const focusable = lightboxDialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      if (!focusable?.length) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleLightboxKeyDown)
+    return () => document.removeEventListener('keydown', handleLightboxKeyDown)
+  }, [galleryImages.length, lightboxIndex, previewImage])
+
   const galleryClass = galleryImages.length === 1
     ? 'grid-cols-1'
     : galleryImages.length === 2 || galleryImages.length === 4
@@ -150,7 +213,8 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
   if (!mounted) return null
 
   return createPortal(
-    <div
+    <>
+      <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-3 backdrop-blur-[2px] sm:p-6"
       role="presentation"
       onMouseDown={onClose}
@@ -169,10 +233,9 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
             <header className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 {eyebrow && <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-gold sm:text-xs">{eyebrow}</p>}
-                <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <h2 id="project-details-title" className="text-3xl font-semibold leading-tight text-white sm:text-4xl">{project.title}</h2>
-                  {project.year && <span className="font-mono text-sm text-white/45">{project.year}</span>}
-                </div>
+                <h2 id="project-details-title" className="mt-2 text-3xl font-semibold leading-tight text-white sm:text-4xl">{project.title}</h2>
+                {subtitle && <p className="mt-1 text-xs leading-6 text-white/65 sm:text-lg">{subtitle}</p>}
+                {projectMetadata.length > 0 && <p className="mt-2 font-mono text-xs text-white/45">{projectMetadata.join(' · ')}</p>}
               </div>
               <button
                 type="button"
@@ -237,7 +300,7 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
                   {technicalHighlights.map((highlight, index) => {
                     const Icon = highlight.icon ? HIGHLIGHT_ICONS[highlight.icon] : null
                     return (
-                      <div key={`${highlight.text}-${index}`} className="flex items-start gap-3 text-sm leading-6 text-white/70">
+                      <div key={`${highlight.text}-${index}`} className="flex items-start gap-3 text-xs md:text-sm leading-6 text-white/70">
                         {Icon ? (
                           <Icon className="mt-1 h-4 w-4 shrink-0 text-brand-gold" aria-hidden="true" />
                         ) : (
@@ -258,15 +321,81 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
                 <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-white/85">Project Gallery</h3>
                 <div className={`mt-4 grid gap-3 ${galleryClass}`}>
                   {galleryImages.map((image, index) => (
-                    <div
+                    <button
                       key={`${image}-${index}`}
-                      className={`overflow-hidden rounded-lg border border-white/[0.1] bg-black/35 ${
-                        galleryImages.length === 3 && index === 0 ? 'aspect-[4/3] sm:row-span-2 sm:aspect-auto' : 'aspect-[16/10]'
+                      ref={element => { galleryTriggerRefs.current[index] = element }}
+                      type="button"
+                      onClick={() => openLightbox(index)}
+                      aria-label={`Preview ${project.title} gallery image ${index + 1} of ${galleryImages.length}`}
+                      className={`group relative block min-w-0 cursor-pointer overflow-hidden rounded-lg bg-white/[0.12] p-px text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                        galleryImages.length === 3 && index === 0 ? 'sm:row-span-2' : ''
                       }`}
                     >
+                      <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" preserveAspectRatio="none">
+                        <defs>
+                          <filter id={`project-gallery-beam-glow-${index}`} x="-15%" y="-15%" width="130%" height="130%">
+                            <feGaussianBlur stdDeviation="2.2" />
+                          </filter>
+                        </defs>
+                        <rect
+                          x="0.75"
+                          y="0.75"
+                          width="calc(100% - 1.5px)"
+                          height="calc(100% - 1.5px)"
+                          rx="7.25"
+                          ry="7.25"
+                          fill="none"
+                          stroke="rgba(255, 255, 255, 0.14)"
+                          strokeWidth="1"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                        <rect
+                          x="0.75"
+                          y="0.75"
+                          width="calc(100% - 1.5px)"
+                          height="calc(100% - 1.5px)"
+                          rx="7.25"
+                          ry="7.25"
+                          pathLength="100"
+                          fill="none"
+                          stroke="rgba(212, 175, 55, 0.6)"
+                          strokeWidth="4"
+                          strokeLinecap="round"
+                          vectorEffect="non-scaling-stroke"
+                          filter={`url(#project-gallery-beam-glow-${index})`}
+                          className="project-gallery-border-beam opacity-35 transition-opacity duration-500 group-hover:opacity-50"
+                          style={{ animationDelay: `${index * -3.25}s` }}
+                        />
+                        <rect
+                          x="0.75"
+                          y="0.75"
+                          width="calc(100% - 1.5px)"
+                          height="calc(100% - 1.5px)"
+                          rx="7.25"
+                          ry="7.25"
+                          pathLength="100"
+                          fill="none"
+                          stroke="rgba(212, 175, 55, 0.82)"
+                          strokeWidth="1.15"
+                          strokeLinecap="round"
+                          vectorEffect="non-scaling-stroke"
+                          className="project-gallery-border-beam opacity-80 transition-opacity duration-500 group-hover:opacity-95"
+                          style={{ animationDelay: `${index * -3.25}s` }}
+                        />
+                      </svg>
+                      <span className="relative block overflow-hidden rounded-[7px] bg-black/45">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image} alt={`${project.title} gallery image ${index + 1}`} className="h-full w-full object-cover" />
-                    </div>
+                        <img src={image} alt={`${project.title} gallery image ${index + 1}`} className="block h-auto w-full object-contain" />
+                        <span className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:flex group-hover:opacity-100 group-focus-visible:flex group-focus-visible:opacity-100 sm:flex">
+                          <span className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-black/70 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                            <Eye className="h-4 w-4 text-brand-gold" aria-hidden="true" /> Preview
+                          </span>
+                        </span>
+                        <span className="pointer-events-none absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.16] bg-black/65 text-brand-gold sm:hidden">
+                          <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                        </span>
+                      </span>
+                    </button>
                   ))}
                 </div>
               </section>
@@ -339,7 +468,67 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
           </div>
         </div>
       </section>
-    </div>,
+      </div>
+
+      {previewImage && lightboxIndex !== null && (
+        <div className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-[1px]" role="presentation">
+          <section
+            ref={lightboxDialogRef}
+            data-lenis-prevent
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${project.title} gallery image ${lightboxIndex + 1} of ${galleryImages.length}`}
+            tabIndex={-1}
+            onMouseDown={event => {
+              if (event.target === event.currentTarget) closeLightbox()
+            }}
+            className="relative flex h-full w-full items-center justify-center overscroll-contain p-4 focus:outline-none sm:p-8"
+          >
+            <span className="pointer-events-none absolute left-4 top-4 rounded-full border border-white/[0.12] bg-black/55 px-2.5 py-1 font-mono text-xs text-white/55 sm:left-6 sm:top-6">
+              {lightboxIndex + 1} / {galleryImages.length}
+            </span>
+            <button
+              type="button"
+              onClick={closeLightbox}
+              aria-label="Close image preview"
+              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.16] bg-black/65 text-white/70 transition-colors hover:border-white/35 hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold sm:right-6 sm:top-6"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
+
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(index => index === null ? null : Math.max(0, index - 1))}
+                  disabled={lightboxIndex === 0}
+                  aria-label="Previous gallery image"
+                  className="absolute left-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.16] bg-black/65 text-white/70 transition-colors hover:border-white/35 hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:opacity-30 sm:left-6 sm:h-11 sm:w-11"
+                >
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(index => index === null ? null : Math.min(galleryImages.length - 1, index + 1))}
+                  disabled={lightboxIndex === galleryImages.length - 1}
+                  aria-label="Next gallery image"
+                  className="absolute right-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.16] bg-black/65 text-white/70 transition-colors hover:border-white/35 hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:opacity-30 sm:right-6 sm:h-11 sm:w-11"
+                >
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </>
+            )}
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewImage}
+              alt={`${project.title} gallery image ${lightboxIndex + 1}`}
+              className="block max-h-[90dvh] max-w-[94vw] object-contain"
+            />
+          </section>
+        </div>
+      )}
+    </>,
     document.body
   )
 }

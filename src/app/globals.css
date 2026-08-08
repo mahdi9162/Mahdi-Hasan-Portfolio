@@ -512,6 +512,26 @@ section,
   background: rgba(255, 255, 255, 0.36);
 }
 
+/* View Project gallery — one travelling SVG border segment per image */
+@keyframes projectGalleryBorderBeam {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.project-gallery-border-beam {
+  stroke-dasharray: 18 82;
+  stroke-dashoffset: 0;
+  animation: projectGalleryBorderBeam 13s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-gallery-border-beam {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Panel scroll container */
 .projects-panel-scroll {
   overscroll-behavior: contain;

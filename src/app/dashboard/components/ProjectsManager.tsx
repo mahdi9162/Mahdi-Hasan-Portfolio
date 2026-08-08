@@ -26,7 +26,7 @@ const hasValidSourceUrl = (value: unknown) => {
 async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_year, project_context, key_features, gallery_images, show_technical_highlights, technical_highlights, status, sort_order, created_at')
+    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_subtitle, organization, project_year, project_context, key_features, gallery_images, show_technical_highlights, technical_highlights, status, sort_order, created_at')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
@@ -38,6 +38,8 @@ async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
       : 'personal',
     show_view_project: project.show_view_project ?? true,
     show_source: project.show_source ?? hasValidSourceUrl(project.github_url),
+    project_subtitle: project.project_subtitle ?? '',
+    organization: project.organization ?? '',
     project_year: typeof project.project_year === 'number' ? project.project_year : null,
     project_context: project.project_context ?? '',
     key_features: Array.isArray(project.key_features) ? project.key_features : [],

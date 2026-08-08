@@ -192,6 +192,12 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
           classification: row.classification === 'production' || row.classification === 'personal'
             ? row.classification
             : 'personal',
+          projectSubtitle: typeof row.project_subtitle === 'string' && row.project_subtitle.trim()
+            ? row.project_subtitle
+            : null,
+          organization: typeof row.organization === 'string' && row.organization.trim()
+            ? row.organization
+            : null,
           year: typeof row.project_year === 'number' ? row.project_year : null,
           projectContext: typeof row.project_context === 'string' && row.project_context.trim()
             ? row.project_context

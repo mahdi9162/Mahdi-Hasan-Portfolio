@@ -194,6 +194,12 @@ export default function ProjectsSection({
               classification: row.classification === 'production' || row.classification === 'personal'
                 ? row.classification
                 : 'personal',
+              projectSubtitle: typeof row.project_subtitle === 'string' && row.project_subtitle.trim()
+                ? row.project_subtitle
+                : null,
+              organization: typeof row.organization === 'string' && row.organization.trim()
+                ? row.organization
+                : null,
               year: typeof row.project_year === 'number' ? row.project_year : null,
               projectContext: typeof row.project_context === 'string' && row.project_context.trim()
                 ? row.project_context
@@ -321,7 +327,12 @@ export default function ProjectsSection({
                   <h3 className="mt-2 text-2xl font-semibold leading-tight text-white sm:text-3xl">
                     {activeProject.title}
                   </h3>
-                  <p className="mt-4 line-clamp-3 max-w-3xl text-sm leading-6 text-white/75 sm:text-[15px]">
+                  {activeProject.projectSubtitle?.trim() && (
+                    <p className="mt-1.5 line-clamp-2 max-w-3xl text-sm font-medium leading-5 text-white/60 sm:truncate sm:text-[15px]">
+                      {activeProject.projectSubtitle}
+                    </p>
+                  )}
+                  <p className={`${activeProject.projectSubtitle?.trim() ? 'mt-3' : 'mt-4'} line-clamp-3 max-w-3xl text-sm leading-6 text-white/75 sm:text-[15px]`}>
                     {activeProject.description}
                   </p>
 
@@ -447,7 +458,7 @@ export default function ProjectsSection({
                           <span className={`mt-1 block truncate text-sm font-semibold ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                             {project.title}
                           </span>
-                          <span className="mt-0.5 block truncate text-xs text-white/45">{project.description}</span>
+                          <span className="mt-0.5 block truncate text-xs text-white/45">{project.projectSubtitle?.trim() || project.description}</span>
                         </span>
                       </button>
                     )

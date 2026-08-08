@@ -40,6 +40,8 @@ export interface ProjectRow {
   show_view_project: boolean
   show_source: boolean
   tech_stack: string[]
+  project_subtitle: string
+  organization: string
   project_year: number | null
   project_context: string
   key_features: string[]
@@ -253,6 +255,7 @@ const EMPTY: ProjectRow = {
   image_url: '', live_url: '', github_url: '',
   show_view_project: true, show_source: false,
   tech_stack: [],
+  project_subtitle: '', organization: '',
   project_year: null, project_context: '', key_features: [], gallery_images: [],
   show_technical_highlights: false, technical_highlights: [],
   status: 'draft', sort_order: 0,
@@ -313,6 +316,8 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       show_view_project: base.show_view_project ?? true,
       show_source:       base.show_source ?? isValidHttpUrl(base.github_url),
       tech_stack:        Array.isArray(base.tech_stack) ? base.tech_stack : [],
+      project_subtitle:  base.project_subtitle ?? '',
+      organization:      base.organization ?? '',
       project_year:      typeof base.project_year === 'number' ? base.project_year : null,
       project_context:   base.project_context ?? '',
       key_features:      Array.isArray(base.key_features) ? base.key_features : [],
@@ -356,6 +361,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     if (form.classification !== 'production' && form.classification !== 'personal') {
       errors.classification = 'Project type is required.'
     }
+    if (isNew && !form.project_subtitle.trim()) errors.project_subtitle = 'Project subtitle is required for new projects.'
     if (form.show_source && !isValidHttpUrl(form.github_url)) {
       errors.github_url = 'A valid HTTP(S) source URL is required when Show Source is enabled.'
     }
@@ -421,6 +427,8 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       slug: form.slug.trim(),
       full_description: description.trim(),
       github_url: form.github_url?.trim() || null,
+      project_subtitle: form.project_subtitle.trim() || null,
+      organization: form.organization.trim() || null,
       project_year: typeof form.project_year === 'number' ? form.project_year : null,
       project_context: form.project_context.trim() || null,
       key_features: form.key_features.map(value => value.trim()).filter(Boolean),
@@ -607,6 +615,20 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         </div>
       </div>
 
+      <div>
+        <label className="block text-xs text-white/45 mb-1">
+          Project Subtitle{isNew && <span className="text-red-400/70 ml-0.5">*</span>}
+        </label>
+        <input
+          type="text"
+          value={form.project_subtitle}
+          onChange={event => set('project_subtitle', event.target.value)}
+          placeholder="Vehicle Rental & Booking Platform"
+          className={fieldErrors.project_subtitle ? inputErrCls : inputCls}
+        />
+        {fieldErrors.project_subtitle && <p className="text-xs text-red-400/75 mt-1">{fieldErrors.project_subtitle}</p>}
+      </div>
+
       {/* Project type / status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -778,6 +800,17 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
                 ]}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-white/45">Organization / Company <span className="text-white/25">(optional)</span></label>
+            <input
+              type="text"
+              value={form.organization}
+              onChange={event => set('organization', event.target.value)}
+              placeholder="Rse Together"
+              className={inputCls}
+            />
           </div>
 
           {repeatableFields(
