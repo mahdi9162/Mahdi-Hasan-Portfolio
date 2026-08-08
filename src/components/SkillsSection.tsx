@@ -22,7 +22,10 @@ function mergeWithFallback(serverCats: SerializableSkillCategory[]): SkillCatego
     const fallback = fallbackCategories.find((f) => f.title === cat.title)
     return {
       title: cat.title,
-      skills: cat.skills.length > 0 ? cat.skills : (fallback?.skills ?? []),
+      // Keep the server response authoritative. Static skills are only a
+      // full-data fallback, never a replacement for an intentionally empty
+      // database category.
+      skills: cat.skills,
       icon: fallback?.icon ?? fallbackCategories[0]?.icon,
       relatedOrbIcons: fallback?.relatedOrbIcons ?? [],
     }
@@ -43,12 +46,10 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
 
   useEffect(() => {
     const fetchSkills = async () => {
-      // Skip client re-fetch if:
-      // 1. Server already provided valid data (ISR cache hit), OR
-      // 2. Server confirmed Supabase was unreachable — no point retrying from the client.
-      //    The client has no more information than the server did; retrying only
-      //    produces console noise and an unnecessary failed network request.
-      if ((initialSkillCategories && initialSkillCategories.length > 0) || !skillsFromSupabase) return
+      // The server response is ISR-cached for five minutes. Refresh this
+      // client-side interactive section once so its skill arrays—and therefore
+      // every card badge—reflect the current dashboard data immediately.
+      if (!skillsFromSupabase) return
 
       try {
         const { data: catData, error: catError } = await supabase
@@ -85,7 +86,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
           return {
             title: cat.title,
             icon: fallback?.icon ?? fallbackCategories[0].icon,
-            skills: catSkills.length > 0 ? catSkills : (fallback?.skills ?? []),
+            skills: catSkills,
             relatedOrbIcons: fallback?.relatedOrbIcons ?? [],
           }
         })
@@ -104,8 +105,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
     fetchSkills()
   }, [])
 
-  const [selectedIcon, setSelectedIcon] = useState<OrbitalIcon | null>(null)
-  const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
+  const [selectedIcon] = useState<OrbitalIcon | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   // Use refs for touch tracking — avoids re-renders during swipe gesture
   const touchStartRef = useRef(0)
@@ -157,18 +157,6 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
       x: 0
     }
   }), [])
-
-  // Map orb icon hover to related card
-  const handleOrbIconHover = useCallback((iconId: string | null) => {
-    if (!iconId) {
-      setHighlightedCard(null)
-      return
-    }
-    const relatedCard = skillCategories.find(cat =>
-      cat.relatedOrbIcons.includes(iconId)
-    )
-    if (relatedCard) setHighlightedCard(relatedCard.title)
-  }, [skillCategories])
 
   // Navigate to next card
   const nextCard = useCallback(() => {
@@ -237,8 +225,30 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
           </p>
         </motion.div>
 
-        {/* Main 2-Column Layout: Orbit LEFT + Stacked Deck RIGHT - Center Aligned */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-[72px]">
+        {/* Dedicated mobile presentation: compact orbit + category tabs + natural skill grid */}
+        <div className="md:hidden">
+          <motion.div
+            className="mb-7 flex h-[clamp(235px,calc(25vw+155px),265px)] items-center justify-center overflow-visible"
+            variants={orbitVariants}
+            transition={{ type: 'tween', duration: 0.45, ease: EASE_OUT }}
+          >
+            <TechOrb
+              compact
+              icons={orbitalIcons}
+            />
+          </motion.div>
+
+          <MobileSkillsView
+            categories={skillCategories}
+            activeIndex={activeCardIndex}
+            onSelect={setActiveCardIndex}
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        </div>
+
+        {/* Desktop/tablet layout: Orbit LEFT + Stacked Deck RIGHT */}
+        <div className="hidden md:block">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-[72px]">
           
           {/* Left Column: Orbit Stage with Proper Mobile Height */}
           <motion.div
@@ -258,9 +268,6 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
             <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full" style={{ touchAction: 'pan-y' }}>
               <TechOrb 
                 icons={orbitalIcons}
-                onIconClick={setSelectedIcon}
-                onIconHover={handleOrbIconHover}
-                isMobile={isMobile}
               />
             </div>
           </motion.div>
@@ -347,7 +354,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
                 onTouchEnd={handleTouchEnd}
               >
                 {/* Stacked Cards */}
-                <div className="relative h-[420px] sm:h-[440px] md:h-[500px] overflow-visible">
+                <div className="relative h-[420px] sm:h-[440px] md:h-[clamp(26rem,52vh,30rem)] overflow-visible">
                   {skillCategories.map((category, index) => {
                     const offset = (index - activeCardIndex + skillCategories.length) % skillCategories.length
                     const isActive = offset === 0
@@ -359,11 +366,13 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
                       <StackedSkillCard
                         key={category.title}
                         category={category}
+                        categoryPosition={index + 1}
+                        categoryTotal={skillCategories.length}
                         isActive={isActive}
                         isPreview1={isPreview1}
                         isPreview2={isPreview2}
                         isVisible={isVisible}
-                        isHighlighted={highlightedCard === category.title}
+                        isHighlighted={false}
                         isMobile={isMobile}
                       />
                     )
@@ -396,73 +405,178 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
               </div>
             </div>
           </motion.div>
+          </div>
         </div>
       </div>
     </motion.section>
   )
 }
 
+const getMobileCategoryLabel = (title: string) => {
+  const labels: Record<string, string> = {
+    'Database & ORM': 'Database',
+    'Authentication & Security': 'Auth & Security',
+    'Integrations & Systems': 'Integrations',
+    'Tools & Workflow': 'Tools',
+  }
+
+  return labels[title] ?? title
+}
+
+const MOBILE_VISIBLE_SKILL_LIMIT = 6
+
+function MobileSkillsView({
+  categories,
+  activeIndex,
+  onSelect,
+  prefersReducedMotion,
+}: {
+  categories: SkillCategory[]
+  activeIndex: number
+  onSelect: (index: number) => void
+  prefersReducedMotion: boolean
+}) {
+  const safeActiveIndex = activeIndex >= 0 && activeIndex < categories.length ? activeIndex : 0
+  const activeCategory = categories[safeActiveIndex]
+  const [expandedCategoryTitle, setExpandedCategoryTitle] = useState<string | null>(null)
+  const isExpanded = expandedCategoryTitle === activeCategory?.title
+
+  if (!activeCategory) return null
+
+  const positionLabel = `${String(safeActiveIndex + 1).padStart(2, '0')} / ${String(categories.length).padStart(2, '0')}`
+  const transition = prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: EASE_OUT_QUART }
+  const hiddenSkillCount = Math.max(0, activeCategory.skills.length - MOBILE_VISIBLE_SKILL_LIMIT)
+  const displayedSkills = isExpanded
+    ? activeCategory.skills
+    : activeCategory.skills.slice(0, MOBILE_VISIBLE_SKILL_LIMIT)
+  const expandLabel = hiddenSkillCount === 1
+    ? 'Show 1 more skill'
+    : `Show ${hiddenSkillCount} more skills`
+
+  const selectCategory = (index: number) => {
+    setExpandedCategoryTitle(null)
+    onSelect(index)
+  }
+
+  return (
+    <div className="pb-2">
+      <div
+        className="skills-mobile-tabs -mx-6 flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain px-6 pb-2 [-webkit-overflow-scrolling:touch]"
+        role="tablist"
+        aria-label="Skill categories"
+        data-lenis-prevent
+      >
+        {categories.map((category, index) => {
+          const isActive = index === safeActiveIndex
+
+          return (
+            <button
+              key={category.title}
+              id={`mobile-skill-tab-${index}`}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls="mobile-skills-panel"
+              onClick={() => selectCategory(index)}
+              className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                isActive
+                  ? 'border-brand-gold/50 bg-brand-gold/10 text-brand-gold'
+                  : 'border-white/[0.1] bg-white/[0.025] text-white/55'
+              }`}
+            >
+              {getMobileCategoryLabel(category.title)}
+            </button>
+          )
+        })}
+      </div>
+
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeCategory.title}
+          id="mobile-skills-panel"
+          role="tabpanel"
+          aria-labelledby={`mobile-skill-tab-${safeActiveIndex}`}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
+          transition={transition}
+          className="mt-6"
+        >
+          <div className="mb-3 flex items-baseline justify-between gap-4">
+            <h3 className="min-w-0 text-lg font-bold tracking-wide text-white/95">
+              {activeCategory.title}
+            </h3>
+            <span className="shrink-0 font-mono text-xs font-semibold tracking-[0.12em] text-brand-gold/85">
+              {positionLabel}
+            </span>
+          </div>
+
+          <div id="mobile-skills-list" className="grid grid-cols-[repeat(auto-fit,minmax(8.75rem,1fr))] gap-2">
+            {displayedSkills.map(skill => (
+              <div
+                key={skill}
+                className="flex min-h-[44px] items-center rounded-lg border border-white/[0.14] bg-white/[0.035] px-3 py-2.5 text-xs font-medium leading-5 text-white/85 break-words"
+              >
+                <span className="mr-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold/70" />
+                <span>{skill}</span>
+              </div>
+            ))}
+          </div>
+
+          {hiddenSkillCount > 0 && (
+            <button
+              type="button"
+              aria-expanded={isExpanded}
+              aria-controls="mobile-skills-list"
+              onClick={() => setExpandedCategoryTitle(current => current === activeCategory.title ? null : activeCategory.title)}
+              className="mt-3 flex w-full items-center justify-between rounded-lg border border-white/[0.12] bg-white/[0.015] px-3 py-2.5 text-left text-xs font-medium text-brand-gold/85 transition-colors hover:border-brand-gold/35 hover:bg-brand-gold/[0.045] hover:text-brand-gold active:bg-brand-gold/[0.09] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
+            >
+              <span>{isExpanded ? 'Show less' : expandLabel}</span>
+              <span aria-hidden="true" className="text-sm leading-none text-brand-gold/75">{isExpanded ? '↑' : '↓'}</span>
+            </button>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // Tech Orb Component — memoized so parent state changes don't re-render it
 const TechOrb = memo(function TechOrb({ 
   icons, 
-  onIconClick,
-  onIconHover,
-  isMobile
+  compact = false,
 }: { 
   icons: OrbitalIcon[]
-  onIconClick: (icon: OrbitalIcon) => void
-  onIconHover?: (iconId: string | null) => void
-  isMobile: boolean
+  compact?: boolean
 }) {
-  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
   const { prefersReducedMotion } = useMediaPreferences()
 
-  const handleIconHover = useCallback((iconId: string | null) => {
-    setHoveredIcon(iconId)
-    onIconHover?.(iconId)
-  }, [onIconHover])
+  const orbitStyle = compact
+    ? {
+        '--orbit-size': 'clamp(235px, calc(25vw + 155px), 265px)',
+        '--sphere-size': 'clamp(100px, calc(12.5vw + 60px), 115px)',
+        '--radius': 'calc((var(--orbit-size) - var(--iconSize)) / 2 - 8px)',
+        '--iconSize': 'clamp(32px, 9vw, 38px)',
+        width: 'var(--orbit-size)',
+        height: 'var(--orbit-size)',
+      }
+    : {
+        '--radius': '170px',
+        '--iconSize': '56px',
+        width: '340px',
+        height: '340px',
+      }
 
-  // Compute orbit config once per breakpoint — stable function reference
-  const computeOrbitConfig = useCallback(() => {
-    if (typeof window === 'undefined') return { containerSize: 340, iconSize: 56, radius: 170 }
-    const width = window.innerWidth
-    if (width <= 320) {
-      const containerSize = 280; const iconSize = 38; const safeInset = 10
-      return { containerSize, iconSize, radius: (containerSize / 2) - (iconSize / 2) - safeInset }
-    }
-    if (width < 640) {
-      const containerSize = 310; const iconSize = 40; const safeInset = 10
-      return { containerSize, iconSize, radius: (containerSize / 2) - (iconSize / 2) - safeInset }
-    }
-    if (width < 768) {
-      const containerSize = 320; const iconSize = 44; const safeInset = 10
-      return { containerSize, iconSize, radius: (containerSize / 2) - (iconSize / 2) - safeInset }
-    }
-    return { containerSize: 340, iconSize: 56, radius: 170 }
-  }, [])
-
-  const [orbitConfig, setOrbitConfig] = useState(computeOrbitConfig)
-
-  useEffect(() => {
-    const handleResize = () => setOrbitConfig(computeOrbitConfig())
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [computeOrbitConfig])
-
-  // On mobile: slow down orbit rotation to reduce GPU load
-  const orbitDuration = isMobile ? 40 : 24
+  const orbitDuration = compact ? 32 : 24
 
   return (
-    <div className="w-full flex justify-center overflow-visible p-2 max-w-full" style={{ touchAction: 'pan-y' }}>
+    <div className={`flex w-full max-w-full justify-center overflow-visible ${compact ? '' : 'p-2'}`} style={{ touchAction: 'pan-y' }}>
       <div 
         className="relative mx-auto max-w-full"
         style={{
-          '--radius': `${orbitConfig.radius}px`,
-          '--iconSize': `${orbitConfig.iconSize}px`,
-          width: `${orbitConfig.containerSize}px`,
-          height: `${orbitConfig.containerSize}px`,
           maxWidth: '100%',
-          touchAction: 'pan-y'
+          touchAction: 'pan-y',
+          ...orbitStyle,
         } as React.CSSProperties}
       >
       {/* Crisp Dashed Ring */}
@@ -481,10 +595,13 @@ const TechOrb = memo(function TechOrb({
 
       {/* Central Orb Core */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-        <div className="relative w-32 h-32 md:w-40 md:h-40">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 md:blur-xl" />
+        <div
+          className={`relative ${compact ? '' : 'w-32 h-32 md:w-40 md:h-40'}`}
+          style={compact ? { width: 'var(--sphere-size)', height: 'var(--sphere-size)' } : undefined}
+        >
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-gold/16 to-brand-gold/[0.035] blur-lg md:blur-xl" />
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-white/[0.06] to-white/[0.02] md:backdrop-blur-md border border-white/20 shadow-[0_0_60px_rgb(var(--brand-gold)_/_0.2),inset_0_0_30px_rgb(var(--brand-gold)_/_0.1)]">
-            <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white/10 md:blur-md" />
+            <div className={`absolute rounded-full bg-white/10 md:blur-md ${compact ? 'left-[15%] top-[15%] h-[36%] w-[36%]' : 'top-4 left-4 w-12 h-12'}`} />
             <div className="absolute inset-0 rounded-full opacity-30 mix-blend-overlay" 
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E")`
@@ -520,7 +637,6 @@ const TechOrb = memo(function TechOrb({
         {/* 9 Orbiting Icons - Evenly spaced at 40deg intervals */}
         {icons.map((iconData, index) => {
           const IconComponent = iconData.icon
-          const isHovered = hoveredIcon === iconData.id
           const angleDeg = index * 40 // 0, 40, 80, 120, 160, 200, 240, 280, 320
           
           return (
@@ -537,7 +653,7 @@ const TechOrb = memo(function TechOrb({
             >
               {/* Floating animation — desktop only; mobile skips to reduce GPU load */}
               <motion.div
-                animate={!prefersReducedMotion && !isHovered && !isMobile ? {
+                animate={!prefersReducedMotion && !compact ? {
                   y: [-4, 4, -4]
                 } : {}}
                 transition={{
@@ -547,68 +663,31 @@ const TechOrb = memo(function TechOrb({
                   delay: index * 0.2
                 }}
               >
-                <motion.button
-                  onClick={() => onIconClick(iconData)}
-                  onMouseEnter={() => handleIconHover(iconData.id)}
-                  onMouseLeave={() => handleIconHover(null)}
-                  whileHover={!isMobile ? { scale: 1.2 } : {}} // Disable hover on mobile
-                  whileTap={{ scale: 0.95 }}
-                  aria-label={iconData.name}
-                  className="relative group w-full h-full"
+                <motion.div
+                  aria-hidden="true"
+                  className="group relative h-full w-full cursor-default"
                   style={{
-                    borderRadius: '9999px',
-                    overflow: 'hidden'
+                    borderRadius: '9999px'
                   }}
                 >
                   {/* Icon container - Perfect Circle */}
                   <div 
-                    className={`relative w-full h-full grid place-items-center bg-gradient-to-br from-white/[0.1] to-white/[0.05] md:backdrop-blur-sm border transition-all duration-420 ${
-                      isHovered 
-                        ? 'border-brand-gold/60 shadow-[0_0_25px_rgb(var(--brand-gold)_/_0.3)]' 
-                        : 'border-white/10 hover:border-brand-gold/40'
-                    }`}
+                    className="relative z-10 grid h-full w-full place-items-center rounded-full border border-white/10 bg-gradient-to-br from-white/[0.1] to-white/[0.05] transition-[border-color,background-color] duration-420 hover:border-white/20 hover:bg-white/[0.08] md:backdrop-blur-sm"
                     style={{
                       borderRadius: '9999px',
-                      aspectRatio: '1 / 1',
-                      overflow: 'hidden'
+                      aspectRatio: '1 / 1'
                     }}
                   >
                     <IconComponent 
-                      className={`transition-colors duration-420 ${
-                        isHovered ? 'text-brand-gold' : 'text-white/80'
-                      }`}
+                      className="text-white/75 transition-[color,filter] duration-420 group-hover:text-brand-gold"
                       style={{
                         width: '60%',
                         height: '60%',
                         objectFit: 'contain'
                       }}
                     />
-                    
-                    {/* Hover ring pulse */}
-                    {isHovered && (
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1.3, opacity: 0 }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                        className="absolute inset-0 border-2 border-brand-gold/40"
-                        style={{
-                          borderRadius: '9999px'
-                        }}
-                      />
-                    )}
                   </div>
-
-                  {/* Tooltip on hover */}
-                  {isHovered && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 md:backdrop-blur-sm border border-brand-gold/30 rounded-lg whitespace-nowrap pointer-events-none z-50"
-                    >
-                      <span className="text-xs text-white font-medium">{iconData.name}</span>
-                    </motion.div>
-                  )}
-                </motion.button>
+                </motion.div>
               </motion.div>
             </div>
           )
@@ -635,6 +714,8 @@ const skillListItem = {
 // Stacked Skill Card Component — memoized to prevent re-renders from parent state
 const StackedSkillCard = memo(function StackedSkillCard({ 
   category, 
+  categoryPosition,
+  categoryTotal,
   isActive,
   isPreview1,
   isPreview2,
@@ -643,6 +724,8 @@ const StackedSkillCard = memo(function StackedSkillCard({
   isMobile
 }: { 
   category: { title: string; icon: any; skills: string[]; relatedOrbIcons: string[] }
+  categoryPosition: number
+  categoryTotal: number
   isActive: boolean
   isPreview1: boolean
   isPreview2: boolean
@@ -651,6 +734,7 @@ const StackedSkillCard = memo(function StackedSkillCard({
   isMobile: boolean
 }) {
   const IconComponent = category.icon
+  const categoryPositionLabel = `${String(categoryPosition).padStart(2, '0')} / ${String(categoryTotal).padStart(2, '0')}`
   const { prefersReducedMotion } = useMediaPreferences()
 
   // Memoize derived values so they don't recalculate on every render
@@ -745,7 +829,7 @@ const StackedSkillCard = memo(function StackedSkillCard({
         />
 
         {/* Card Content */}
-        <div className="relative z-10 p-5 md:p-6 h-full flex flex-col">
+        <div className="relative z-10 p-5 md:p-6 h-full flex flex-col md:min-h-0">
           {/* Header */}
           <div className="flex items-center justify-between mb-4 pb-3.5 border-b border-white/[0.16]">
             <div className="flex items-center space-x-3">
@@ -760,14 +844,15 @@ const StackedSkillCard = memo(function StackedSkillCard({
                 {category.title}
               </h3>
             </div>
-            <span className="px-2.5 py-1 text-xs font-semibold bg-white/[0.10] text-white/75 rounded-lg border border-white/[0.16]">
-              {category.skills.length}
+            <span className="px-2.5 py-1 font-mono text-xs font-semibold text-white/75 bg-white/[0.10] rounded-lg border border-white/[0.16]" aria-label={`Category ${categoryPosition} of ${categoryTotal}`}>
+              {categoryPositionLabel}
             </span>
           </div>
 
           {/* Full-width skill rows - Mobile: no nested scroll, Desktop: allow scroll */}
           <motion.div 
-            className="flex-1 space-y-2 md:overflow-y-auto overflow-x-hidden skills-scroll pr-2 md:pr-0"
+            className="flex-1 space-y-2 overflow-x-hidden skills-scroll pr-2 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:pr-0"
+            data-lenis-prevent
             style={{
               touchAction: 'pan-y',
               WebkitOverflowScrolling: 'touch'

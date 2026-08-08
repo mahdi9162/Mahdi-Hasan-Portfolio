@@ -719,11 +719,10 @@ section,
     display: none;              /* Chrome/Safari */
   }
 }
-/* Skills section scrollbar styling */
-/* Mobile + Tablet: show a thin scrollbar */
+/* Skills section internal list scrollbar */
 .skills-scroll {
-  scrollbar-width: thin;              /* Firefox */
-  scrollbar-color: rgba(212,175,55,.65) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,.55) transparent;
 }
 
 .skills-scroll::-webkit-scrollbar { 
@@ -735,21 +734,24 @@ section,
 }
 
 .skills-scroll::-webkit-scrollbar-thumb {
-  background: rgba(212,175,55,.55);
+  background: rgba(212,175,55,.48);
   border-radius: 999px;
 }
 
-/* Desktop: hide the scrollbar (but keep scroll working) */
-@media (min-width: 1024px) {
-  .skills-scroll { 
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
-  }
-  
-  .skills-scroll::-webkit-scrollbar { 
-    display: none; 
-  }
+.skills-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(212,175,55,.7);
 }
+
+/* Mobile Skills category selector: native horizontal swipe without visual chrome */
+.skills-mobile-tabs {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.skills-mobile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
 /* Hide main browser scrollbar on desktop only - keep scroll functionality */
 @media (min-width: 1024px) {
   html, body {
