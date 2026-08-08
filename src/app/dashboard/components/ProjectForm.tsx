@@ -8,19 +8,20 @@ export interface ProjectRow {
   id?: string
   title: string
   slug: string
-  category: string
+  classification: 'production' | 'personal'
   short_description: string
   full_description: string
   image_url: string
   live_url: string
-  github_url: string
+  github_url: string | null
   tech_stack: string[]
   status: 'published' | 'draft'
   sort_order: number
 }
 
 const EMPTY: ProjectRow = {
-  title: '', slug: '', category: 'frontend',
+  title: '', slug: '',
+  classification: 'personal',
   short_description: '', full_description: '',
   image_url: '', live_url: '', github_url: '',
   tech_stack: [], status: 'draft', sort_order: 0,
@@ -61,7 +62,9 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       ...base,
       title:             base.title             ?? '',
       slug:              base.slug              ?? '',
-      category:          base.category          ?? 'frontend',
+      classification:    base.classification === 'production' || base.classification === 'personal'
+        ? base.classification
+        : 'personal',
       short_description: base.short_description ?? '',
       full_description:  base.full_description  ?? '',
       image_url:         base.image_url         ?? '',
@@ -102,7 +105,9 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     const errors: Partial<Record<keyof ProjectRow, string>> = {}
     if (!form.title.trim())             errors.title             = 'Title is required.'
     if (!form.slug.trim())              errors.slug              = 'Slug is required.'
-    if (!form.category.trim())          errors.category          = 'Category is required.'
+    if (form.classification !== 'production' && form.classification !== 'personal') {
+      errors.classification = 'Project type is required.'
+    }
     if (!form.short_description.trim()) errors.short_description = 'Short description is required.'
     if (!form.image_url.trim())         errors.image_url         = 'Image URL is required. Upload an image or enter a URL.'
     setFieldErrors(errors)
@@ -146,7 +151,11 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
 
     // Strip id from payload for insert
     const { id, ...rest } = form
-    const payload = { ...rest, slug: form.slug.trim() }
+    const payload = {
+      ...rest,
+      slug: form.slug.trim(),
+      github_url: form.github_url?.trim() || null,
+    }
 
     const { error } = id
       ? await supabase.from('projects').update(payload).eq('id', id)
@@ -216,20 +225,21 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         </div>
       </div>
 
-      {/* Category / Status */}
+      {/* Project type / status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs text-white/45 mb-1">
-            Category<span className="text-red-400/70 ml-0.5">*</span>
+            Project Type<span className="text-red-400/70 ml-0.5">*</span>
           </label>
           <DashboardSelect
-            value={form.category}
-            onChange={v => set('category', v)}
+            value={form.classification}
+            onChange={v => set('classification', v as ProjectRow['classification'])}
             options={[
-              { value: 'frontend', label: 'Frontend' },
-              { value: 'client',   label: 'Client' },
+              { value: 'production', label: 'Production' },
+              { value: 'personal',   label: 'Personal' },
             ]}
           />
+          {fieldErrors.classification && <p className="text-xs text-red-400/75 mt-1">{fieldErrors.classification}</p>}
         </div>
         <div>
           <label className="block text-xs text-white/45 mb-1">Status</label>
@@ -309,7 +319,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         {fieldBlock('Live URL', 'live_url', 'url', 'https://')}
       </div>
 
-      {fieldBlock('GitHub URL', 'github_url', 'url', 'https://github.com/…')}
+      {fieldBlock('GitHub URL (optional)', 'github_url', 'url', 'https://github.com/…')}
 
       {/* Tech stack */}
       <div>

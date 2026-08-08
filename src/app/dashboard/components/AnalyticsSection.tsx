@@ -7,8 +7,8 @@ interface Counts {
   total: number
   published: number
   drafts: number
-  frontend: number
-  client: number
+  production: number
+  personal: number
   skills: number
   categories: number
 }
@@ -19,7 +19,7 @@ export default function AnalyticsSection() {
   useEffect(() => {
     const load = async () => {
       const [{ data: projects }, { data: skills }, { data: categories }] = await Promise.all([
-        supabase.from('projects').select('status, category'),
+        supabase.from('projects').select('status, classification'),
         supabase.from('skills').select('id'),
         supabase.from('skill_categories').select('id'),
       ])
@@ -28,8 +28,8 @@ export default function AnalyticsSection() {
         total: p.length,
         published: p.filter(x => x.status === 'published').length,
         drafts: p.filter(x => x.status === 'draft').length,
-        frontend: p.filter(x => x.category === 'frontend').length,
-        client: p.filter(x => x.category === 'client').length,
+        production: p.filter(x => x.classification === 'production').length,
+        personal: p.filter(x => x.classification === 'personal').length,
         skills: skills?.length ?? 0,
         categories: categories?.length ?? 0,
       })
@@ -49,8 +49,8 @@ export default function AnalyticsSection() {
   const rows = counts ? [
     { label: 'Published',       value: counts.published, max: counts.total },
     { label: 'Drafts',          value: counts.drafts,    max: counts.total },
-    { label: 'Frontend',        value: counts.frontend,  max: counts.total },
-    { label: 'Client Work',     value: counts.client,    max: counts.total },
+    { label: 'Production',      value: counts.production, max: counts.total },
+    { label: 'Personal',        value: counts.personal,   max: counts.total },
   ] : []
 
   return (

@@ -4,7 +4,7 @@
 INSERT INTO projects (
   slug,
   title,
-  category,
+  classification,
   short_description,
   full_description,
   image_url,
@@ -18,7 +18,7 @@ INSERT INTO projects (
 (
   'voyago',
   'Voyago',
-  'frontend',
+  'personal',
   'Vehicle booking platform',
   'A modern vehicle booking platform that makes renting and managing cars simple—users can explore, book, and track rides, while hosts control listings and availability through a clean dashboard.',
   '/voyago.webp',
@@ -32,7 +32,7 @@ INSERT INTO projects (
 (
   'edubridge',
   'EduBridge',
-  'frontend',
+  'personal',
   'Tuition management system',
   'A trust-focused tuition management system designed to keep tutors and students aligned—handling learning flow, tracking progress, and daily class coordination without unnecessary complexity.',
   '/edubridge.webp',
@@ -46,7 +46,7 @@ INSERT INTO projects (
 (
   'appverse',
   'AppVerse',
-  'frontend',
+  'personal',
   'Productivity app explorer',
   'A sleek productivity app explorer where users can discover tools, view detailed insights, and manage installs instantly—built for smooth interaction, clarity, and speed.',
   '/appverse.webp',
@@ -60,7 +60,7 @@ INSERT INTO projects (
 (
   'skillora',
   'Skillora',
-  'frontend',
+  'personal',
   'Skill-sharing platform',
   'A local 1-on-1 skill-sharing platform that connects learners with nearby mentors—making it easy to discover skills, schedule sessions, and learn in a more personal, real-world way.',
   '/skillora.webp',
@@ -70,28 +70,10 @@ INSERT INTO projects (
   NULL,
   'published',
   4
-),
-(
-  'swashpeak-storefront-refresh',
-  'SwashPeak — Storefront UI Refresh (Client)',
-  'client',
-  'E-commerce storefront redesign',
-  'Frontend improvements shipped to a live storefront—navigation, responsive layout, and UI polish.',
-  '/SwashPeak.webp',
-  'https://swashpeak.com/',
-  NULL,
-  ARRAY['HTML', 'CSS', 'Responsive Layout', 'Theme Sections (Shopify)'],
-  ARRAY[
-    'Improved navigation + category structure so users can find products faster',
-    'Made the storefront fully responsive across mobile/tablet/desktop',
-    'Added modern sections + UI polish for a cleaner brand presentation'
-  ],
-  'published',
-  5
 )
 ON CONFLICT (slug) DO UPDATE SET
   title            = EXCLUDED.title,
-  category         = EXCLUDED.category,
+  classification   = EXCLUDED.classification,
   short_description = EXCLUDED.short_description,
   full_description = EXCLUDED.full_description,
   image_url        = EXCLUDED.image_url,

@@ -11,7 +11,7 @@ export const projects: Project[] = [
     image: '/voyago.webp',
     liveUrl: 'https://voyago-2805d.web.app',
     sourceUrl: 'https://github.com/mahdi9162/Voyago-Client-Side.git',
-    category: 'frontend',
+    classification: 'personal',
     status: 'published'
   },
   {
@@ -23,7 +23,7 @@ export const projects: Project[] = [
     image: '/edubridge.webp',
     liveUrl: 'https://edubridge-production.web.app',
     sourceUrl: 'https://github.com/mahdi9162/EduBridge-Client-Side.git',
-    category: 'frontend',
+    classification: 'personal',
     status: 'published'
   },
   {
@@ -35,7 +35,7 @@ export const projects: Project[] = [
     image: '/appverse.webp',
     liveUrl: 'https://appversee.netlify.app',
     sourceUrl: 'https://github.com/mahdi9162/AppVerse.git',
-    category: 'frontend',
+    classification: 'personal',
     status: 'published'
   },
   {
@@ -47,23 +47,7 @@ export const projects: Project[] = [
     image: '/skillora.webp',
     liveUrl: 'https://skillora-505c9.web.app',
     sourceUrl: 'https://github.com/mahdi9162/Skillora.git',
-    category: 'frontend',
-    status: 'published'
-  },
-  {
-    id: 5,
-    title: 'SwashPeak — Storefront UI Refresh (Client)',
-    description: 'Frontend improvements shipped to a live storefront—navigation, responsive layout, and UI polish.',
-    summary: 'E-commerce storefront redesign',
-    tech: ['HTML', 'CSS', 'Responsive Layout', 'Theme Sections (Shopify)'],
-    image: '/SwashPeak.webp',
-    liveUrl: 'https://swashpeak.com/',
-    category: 'client',
-    bullets: [
-      'Improved navigation + category structure so users can find products faster',
-      'Made the storefront fully responsive across mobile/tablet/desktop',
-      'Added modern sections + UI polish for a cleaner brand presentation'
-    ],
+    classification: 'personal',
     status: 'published'
   }
 ]

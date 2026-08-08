@@ -26,6 +26,17 @@ const HERO_FALLBACK: HeroContent = {
   secondary_cta_label: 'View Projects',
 }
 
+const getOptionalUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string' || !value.trim()) return undefined
+
+  try {
+    const url = new URL(value.trim())
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : undefined
+  } catch {
+    return undefined
+  }
+}
+
 async function getHeroContent(): Promise<HeroContent> {
   try {
     const url = clientEnv.supabaseUrl
@@ -164,7 +175,7 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
 
     const mapped: Project[] = data
       .map((row) => {
-        if (!row.id || !row.title || !row.category) return null
+        if (!row.id || !row.title) return null
         const image = row.image_url ?? ''
         if (!image) return null
         return {
@@ -175,8 +186,10 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
           tech: Array.isArray(row.tech_stack) ? row.tech_stack : [],
           image,
           liveUrl: row.live_url ?? '',
-          sourceUrl: row.github_url ?? undefined,
-          category: row.category as 'frontend' | 'client',
+          sourceUrl: getOptionalUrl(row.github_url),
+          classification: row.classification === 'production' || row.classification === 'personal'
+            ? row.classification
+            : 'personal',
           bullets: Array.isArray(row.bullets) ? row.bullets : undefined,
           status: (row.status ?? 'published') as 'published' | 'draft',
         }

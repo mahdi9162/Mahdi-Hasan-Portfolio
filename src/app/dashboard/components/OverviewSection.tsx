@@ -16,7 +16,7 @@ interface RecentProject {
   id: string
   title: string
   slug: string
-  category: string
+  classification: 'production' | 'personal'
   status: string
   image_url: string
   updated_at: string
@@ -56,7 +56,7 @@ export default function OverviewSection({ user, onNavigate }: Props) {
         supabase.from('projects').select('status'),
         supabase.from('skills').select('id'),
         supabase.from('skill_categories').select('id'),
-        supabase.from('projects').select('id, title, slug, category, status, image_url, updated_at')
+        supabase.from('projects').select('id, title, slug, classification, status, image_url, updated_at')
           .order('updated_at', { ascending: false }).limit(5),
       ])
 
@@ -199,7 +199,7 @@ export default function OverviewSection({ user, onNavigate }: Props) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm lg:text-base font-medium text-white/85 truncate">{p.title}</p>
                     <p className="text-xs lg:text-sm text-white/30 mt-0.5">
-                      {timeAgo(p.updated_at)} · <span className="capitalize">{p.category}</span>
+                      {timeAgo(p.updated_at)} · <span className="capitalize">{p.classification}</span>
                     </p>
                   </div>
                   <span className={`text-[10px] lg:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full flex-shrink-0
@@ -233,10 +233,10 @@ export default function OverviewSection({ user, onNavigate }: Props) {
                   <div className="flex-1 min-w-0 space-y-1.5">
                     {/* Title — allows 2 lines */}
                     <p className="text-sm font-medium text-white/85 leading-snug line-clamp-2">{p.title}</p>
-                    {/* Meta row: time · category + badge */}
+                    {/* Meta row: time · project type + badge */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-xs text-white/35">
-                        {timeAgo(p.updated_at)} · <span className="capitalize">{p.category}</span>
+                        {timeAgo(p.updated_at)} · <span className="capitalize">{p.classification}</span>
                       </p>
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0
                         ${p.status === 'published'

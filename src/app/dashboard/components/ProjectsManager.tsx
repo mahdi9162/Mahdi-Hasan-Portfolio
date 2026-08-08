@@ -15,11 +15,16 @@ const QUERY_KEY = ['dashboard-projects'] as const
 async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, slug, category, short_description, full_description, image_url, live_url, github_url, tech_stack, status, sort_order, created_at')
+    .select('id, title, slug, classification, short_description, full_description, image_url, live_url, github_url, tech_stack, status, sort_order, created_at')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
-  return (data ?? []) as ProjectRow[]
+  return (data ?? []).map((project) => ({
+    ...project,
+    classification: project.classification === 'production' || project.classification === 'personal'
+      ? project.classification
+      : 'personal',
+  })) as ProjectRow[]
 }
 
 export default function ProjectsManager() {
@@ -148,7 +153,7 @@ export default function ProjectsManager() {
           <div className="hidden sm:grid grid-cols-[32px_1fr_100px_90px_auto] gap-3 px-4 pb-1 text-xs lg:text-[13px] text-white/30 uppercase tracking-wider">
             <span />
             <span>Title</span>
-            <span>Category</span>
+            <span>Type</span>
             <span>Status</span>
             <span />
           </div>
@@ -186,8 +191,12 @@ export default function ProjectsManager() {
                 <p className="text-xs lg:text-[13px] text-white/30 truncate">{p.slug}</p>
               </div>
 
-              {/* Category */}
-              <span className="text-xs lg:text-sm text-white/45 capitalize">{p.category}</span>
+              {/* Project type */}
+              <span className={`text-xs lg:text-sm capitalize ${
+                p.classification === 'production' ? 'text-brand-gold' : 'text-white/55'
+              }`}>
+                {p.classification}
+              </span>
 
               {/* Status toggle */}
               <button

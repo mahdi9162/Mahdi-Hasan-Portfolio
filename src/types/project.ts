@@ -7,7 +7,7 @@ export interface Project {
   image: string
   liveUrl: string
   sourceUrl?: string
-  category: 'frontend' | 'client'
+  classification: 'production' | 'personal'
   bullets?: string[]
   status: 'published' | 'draft'
 }
