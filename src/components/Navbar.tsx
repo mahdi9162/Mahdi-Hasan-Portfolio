@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { EASE_OUT } from '@/lib/animations'
 
@@ -9,6 +9,7 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('home') // Default to home instead of projects
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
 
   // Enhanced scroll lock effect for mobile menu - preserves overflow-x behavior
   useEffect(() => {
@@ -53,6 +54,17 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
+  }, [mobileMenuOpen])
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [mobileMenuOpen])
 
   useEffect(() => {
@@ -207,9 +219,9 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
   const mobileMenuVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      y: -20,
+      y: prefersReducedMotion ? 0 : 8,
       transition: { 
-        duration: 0.3, 
+        duration: prefersReducedMotion ? 0 : 0.2,
         ease: EASE_OUT 
       }
     },
@@ -217,10 +229,10 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       opacity: 1, 
       y: 0,
       transition: { 
-        duration: 0.4, 
+        duration: prefersReducedMotion ? 0 : 0.22,
         ease: EASE_OUT,
-        staggerChildren: 0.08,
-        delayChildren: 0.1
+        staggerChildren: prefersReducedMotion ? 0 : 0.035,
+        delayChildren: prefersReducedMotion ? 0 : 0.04
       }
     }
   }
@@ -228,13 +240,13 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
   const mobileMenuItemVariants: Variants = {
     hidden: { 
       opacity: 0, 
-      x: -20 
+      y: prefersReducedMotion ? 0 : 6,
     },
     show: { 
       opacity: 1, 
-      x: 0,
+      y: 0,
       transition: { 
-        duration: 0.3, 
+        duration: prefersReducedMotion ? 0 : 0.2,
         ease: EASE_OUT 
       }
     }
@@ -248,12 +260,18 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
         initial="hidden"
         animate={entryRevealReady ? "show" : "hidden"}
         style={{
-          background: scrolled 
+          background: mobileMenuOpen
+            ? 'rgba(5, 5, 5, 0.92)'
+            : scrolled
             ? 'rgba(0, 0, 0, 0.8)' 
             : 'transparent',
-          backdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
-          borderBottom: scrolled 
+          backdropFilter: mobileMenuOpen
+            ? 'blur(10px) saturate(1.05)'
+            : scrolled ? 'blur(12px) saturate(1.1)' : 'none',
+          WebkitBackdropFilter: mobileMenuOpen
+            ? 'blur(10px) saturate(1.05)'
+            : scrolled ? 'blur(12px) saturate(1.1)' : 'none',
+          borderBottom: mobileMenuOpen || scrolled
             ? '1px solid rgba(255, 255, 255, 0.1)' 
             : '1px solid transparent',
         }}
@@ -312,14 +330,17 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
 
             {/* Mobile Hamburger Button */}
             <button
-              className="md:hidden p-1 text-neutral-600 dark:text-neutral-400 hover:text-brand-gold transition-colors duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 rounded-md"
+              className={`md:hidden flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 ${
+                mobileMenuOpen
+                  ? 'border-white/[0.13] bg-white/[0.03] text-white/75 hover:border-brand-gold/28 hover:text-brand-gold active:bg-brand-gold/[0.065]'
+                  : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:border-white/10 hover:text-brand-gold active:bg-white/[0.05]'
+              }`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileMenuOpen}
               data-lens="on"
-              style={{ minWidth: '40px', minHeight: '40px' }}
             >
-              <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -335,11 +356,11 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div 
-            className="fixed inset-0 z-[80] bg-black/70 md:hidden"
+            className="fixed inset-0 z-[80] bg-[rgba(5,5,5,0.92)] backdrop-blur-[10px] md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: EASE_OUT }}
             onClick={() => setMobileMenuOpen(false)}
             style={{ width: '100vw', maxWidth: '100%', overflowX: 'hidden' }}
           />
@@ -350,7 +371,7 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed top-16 left-0 right-0 z-[85] md:hidden"
+            className="fixed left-0 right-0 top-16 z-[85] max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain md:hidden"
             variants={mobileMenuVariants}
             initial="hidden"
             animate="show"
@@ -361,13 +382,14 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
               pointerEvents: 'auto' // Ensure pointer events work when open
             }}
           >
-            <div className="bg-black/95 border-b border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] max-w-full overflow-hidden">
+            <div className="max-w-full overflow-hidden border-b border-white/[0.08] bg-black/[0.12] shadow-[0_12px_36px_rgba(0,0,0,0.24)]">
               <motion.nav 
-                className="px-6 py-6 max-w-7xl mx-auto"
+                className="mx-auto max-w-7xl px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-7"
                 variants={mobileMenuVariants}
+                aria-label="Mobile navigation"
               >
-                <motion.ul className="space-y-2" variants={mobileMenuVariants}>
-                  {navItems.map((item) => (
+                <motion.ul className="space-y-1" variants={mobileMenuVariants}>
+                  {navItems.map((item, index) => (
                     <motion.li key={item.id} variants={mobileMenuItemVariants}>
                       <button
                         type="button"
@@ -376,40 +398,27 @@ const Navbar = ({ entryRevealReady = true }: { entryRevealReady?: boolean }) => 
                           e.stopPropagation()
                           handleNavClick(item.id)
                         }}
-                        className={`block w-full text-left py-4 px-5 rounded-xl transition-all duration-300 touch-manipulation relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 ${
+                        className={`relative flex min-h-[48px] w-full items-center border-l-2 py-2.5 pl-4 pr-3 text-left text-[clamp(1rem,4.5vw,1.125rem)] font-medium tracking-[-0.01em] transition-colors duration-200 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
                           activeSection === item.id
-                            ? 'bg-gradient-to-r from-brand-gold/10 to-brand-gold/5 text-brand-gold border-l-4 border-brand-gold shadow-[0_0_20px_rgba(207,174,82,0.15)]'
-                            : 'text-white/85 hover:text-white hover:bg-white/5 active:bg-white/8 border-l-4 border-transparent'
+                            ? 'border-brand-gold/75 bg-gradient-to-r from-brand-gold/[0.075] to-transparent text-brand-gold shadow-[-12px_0_32px_rgba(207,174,82,0.04)]'
+                            : 'border-transparent text-white/65 hover:text-white/90 active:bg-white/[0.045]'
                         }`}
                         data-lens="on"
-                        style={{ 
-                          minHeight: '56px', // Larger touch target
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '16px',
-                          fontWeight: '500'
-                        }}
                       >
-                        {/* Active item glow effect */}
-                        {activeSection === item.id && (
-                          <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-brand-gold/5 to-transparent rounded-xl"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3 }}
-                          />
-                        )}
-                        
-                        <span className="relative z-10">{item.label}</span>
+                        <span className={`mr-4 font-mono text-[9px] font-medium tracking-[0.16em] ${
+                          activeSection === item.id ? 'text-brand-gold/60' : 'text-white/28'
+                        }`}>{String(index + 1).padStart(2, '0')}</span>
+
+                        <span>{item.label}</span>
                         
                         {/* Active indicator arrow */}
                         {activeSection === item.id && (
                           <motion.svg
                             aria-hidden="true"
-                            className="w-4 h-4 ml-auto text-brand-gold relative z-10"
+                            className="ml-auto h-3.5 w-3.5 text-brand-gold/85"
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: 0.1 }}
+                            transition={{ duration: prefersReducedMotion ? 0 : 0.2, delay: prefersReducedMotion ? 0 : 0.06 }}
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
