@@ -146,28 +146,6 @@
   }
 }
 
-/* Prevent flash during loading */
-body.loading {
-  background-color: #000000 !important;
-  overflow: hidden !important;
-}
-
-/* Smooth loading transitions */
-.loading-fade-in {
-  animation: fadeIn 0.8s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Premium button hover effects */
 .premium-button-glow {
   transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);

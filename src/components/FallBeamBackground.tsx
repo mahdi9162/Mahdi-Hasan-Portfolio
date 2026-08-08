@@ -119,16 +119,9 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
     }
   }
 
-  // Fade-in sync: TEMPORARILY DISABLED - Start fade-in exactly 1.5 seconds after page load (matches Welcome Loader)
+  // Keep beams visible as soon as the portfolio mounts.
   useEffect(() => {
-    // Temporarily show immediately for debugging
     setIsVisible(true)
-    
-    // const timer = setTimeout(() => {
-    //   setIsVisible(true)
-    // }, 1500) // 1.5 second delay to sync with Welcome Loader
-
-    // return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
