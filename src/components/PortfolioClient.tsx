@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useCallback, useState } from 'react'
 import PageWrapper from '@/components/PageWrapper'
 import FirstEntryLoader from '@/components/FirstEntryLoader'
+import ReloadShutterLoader from '@/components/ReloadShutterLoader'
 import Navbar from '@/components/Navbar'
 import ProfileImage from '@/components/ProfileImage'
 import MouseSpotlight from '@/components/MouseSpotlight'
@@ -15,6 +16,7 @@ import ContactSection from '@/components/contact/ContactSection'
 import Footer from '@/components/Footer'
 import FallBeamBackground from '@/components/FallBeamBackground'
 import { useFirstEntryIntro } from '@/hooks/useFirstEntryIntro'
+import { useReloadShutter } from '@/hooks/useReloadShutter'
 import type { Project } from '@/types/project'
 import type { SerializableSkillCategory } from '@/app/page'
 import type { HeroContent } from '@/types/hero'
@@ -30,11 +32,21 @@ interface Props {
 }
 
 export default function PortfolioClient({ initialProjects, projectsFromSupabase = true, initialSkillCategories, skillsFromSupabase = true, initialHeroContent, initialAboutContent }: Props) {
+  const { isVisible: showReloadShutter, complete: completeReloadShutter } = useReloadShutter()
   const { isVisible: showFirstEntryIntro, complete: completeFirstEntryIntro } = useFirstEntryIntro()
   const [introReleaseStarted, setIntroReleaseStarted] = useState(false)
+  const [reloadReleaseStarted, setReloadReleaseStarted] = useState(false)
   const startIntroRelease = useCallback(() => setIntroReleaseStarted(true), [])
+  const startReloadRelease = useCallback(() => setReloadReleaseStarted(true), [])
 
   const introIsCoveringPage = showFirstEntryIntro && !introReleaseStarted
+  const reloadIsCoveringPage = showReloadShutter && !reloadReleaseStarted
+  const loaderReleaseStarted = introReleaseStarted || reloadReleaseStarted
+  const pagePresentation = introIsCoveringPage
+    ? { opacity: 0, scale: 1.02, filter: 'blur(6px)' }
+    : reloadIsCoveringPage
+      ? { opacity: 0.72, scale: 1.008, filter: 'blur(4px)' }
+      : { opacity: 1, scale: 1, filter: 'blur(0px)' }
 
   return (
     <>
@@ -44,14 +56,18 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
           onExitStart={startIntroRelease}
         />
       )}
+      {showReloadShutter && (
+        <ReloadShutterLoader
+          onComplete={completeReloadShutter}
+          onExitStart={startReloadRelease}
+        />
+      )}
 
       <PageWrapper>
         <motion.div
           initial={{ opacity: 0.6, scale: 1.015, filter: 'blur(5px)' }}
-          animate={introIsCoveringPage
-            ? { opacity: 0, scale: 1.02, filter: 'blur(6px)' }
-            : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          transition={{ duration: introReleaseStarted ? 0.52 : 0, ease: 'easeOut' }}
+          animate={pagePresentation}
+          transition={{ duration: loaderReleaseStarted ? (reloadReleaseStarted ? 0.33 : 0.52) : 0, ease: 'easeOut' }}
         >
           {/* Fall Beam Background — public portfolio only, not rendered on /dashboard */}
           <FallBeamBackground
