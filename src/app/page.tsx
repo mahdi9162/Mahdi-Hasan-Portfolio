@@ -218,11 +218,11 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
   }
 }
 
-async function getInitialSkillCategories(): Promise<{ data: SerializableSkillCategory[] | undefined; fromSupabase: boolean }> {
+async function getInitialSkillCategories(): Promise<SerializableSkillCategory[] | undefined> {
   try {
     const url = clientEnv.supabaseUrl
     const key = clientEnv.supabaseAnonKey
-    if (!url || !key) return { data: undefined, fromSupabase: false }
+    if (!url || !key) return undefined
 
     const headers = {
       apikey: key,
@@ -241,12 +241,12 @@ async function getInitialSkillCategories(): Promise<{ data: SerializableSkillCat
       ),
     ])
 
-    if (!catRes.ok || !skillRes.ok) return { data: undefined, fromSupabase: false }
+    if (!catRes.ok || !skillRes.ok) return undefined
 
     const catData: { id: string; title: string }[] = await catRes.json()
     const skillData: { name: string; category_id: string }[] = await skillRes.json()
 
-    if (!Array.isArray(catData) || catData.length === 0) return { data: undefined, fromSupabase: true }
+    if (!Array.isArray(catData) || catData.length === 0) return undefined
 
     const mapped: SerializableSkillCategory[] = catData.map((cat) => ({
       title: cat.title,
@@ -255,9 +255,9 @@ async function getInitialSkillCategories(): Promise<{ data: SerializableSkillCat
         .map((s) => s.name),
     }))
 
-    return { data: mapped.length > 0 ? mapped : undefined, fromSupabase: true }
+    return mapped.length > 0 ? mapped : undefined
   } catch {
-    return { data: undefined, fromSupabase: false }
+    return undefined
   }
 }
 
@@ -277,8 +277,7 @@ export default async function Home() {
       initialAboutContent={initialAboutContent}
       initialProjects={projectsResult.data}
       projectsFromSupabase={projectsResult.fromSupabase}
-      initialSkillCategories={skillsResult.data}
-      skillsFromSupabase={skillsResult.fromSupabase}
+      initialSkillCategories={skillsResult}
     />
   )
 }

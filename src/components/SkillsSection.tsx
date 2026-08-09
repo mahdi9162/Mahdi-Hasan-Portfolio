@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { EASE_OUT, EASE_OUT_QUART } from '@/lib/animations'
 import { useMediaPreferences } from '@/hooks/useMediaQueries'
 import { orbitalIcons, skillCategories as fallbackCategories } from '@/data/skills'
 import type { OrbitalIcon, SkillCategory } from '@/data/skills'
-import { supabase } from '@/lib/supabase'
 
 // Serializable shape that crosses the server→client boundary (no React components)
 interface SerializableSkillCategory {
@@ -32,26 +31,31 @@ function mergeWithFallback(serverCats: SerializableSkillCategory[]): SkillCatego
   })
 }
 
-const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { initialSkillCategories?: SerializableSkillCategory[]; skillsFromSupabase?: boolean }) => {
+const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: SerializableSkillCategory[] }) => {
   // Use shared media query hooks for better performance
   const { isMobile, prefersReducedMotion } = useMediaPreferences()
+  const sectionRef = useRef<HTMLElement>(null)
+  const isSkillsNearby = useInView(sectionRef, { margin: '200px 0px', amount: 0 })
+  const hasInitialServerData = Boolean(initialSkillCategories?.length)
 
   // Seed from server-provided initial data (merged with static fallback for icons),
   // otherwise use static fallback directly.
   const [skillCategories, setSkillCategories] = useState<SkillCategory[]>(
-    () => (initialSkillCategories && initialSkillCategories.length > 0)
-      ? mergeWithFallback(initialSkillCategories)
+    () => hasInitialServerData
+      ? mergeWithFallback(initialSkillCategories ?? [])
       : fallbackCategories
   )
 
   useEffect(() => {
-    const fetchSkills = async () => {
-      // The server response is ISR-cached for five minutes. Refresh this
-      // client-side interactive section once so its skill arrays—and therefore
-      // every card badge—reflect the current dashboard data immediately.
-      if (!skillsFromSupabase) return
+    // Server data is authoritative on regular page loads. Only recover from the
+    // browser when the server could not provide usable categories.
+    if (hasInitialServerData) return
 
+    let cancelled = false
+
+    const fetchSkills = async () => {
       try {
+        const { supabase } = await import('@/lib/supabase')
         const { data: catData, error: catError } = await supabase
           .from('skill_categories')
           .select('id, title')
@@ -96,14 +100,17 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
           return
         }
 
-        setSkillCategories(mapped)
+        if (!cancelled) setSkillCategories(mapped)
       } catch (err) {
         console.warn('[SkillsSection] Supabase fetch failed — using fallback:', err)
       }
     }
 
     fetchSkills()
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [hasInitialServerData])
 
   const [selectedIcon] = useState<OrbitalIcon | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
@@ -189,6 +196,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
 
   return (
     <motion.section 
+      ref={sectionRef}
       id="skills" 
       className="scroll-mt-24 section-gap w-full bg-black/20 overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 sm:py-18 md:py-0 skills-section content-visibility-auto"
       variants={sectionVariants}
@@ -235,6 +243,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
             <TechOrb
               compact
               icons={orbitalIcons}
+              isAnimationActive={isSkillsNearby}
             />
           </motion.div>
 
@@ -268,6 +277,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
             <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full" style={{ touchAction: 'pan-y' }}>
               <TechOrb 
                 icons={orbitalIcons}
+                isAnimationActive={isSkillsNearby}
               />
             </div>
           </motion.div>
@@ -374,6 +384,7 @@ const SkillsSection = ({ initialSkillCategories, skillsFromSupabase = true }: { 
                         isVisible={isVisible}
                         isHighlighted={false}
                         isMobile={isMobile}
+                        isAnimationActive={isSkillsNearby}
                       />
                     )
                   })}
@@ -545,9 +556,11 @@ function MobileSkillsView({
 const TechOrb = memo(function TechOrb({ 
   icons, 
   compact = false,
+  isAnimationActive,
 }: { 
   icons: OrbitalIcon[]
   compact?: boolean
+  isAnimationActive: boolean
 }) {
   const { prefersReducedMotion } = useMediaPreferences()
 
@@ -571,6 +584,17 @@ const TechOrb = memo(function TechOrb({
 
   return (
     <div className={`flex w-full max-w-full justify-center overflow-visible ${compact ? '' : 'p-2'}`} style={{ touchAction: 'pan-y' }}>
+      <style>{`
+        @keyframes skills-orbit-rotation {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes skills-orbit-float {
+          0%, 100% { transform: translateY(-4px); }
+          50% { transform: translateY(4px); }
+        }
+      `}</style>
       <div 
         className="relative mx-auto max-w-full"
         style={{
@@ -611,27 +635,17 @@ const TechOrb = memo(function TechOrb({
         </div>
       </div>
 
-      {/* Orbit Track - Keep rotating on all devices including mobile */}
-      <motion.div
+      {/* Orbit track and floating icons retain their current transform while paused offscreen. */}
+      <div
         className="absolute left-1/2 top-1/2 pointer-events-none"
         style={{
           width: `calc(var(--radius) * 2)`,
           height: `calc(var(--radius) * 2)`,
+          transform: 'translate(-50%, -50%) rotate(0deg)',
           transformOrigin: 'center',
-          zIndex: 15
-        }}
-        animate={!prefersReducedMotion ? {
-          transform: [
-            'translate(-50%, -50%) rotate(0deg)',
-            'translate(-50%, -50%) rotate(360deg)'
-          ]
-        } : {
-          transform: 'translate(-50%, -50%) rotate(0deg)'
-        }}
-        transition={{
-          duration: orbitDuration,
-          repeat: Infinity,
-          ease: "linear"
+          zIndex: 15,
+          animation: prefersReducedMotion ? undefined : `skills-orbit-rotation ${orbitDuration}s linear infinite`,
+          animationPlayState: isAnimationActive && !prefersReducedMotion ? 'running' : 'paused',
         }}
       >
         {/* 9 Orbiting Icons - Evenly spaced at 40deg intervals */}
@@ -652,16 +666,15 @@ const TechOrb = memo(function TechOrb({
               } as React.CSSProperties}
             >
               {/* Floating animation — desktop only; mobile skips to reduce GPU load */}
-              <motion.div
-                animate={!prefersReducedMotion && !compact ? {
-                  y: [-4, 4, -4]
-                } : {}}
-                transition={{
-                  duration: 3 + index * 0.3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: index * 0.2
-                }}
+              <div
+                style={
+                  !prefersReducedMotion && !compact
+                    ? {
+                        animation: `skills-orbit-float ${3 + index * 0.3}s ease-in-out ${index * 0.2}s infinite`,
+                        animationPlayState: isAnimationActive ? 'running' : 'paused',
+                      }
+                    : undefined
+                }
               >
                 <motion.div
                   aria-hidden="true"
@@ -688,11 +701,11 @@ const TechOrb = memo(function TechOrb({
                     />
                   </div>
                 </motion.div>
-              </motion.div>
+              </div>
             </div>
           )
         })}
-      </motion.div>
+      </div>
     </div>
     </div>
   )
@@ -721,7 +734,8 @@ const StackedSkillCard = memo(function StackedSkillCard({
   isPreview2,
   isVisible,
   isHighlighted,
-  isMobile
+  isMobile,
+  isAnimationActive,
 }: { 
   category: { title: string; icon: any; skills: string[]; relatedOrbIcons: string[] }
   categoryPosition: number
@@ -732,6 +746,7 @@ const StackedSkillCard = memo(function StackedSkillCard({
   isVisible: boolean
   isHighlighted?: boolean
   isMobile: boolean
+  isAnimationActive: boolean
 }) {
   const IconComponent = category.icon
   const categoryPositionLabel = `${String(categoryPosition).padStart(2, '0')} / ${String(categoryTotal).padStart(2, '0')}`
@@ -806,6 +821,7 @@ const StackedSkillCard = memo(function StackedSkillCard({
                 WebkitMaskComposite: 'xor',
                 maskComposite: 'exclude',
                 animation: 'rotateBorder 6s linear infinite',
+                animationPlayState: isAnimationActive ? 'running' : 'paused',
                 zIndex: 2
               }}
             />

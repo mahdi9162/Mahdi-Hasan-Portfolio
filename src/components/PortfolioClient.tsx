@@ -26,12 +26,11 @@ interface Props {
   initialProjects?: Project[]
   projectsFromSupabase?: boolean
   initialSkillCategories?: SerializableSkillCategory[]
-  skillsFromSupabase?: boolean
   initialHeroContent?: HeroContent
   initialAboutContent?: AboutContent
 }
 
-export default function PortfolioClient({ initialProjects, projectsFromSupabase = true, initialSkillCategories, skillsFromSupabase = true, initialHeroContent, initialAboutContent }: Props) {
+export default function PortfolioClient({ initialProjects, projectsFromSupabase = true, initialSkillCategories, initialHeroContent, initialAboutContent }: Props) {
   const { isVisible: showReloadShutter, complete: completeReloadShutter } = useReloadShutter()
   const { isChecking: isCheckingFirstEntryIntro, isVisible: showFirstEntryIntro, complete: completeFirstEntryIntro } = useFirstEntryIntro()
   const [introReleaseStarted, setIntroReleaseStarted] = useState(false)
@@ -90,7 +89,7 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
               </div>
             </section>
 
-            <SkillsSection initialSkillCategories={initialSkillCategories} skillsFromSupabase={skillsFromSupabase} />
+            <SkillsSection initialSkillCategories={initialSkillCategories} />
             <ProjectsSection initialProjects={initialProjects} projectsFromSupabase={projectsFromSupabase} />
             <AboutSection aboutContent={initialAboutContent} />
             <ContactSection />
