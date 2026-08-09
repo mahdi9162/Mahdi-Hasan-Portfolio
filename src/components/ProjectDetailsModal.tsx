@@ -330,7 +330,7 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
                     return (
                     <div
                       key={`${image.imageUrl}-${index}`}
-                      className={`min-w-0 ${galleryImages.length === 3 && index === 0 ? 'sm:row-span-2' : ''}`}
+                      className="min-w-0"
                     >
                     <button
                       ref={element => { galleryTriggerRefs.current[index] = element }}
