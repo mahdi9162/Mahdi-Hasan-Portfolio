@@ -25,28 +25,31 @@ const CustomCursor = () => {
   }, [])
 
   useEffect(() => {
-    // Hide cursor on mobile devices and touch devices
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
-    
-    if (isMobile || isTouchDevice) return
+    const fineHoverQuery = window.matchMedia('(any-hover: hover) and (any-pointer: fine)')
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let isCursorActive = false
 
-    // Check if device supports hover
-    const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches
-    if (!supportsHover) return
+    const canActivateCursor = () => fineHoverQuery.matches && !reducedMotionQuery.matches
 
-    // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
+    const deactivateCursor = () => {
+      if (!isCursorActive) return
 
-    setIsVisible(true)
+      isCursorActive = false
+      document.body.classList.remove('custom-cursor-active')
+      setIsVisible(false)
+    }
 
-    // Add custom-cursor-active class to body to hide system cursor
-    document.body.classList.add('custom-cursor-active')
+    const handlePointerMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' || !canActivateCursor()) return
 
-    const handleMouseMove = (e: MouseEvent) => {
+      // Initialize coordinates before rendering and hiding the native cursor.
       cursorX.set(e.clientX)
       cursorY.set(e.clientY)
+
+      if (!isCursorActive) {
+        isCursorActive = true
+        setIsVisible(true)
+      }
     }
 
     // Document-level event delegation for text hover state detection
@@ -75,9 +78,15 @@ const CustomCursor = () => {
       setIsMagnetic(false)
     }
 
-    // Add event listeners
-    document.addEventListener('mousemove', handleMouseMove, { passive: true })
+    const handleCapabilityChange = () => {
+      if (!canActivateCursor()) deactivateCursor()
+    }
+
+    // Add event listeners. Pointer events confirm that an actual mouse is in use.
+    document.addEventListener('pointermove', handlePointerMove, { passive: true })
     document.addEventListener('mouseover', handleMouseOver, { passive: true })
+    fineHoverQuery.addEventListener('change', handleCapabilityChange)
+    reducedMotionQuery.addEventListener('change', handleCapabilityChange)
 
     // Magnetic elements
     const magneticElements = document.querySelectorAll('[data-magnetic]')
@@ -88,11 +97,13 @@ const CustomCursor = () => {
 
     // Cleanup
     return () => {
-      // Remove custom-cursor-active class on unmount
+      // Remove custom-cursor-active class on unmount or capability loss.
       document.body.classList.remove('custom-cursor-active')
       
-      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('pointermove', handlePointerMove)
       document.removeEventListener('mouseover', handleMouseOver)
+      fineHoverQuery.removeEventListener('change', handleCapabilityChange)
+      reducedMotionQuery.removeEventListener('change', handleCapabilityChange)
       
       magneticElements.forEach(el => {
         el.removeEventListener('mouseenter', handleMagneticHover as EventListener)
@@ -100,6 +111,14 @@ const CustomCursor = () => {
       })
     }
   }, [cursorX, cursorY])
+
+  useEffect(() => {
+    if (!isVisible) return
+
+    // This runs after the portal has rendered at the initialized pointer position.
+    document.body.classList.add('custom-cursor-active')
+    return () => document.body.classList.remove('custom-cursor-active')
+  }, [isVisible])
 
   if (!isVisible || !isMounted) return null
 

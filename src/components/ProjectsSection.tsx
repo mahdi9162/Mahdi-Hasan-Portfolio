@@ -322,7 +322,7 @@ export default function ProjectsSection({
           />
 
           {activeProject ? (
-            <div className="grid gap-5 lg:h-[clamp(38rem,73vh,44rem)] lg:grid-cols-[minmax(0,2fr)_minmax(19rem,1fr)] lg:items-stretch lg:gap-6">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(19rem,1fr)] lg:items-stretch lg:gap-6">
               <motion.article
                 key={activeProject.id}
                 initial={{ opacity: 0, y: 8 }}
@@ -330,7 +330,7 @@ export default function ProjectsSection({
                 transition={{ duration: 0.28, ease: EASE_OUT_QUART }}
                 className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/[0.12] bg-white/[0.035] lg:h-full"
               >
-                <div className="relative aspect-[16/10] shrink-0 overflow-hidden rounded-t-xl bg-black/35 sm:h-72 sm:aspect-auto lg:aspect-[16/6] lg:h-auto xl:aspect-[16/7]">
+                <div className="relative aspect-[16/10] shrink-0 overflow-hidden rounded-t-xl bg-black/35 sm:h-72 sm:aspect-auto lg:aspect-[16/7] lg:h-auto">
                   <Image
                     src={activeProject.image}
                     alt={`${activeProject.title} project screenshot`}
@@ -410,7 +410,7 @@ export default function ProjectsSection({
                 </div>
               </motion.article>
 
-              <aside className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/[0.12] bg-black/25 lg:h-full lg:self-stretch" aria-label="Project navigator">
+              <aside className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/[0.12] bg-black/25 lg:h-full lg:min-h-0 lg:max-h-[44rem] lg:self-stretch" aria-label="Project navigator">
                 <div className="flex items-center justify-between gap-3 border-b border-white/[0.1] px-4 py-4 sm:px-5">
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">Browse work</p>
                   <div className="flex gap-1" role="tablist" aria-label="Project filters">

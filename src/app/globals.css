@@ -274,29 +274,16 @@ section,
   opacity: 1;
 }
 
-/* Custom cursor optimizations */
-@media (hover: hover) and (pointer: fine) {
-  /* Only show custom cursor on devices with precise pointing */
-  .custom-cursor-active {
-    cursor: none !important;
-  }
-  
-  .custom-cursor-active * {
-    cursor: none !important;
-  }
-  
-  /* Exclude no-custom-cursor zones from custom cursor */
-  .custom-cursor-active .no-custom-cursor,
-  .custom-cursor-active .no-custom-cursor * {
-    cursor: default !important;
-  }
+/* The native cursor is hidden only after CustomCursor has rendered for a real mouse. */
+.custom-cursor-active,
+.custom-cursor-active * {
+  cursor: none !important;
 }
 
-/* Hide custom cursor on touch devices */
-@media (hover: none) or (pointer: coarse) {
-  .custom-cursor {
-    display: none !important;
-  }
+/* Exclude no-custom-cursor zones from custom cursor. */
+.custom-cursor-active .no-custom-cursor,
+.custom-cursor-active .no-custom-cursor * {
+  cursor: default !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -304,10 +291,6 @@ section,
     display: none;
   }
   
-  /* Disable custom cursor for users who prefer reduced motion */
-  .custom-cursor {
-    display: none !important;
-  }
 }
 
 /* Floating animations for Skills Section icons - Premium, cinematic motion */
@@ -597,18 +580,17 @@ section,
   cursor: default !important;
 }
 
-/* Right Preview Panel - Hide native cursor, show only custom cursor */
-.rightPreview {
+/* These legacy cursor zones must retain the native fallback until activation. */
+.custom-cursor-active .rightPreview {
   cursor: none !important;
 }
 
-.rightPreview * {
+.custom-cursor-active .rightPreview * {
   cursor: none !important;
 }
 
 /* Hidden scrollbar container - completely hide native scrollbar */
 .hidden-scrollbar-container {
-  cursor: none !important;
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* IE/Edge */
   /* Ensure proper scroll behavior */
@@ -616,7 +598,8 @@ section,
   -webkit-overflow-scrolling: touch;
 }
 
-.hidden-scrollbar-container * {
+.custom-cursor-active .hidden-scrollbar-container,
+.custom-cursor-active .hidden-scrollbar-container * {
   cursor: none !important;
 }
 
