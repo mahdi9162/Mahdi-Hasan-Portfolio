@@ -5,6 +5,7 @@ export const projects: Project[] = [
   {
     id: 1,
     title: 'Voyago',
+    slug: 'voyago',
     description: 'A modern vehicle booking platform that makes renting and managing cars simple—users can explore, book, and track rides, while hosts control listings and availability through a clean dashboard.',
     tech: ['React', 'Tailwind CSS', 'Node.js', 'Express', 'MongoDB', 'Firebase'],
     image: '/voyago.webp',
@@ -26,6 +27,7 @@ export const projects: Project[] = [
   {
     id: 2,
     title: 'EduBridge',
+    slug: 'edubridge',
     description: 'A trust-focused tuition management system designed to keep tutors and students aligned—handling learning flow, tracking progress, and daily class coordination without unnecessary complexity.',
     tech: ['React', 'Tailwind CSS', 'Firebase', 'Node.js', 'MongoDB'],
     image: '/edubridge.webp',
@@ -47,6 +49,7 @@ export const projects: Project[] = [
   {
     id: 3,
     title: 'AppVerse',
+    slug: 'appverse',
     description: 'A sleek productivity app explorer where users can discover tools, view detailed insights, and manage installs instantly—built for smooth interaction, clarity, and speed.',
     tech: ['React', 'Tailwind', 'JavaScript'],
     image: '/appverse.webp',
@@ -68,6 +71,7 @@ export const projects: Project[] = [
   {
     id: 4,
     title: 'Skillora',
+    slug: 'skillora',
     description: 'A local 1-on-1 skill-sharing platform that connects learners with nearby mentors—making it easy to discover skills, schedule sessions, and learn in a more personal, real-world way.',
     tech: ['React', 'Tailwind CSS', 'Firebase', 'MongoDB', 'Express'],
     image: '/skillora.webp',

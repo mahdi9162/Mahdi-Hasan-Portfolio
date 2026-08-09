@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { getEffectiveProjectSeo } from '@/lib/project-seo'
 import {
   normalizeProjectGalleryItems,
   normalizeTechnicalHighlights,
@@ -370,6 +371,21 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     projectAttribution: false,
     seoSearch: false,
   }))
+  const effectiveSeo = getEffectiveProjectSeo({
+    title: form.title,
+    slug: form.slug,
+    description: form.description,
+    imageUrl: form.image_url,
+    projectSubtitle: form.project_subtitle,
+    organization: form.organization,
+    projectRelationship: form.project_relationship || null,
+    myRole: form.my_role,
+    contributionSummary: form.contribution_summary,
+    indexProjectCaseStudy: form.index_project_case_study,
+    seoTitle: form.seo_title,
+    seoDescription: form.seo_description,
+    seoOgImageUrl: form.seo_og_image_url,
+  })
 
   const set = (field: keyof ProjectRow, value: unknown) => {
     setForm(f => ({ ...f, [field]: value }))
@@ -1178,7 +1194,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
               placeholder="Leave blank to generate later"
               className={inputCls}
             />
-            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to use the automatically generated project case-study title later. Recommended: around 60 characters.</p>
+            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to use the automatic effective case-study title. Recommended: around 60 characters.</p>
           </div>
 
           <div>
@@ -1191,7 +1207,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
               placeholder="Leave blank to generate later"
               className={`${inputCls} resize-none`}
             />
-            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to generate it later from the project and contribution data. Recommended: around 155–165 characters.</p>
+            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to use the automatic value from the project and contribution data. Recommended: around 155–165 characters.</p>
           </div>
 
           <div>
@@ -1233,6 +1249,76 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
               </div>
             )}
             <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to use the project&apos;s main image for social sharing. Recommended: 1200 × 630 landscape.</p>
+          </div>
+
+          {effectiveSeo.attributionIncomplete && (
+            <p className="rounded-lg border border-amber-300/20 bg-amber-300/[0.06] px-3 py-2 text-xs leading-5 text-amber-100/75">
+              Complete role and contribution details before enabling this case study for search.
+            </p>
+          )}
+
+          <div className="space-y-3 rounded-lg border border-white/[0.1] bg-black/10 p-3.5 sm:p-4">
+            <div>
+              <p className="text-sm font-medium text-white/80">Effective SEO Preview</p>
+              <p className="mt-1 text-xs leading-5 text-white/40">What this site provides to search engines and social platforms.</p>
+            </div>
+
+            <div className="space-y-1.5 border-t border-white/[0.08] pt-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-white/45">Effective SEO Title</p>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-brand-gold/75">
+                  {effectiveSeo.titleSource === 'custom' ? 'Custom override' : 'Auto-generated'}
+                </span>
+              </div>
+              <p className="text-sm leading-5 text-white/85">{effectiveSeo.effectiveTitle}</p>
+              <p className={`text-[11px] ${effectiveSeo.effectiveTitle.length > 60 ? 'text-amber-300/75' : 'text-white/30'}`}>
+                {effectiveSeo.effectiveTitle.length} characters · suggested around 50–60
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-white/45">Effective SEO Description</p>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-brand-gold/75">
+                  {effectiveSeo.descriptionSource === 'custom' ? 'Custom override' : 'Auto-generated'}
+                </span>
+              </div>
+              <p className="text-sm leading-5 text-white/70">{effectiveSeo.effectiveDescription}</p>
+              <p className={`text-[11px] ${effectiveSeo.effectiveDescription.length > 165 ? 'text-amber-300/75' : 'text-white/30'}`}>
+                {effectiveSeo.effectiveDescription.length} characters · suggested around 150–165
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-xs text-white/45">Canonical URL</p>
+              <p className="break-all font-mono text-xs leading-5 text-white/65">{effectiveSeo.canonicalUrl}</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-white/45">Indexing</p>
+              <span className={`rounded-full border px-2.5 py-1 text-xs ${
+                effectiveSeo.isIndexable
+                  ? 'border-green-400/30 text-green-300'
+                  : 'border-white/[0.14] text-white/45'
+              }`}>
+                {effectiveSeo.isIndexable ? 'Indexable' : 'Noindex'}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-white/45">Social Image</p>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-brand-gold/75">
+                  {effectiveSeo.imageSource === 'custom' ? 'Custom override' : effectiveSeo.imageSource === 'project' ? 'Project main image' : 'Global fallback'}
+                </span>
+              </div>
+              <div className="h-28 overflow-hidden rounded-md border border-white/[0.08] bg-black/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={effectiveSeo.effectiveImage} alt="Effective social image preview" className="h-full w-full object-cover object-center" />
+              </div>
+            </div>
+
+            <p className="text-xs leading-5 text-white/35">Google may rewrite titles or snippets depending on the search query.</p>
           </div>
         </>,
       )}

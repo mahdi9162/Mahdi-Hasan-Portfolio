@@ -136,6 +136,7 @@ export const normalizeTechnicalHighlights = (value: unknown): TechnicalHighlight
 export interface Project {
   id: string | number
   title: string
+  slug: string
   description: string
   tech: string[]
   image: string

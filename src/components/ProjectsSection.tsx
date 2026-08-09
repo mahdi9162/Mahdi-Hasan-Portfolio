@@ -191,6 +191,7 @@ export default function ProjectsSection({
             return {
               id: row.id,
               title: row.title,
+              slug: typeof row.slug === 'string' && row.slug.trim() ? row.slug : String(row.id),
               description: row.full_description ?? '',
               tech: Array.isArray(row.tech_stack) ? row.tech_stack : [],
               image,
