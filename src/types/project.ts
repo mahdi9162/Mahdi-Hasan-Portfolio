@@ -37,8 +37,9 @@ const normalizeGalleryItem = (value: unknown): ProjectGalleryItem | null => {
 
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const item = value as { imageUrl?: unknown; image_url?: unknown; url?: unknown; captionTitle?: unknown; caption_title?: unknown; captionDescription?: unknown; caption_description?: unknown }
-  const imageUrl = normalizeGalleryText(item.imageUrl ?? item.image_url ?? item.url)
-  if (!imageUrl) return null
+  const hasImageUrl = 'imageUrl' in item || 'image_url' in item || 'url' in item
+  if (!hasImageUrl) return null
+  const imageUrl = normalizeGalleryText(item.imageUrl ?? item.image_url ?? item.url) ?? ''
 
   return {
     imageUrl,

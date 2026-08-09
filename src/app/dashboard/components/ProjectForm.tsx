@@ -518,7 +518,9 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     value: string,
   ) => {
     const next = [...form.gallery_items]
-    next[index] = { ...next[index], [field]: value || null }
+    next[index] = field === 'imageUrl'
+      ? { ...next[index], imageUrl: value }
+      : { ...next[index], [field]: value || null }
     set('gallery_items', next)
   }
 
