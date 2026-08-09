@@ -12,9 +12,15 @@ export const siteConfig = {
   titleTemplate:   '%s | Mahdi Hasan',
 
   description:
-    'Junior Full Stack Developer focused on scalable backend systems and modern web applications using Node.js, Express.js, PostgreSQL, Prisma, Socket.IO, React, Next.js, and TypeScript.',
+    'Junior Full Stack Developer based in Narsingdi, Bangladesh, focused on scalable backend systems and modern web applications using Node.js, Express.js, PostgreSQL, Prisma, Socket.IO, React, Next.js, and TypeScript.',
 
   url:             'https://thisismahdihasan.com',
+  email:           'contact@thisismahdihasan.com',
+  telephone:       '+8801880230924',
+  location: {
+    locality:       'Narsingdi',
+    countryCode:    'BD',
+  },
 
   applicationName: 'Mahdi Hasan Portfolio',
 
@@ -85,6 +91,13 @@ export function PersonJsonLd() {
 
         jobTitle:    siteConfig.jobTitle,
         description: siteConfig.description,
+        email:       siteConfig.email,
+        telephone:   siteConfig.telephone,
+        address: {
+          '@type':          'PostalAddress',
+          addressLocality:  siteConfig.location.locality,
+          addressCountry:   siteConfig.location.countryCode,
+        },
 
         knowsAbout: [
           'Node.js',

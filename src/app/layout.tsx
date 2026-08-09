@@ -21,6 +21,11 @@ const manrope = Manrope({
   display: 'swap',
 })
 
+const ensureLocationInDescription = (description: string) =>
+  /\bNarsingdi\b/i.test(description)
+    ? description
+    : `${description.replace(/[.?!]+$/, '')}. Based in Narsingdi, Bangladesh.`
+
 // ── Dynamic metadata — fetches SEO overrides from DB with siteConfig fallback ─
 export async function generateMetadata(): Promise<Metadata> {
   // Attempt to read SEO overrides from the database.
@@ -67,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // The route itself falls back to /api/og (generated image) when the DB value
   // is empty or the upstream fetch fails.
   const resolvedTitle       = seoTitle       ?? siteConfig.title
-  const resolvedDescription = seoDescription ?? siteConfig.description
+  const resolvedDescription = ensureLocationInDescription(seoDescription ?? siteConfig.description)
   const resolvedOgImage     = '/api/og-image'
   const resolvedTwitterImage = '/api/og-image'
 

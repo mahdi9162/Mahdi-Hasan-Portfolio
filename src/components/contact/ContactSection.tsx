@@ -302,10 +302,10 @@ const ContactSection = () => {
                   <Phone className="text-primary/80 text-[18px]" />
                   <div className="flex-1 min-w-0">
                     <a 
-                      href="tel:01880230924" 
+                      href="tel:+8801880230924"
                       className="text-zinc-300 text-[14px] leading-relaxed hover:text-zinc-100 transition-colors"
                     >
-                      01880230924
+                      +880 1880-230924
                     </a>
                   </div>
                 </div>
