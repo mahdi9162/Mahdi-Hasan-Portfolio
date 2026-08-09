@@ -42,10 +42,10 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
   const reloadIsCoveringPage = showReloadShutter && !reloadReleaseStarted
   const loaderReleaseStarted = introReleaseStarted || reloadReleaseStarted
   const pagePresentation = isCheckingFirstEntryIntro || introIsCoveringPage
-    ? { opacity: 0, scale: 1.02, filter: 'blur(6px)' }
+    ? { opacity: 0, scale: 1.02 }
     : reloadIsCoveringPage
-      ? { opacity: 0.72, scale: 1.008, filter: 'blur(4px)' }
-      : { opacity: 1, scale: 1, filter: 'blur(0px)' }
+      ? { opacity: 0.72, scale: 1.008 }
+      : { opacity: 1, scale: 1 }
 
   return (
     <>
@@ -65,7 +65,7 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
 
       <PageWrapper>
         <motion.div
-          initial={{ opacity: 0.6, scale: 1.015, filter: 'blur(5px)' }}
+          initial={{ opacity: 0.6, scale: 1.015 }}
           animate={pagePresentation}
           transition={{ duration: loaderReleaseStarted ? (reloadReleaseStarted ? 0.33 : 0.52) : 0, ease: 'easeOut' }}
         >
