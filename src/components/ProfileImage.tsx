@@ -36,7 +36,7 @@ const ProfileImage = ({ entryRevealReady = true, profileImageUrl }: ProfileImage
 
   return (
     <div 
-      className="profile-image w-full h-[360px] sm:h-[420px] md:h-[520px] lg:h-screen relative overflow-visible lg:overflow-hidden"
+      className="profile-image w-full h-[360px] sm:h-[420px] md:h-[520px] xl:h-screen relative overflow-visible lg:overflow-hidden"
       style={{ 
         zIndex: 100, 
         opacity: 1, 

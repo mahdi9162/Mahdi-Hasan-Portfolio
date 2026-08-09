@@ -80,11 +80,11 @@ export default function PortfolioClient({ initialProjects, projectsFromSupabase 
             <Navbar />
 
             {/* Hero Section */}
-            <section id="hero" className="scroll-mt-24 flex flex-col md:flex-row md:gap-10 md:items-center lg:flex-row lg:gap-0 lg:items-stretch lg:min-h-screen relative z-10 pt-[28px] md:pt-16 mb-12 sm:mb-16 md:mb-28">
+            <section id="hero" className="scroll-mt-24 flex flex-col md:flex-row md:gap-10 md:items-center lg:flex-row lg:gap-0 lg:items-stretch xl:min-h-screen relative z-10 pt-[28px] md:pt-16 mb-12 sm:mb-16 md:mb-28 lg:max-xl:mb-20">
               <div className="w-full md:w-[55%] lg:w-[55%] bg-black/20 lg:border-r lg:border-neutral-200/20 dark:lg:border-neutral-800/80 p-6 sm:p-8 md:p-12 relative z-20">
                 <Hero heroContent={initialHeroContent} />
               </div>
-              <div className="w-full md:w-[45%] lg:w-[45%] relative z-[100] profile-image-container lg:min-h-screen">
+              <div className="w-full md:w-[45%] lg:w-[45%] relative z-[100] profile-image-container xl:min-h-screen">
                 <ProfileImage profileImageUrl={initialHeroContent?.profile_image_url} />
               </div>
             </section>

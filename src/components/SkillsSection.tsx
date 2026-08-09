@@ -114,6 +114,12 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
 
   const [selectedIcon] = useState<OrbitalIcon | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const activeSkillCount = skillCategories[activeCardIndex]?.skills.length ?? 0
+  const laptopDeckHeightClass = activeSkillCount <= 3
+    ? 'lg:h-[24rem]'
+    : activeSkillCount <= 5
+      ? 'lg:h-[26rem]'
+      : 'lg:h-[28rem]'
   // Use refs for touch tracking — avoids re-renders during swipe gesture
   const touchStartRef = useRef(0)
   const touchEndRef = useRef(0)
@@ -198,7 +204,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
     <motion.section 
       ref={sectionRef}
       id="skills" 
-      className="scroll-mt-24 section-gap w-full bg-black/20 overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 sm:py-18 md:py-0 skills-section content-visibility-auto"
+      className="scroll-mt-24 section-gap w-full bg-black/20 overflow-x-hidden lg:overflow-visible my-12 sm:my-16 md:my-28 lg:max-xl:mt-20 sm:py-18 md:py-0 skills-section content-visibility-auto"
       variants={sectionVariants}
       initial="hidden"
       whileInView="show"
@@ -257,7 +263,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
 
         {/* Desktop/tablet layout: Orbit LEFT + Stacked Deck RIGHT */}
         <div className="hidden md:block">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-[72px]">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-10 lg:gap-9 xl:gap-[72px]">
           
           {/* Left Column: Orbit Stage with Proper Mobile Height */}
           <motion.div
@@ -274,7 +280,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
             }}
           >
             {/* Orbit Stage - Dedicated container with proper height for mobile */}
-            <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[420px] p-4 max-w-full" style={{ touchAction: 'pan-y' }}>
+            <div className="min-h-[320px] sm:min-h-[360px] md:min-h-[380px] lg:min-h-[400px] xl:min-h-[420px] flex items-center justify-center overflow-visible mx-auto lg:mx-0 lg:w-[360px] xl:w-[420px] p-4 max-w-full" style={{ touchAction: 'pan-y' }}>
               <TechOrb 
                 icons={orbitalIcons}
                 isAnimationActive={isSkillsNearby}
@@ -337,7 +343,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
               {/* Left Arrow Button */}
               <button
                 onClick={prevCard}
-                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] md:backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
+                className="hidden xl:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] md:backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
                 aria-label="Previous card"
               >
                 <svg aria-hidden="true" className="w-5 h-5 text-white/70 group-hover:text-brand-gold transition-colors duration-420" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -348,7 +354,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
               {/* Right Arrow Button */}
               <button
                 onClick={nextCard}
-                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] md:backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
+                className="hidden xl:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 z-40 w-10 h-10 rounded-full bg-white/[0.08] md:backdrop-blur-sm border border-white/20 opacity-60 hover:opacity-100 focus:opacity-100 hover:border-brand-gold/40 hover:bg-white/[0.12] transition-all duration-420 items-center justify-center group"
                 aria-label="Next card"
               >
                 <svg aria-hidden="true" className="w-5 h-5 text-white/70 group-hover:text-brand-gold transition-colors duration-420" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,7 +370,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
                 onTouchEnd={handleTouchEnd}
               >
                 {/* Stacked Cards */}
-                <div className="relative h-[420px] sm:h-[440px] md:h-[clamp(26rem,52vh,30rem)] overflow-visible">
+                <div className={`relative h-[420px] sm:h-[440px] md:h-[clamp(26rem,52vh,30rem)] ${laptopDeckHeightClass} xl:h-[clamp(26rem,52vh,30rem)] overflow-visible ${prefersReducedMotion ? '' : 'lg:transition-[height] lg:duration-300 lg:ease-out'}`}>
                   {skillCategories.map((category, index) => {
                     const offset = (index - activeCardIndex + skillCategories.length) % skillCategories.length
                     const isActive = offset === 0
@@ -391,7 +397,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
                 </div>
 
                 {/* Dots Indicator - Mobile + Tablet (hidden on desktop) */}
-                <div className="flex justify-center gap-2 mt-4 sm:mt-5 md:mt-6 lg:hidden">
+                <div className="flex justify-center gap-2 mt-4 sm:mt-5 md:mt-6 xl:hidden">
                   {skillCategories.map((category, index) => (
                     <button
                       key={index}
