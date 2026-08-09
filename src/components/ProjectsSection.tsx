@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Container from '@/components/shared/Container'
@@ -9,7 +10,10 @@ import { EASE_OUT_QUART } from '@/lib/animations'
 import { projects as fallbackProjects } from '@/data/projects'
 import { normalizeTechnicalHighlights, type Project } from '@/types/project'
 import { supabase } from '@/lib/supabase'
-import ProjectDetailsModal from '@/components/ProjectDetailsModal'
+
+const ProjectDetailsModal = dynamic(() => import('@/components/ProjectDetailsModal'), {
+  ssr: false,
+})
 
 type ProjectFilter = 'production' | 'personal'
 
