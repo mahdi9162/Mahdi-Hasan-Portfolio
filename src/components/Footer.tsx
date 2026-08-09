@@ -1,7 +1,14 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, useInView } from 'framer-motion'
+
+const DHAKA_TIME_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Dhaka',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+})
 
 const Footer = () => {
   const [currentTime, setCurrentTime] = useState('')
@@ -13,17 +20,14 @@ const Footer = () => {
     once: true, 
     margin: "0px 0px -100px 0px"
   })
+  const isFooterNearby = useInView(footerRef, {
+    margin: '250px 0px',
+    amount: 0,
+  })
 
-  // Memoize the time update function to prevent recreation on every render
+  // Reuse the formatter so only the current timestamp is evaluated each tick.
   const updateTime = useCallback(() => {
-    const now = new Date()
-    const dhakaTime = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Dhaka',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }).format(now)
-    setCurrentTime(dhakaTime)
+    setCurrentTime(DHAKA_TIME_FORMATTER.format(new Date()))
   }, [])
 
   useEffect(() => {
@@ -38,21 +42,31 @@ const Footer = () => {
     
     mediaQuery.addEventListener('change', handleMediaQueryChange)
     
-    updateTime()
-    const interval = setInterval(updateTime, 1000)
-
-    // Cleanup function to prevent memory leaks
     return () => {
-      clearInterval(interval)
       mediaQuery.removeEventListener('change', handleMediaQueryChange)
     }
-  }, [updateTime])
+  }, [])
+
+  useEffect(() => {
+    if (!isFooterNearby) return
+
+    updateTime()
+    const interval = window.setInterval(updateTime, 1000)
+
+    return () => clearInterval(interval)
+  }, [isFooterNearby, updateTime])
 
   return (
     <footer 
       ref={footerRef}
       className="section-gap bg-transparent px-6 md:px-8 overflow-hidden mt-28 pb-16 md:pb-12"
     >
+      <style>{`
+        @keyframes footer-email-border-rotation {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* Single animated wrapper - fade + slide-up on scroll reveal */}
       <motion.div 
         className="max-w-7xl mx-auto relative"
@@ -98,17 +112,13 @@ const Footer = () => {
                 transition={{ duration: 0.2 }}
               >
                 {/* The Glow (Sharp Laser Beam) — disabled for reduced-motion users */}
-                <motion.div
+                <div
                   className="absolute inset-0"
                   style={{
                     background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, #D4AF37 180deg, transparent 200deg)`,
-                    filter: 'blur(4px)'
-                  }}
-                  animate={prefersReducedMotion ? {} : { rotate: [0, 360] }}
-                  transition={prefersReducedMotion ? {} : {
-                    duration: 3,
-                    ease: "linear",
-                    repeat: Infinity
+                    filter: 'blur(4px)',
+                    animation: prefersReducedMotion ? undefined : 'footer-email-border-rotation 3s linear infinite',
+                    animationPlayState: isFooterNearby && !prefersReducedMotion ? 'running' : 'paused',
                   }}
                 />
                 
@@ -130,7 +140,12 @@ const Footer = () => {
               Local Time / Dhaka, BD
             </p>
             <p className="text-2xl font-medium text-white">
-              <span className="text-emerald-500 mr-2 animate-pulse">●</span>
+              <span
+                className="text-emerald-500 mr-2 animate-pulse"
+                style={{ animationPlayState: isFooterNearby ? 'running' : 'paused' }}
+              >
+                ●
+              </span>
               {currentTime && (
                 <span className="text-zinc-300 text-lg font-mono">
                   {currentTime}
