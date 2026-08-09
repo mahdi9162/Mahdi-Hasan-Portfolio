@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { useMobile } from '@/hooks/useMediaQueries'
 
 // Define the component's props for flexibility and professionalism
 interface FallBeamBackgroundProps {
@@ -25,6 +24,8 @@ interface FallBeamBackgroundProps {
   beamColorClass?: string;
 }
 
+type ViewportMode = 'pending' | 'mobile' | 'desktop'
+
 /**
  * A lightweight, theme-aware falling beam background component.
  * It dynamically creates vertical beam lines via JavaScript/React and applies CSS animations.
@@ -39,9 +40,20 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
   beamColorClass = 'cyan-400',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-  // Use shared mobile detection hook for better performance
-  const isMobile = useMobile()
+  const [viewportMode, setViewportMode] = useState<ViewportMode>('pending')
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    const updateViewportMode = () => {
+      const nextMode: ViewportMode = mediaQuery.matches ? 'mobile' : 'desktop'
+      setViewportMode(currentMode => currentMode === nextMode ? currentMode : nextMode)
+    }
+
+    updateViewportMode()
+    mediaQuery.addEventListener('change', updateViewportMode)
+
+    return () => mediaQuery.removeEventListener('change', updateViewportMode)
+  }, [])
 
   // Page Visibility API - pause beams when tab is not visible
   useEffect(() => {
@@ -63,7 +75,7 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
-  // Optimize line count for mobile
+  const isMobile = viewportMode === 'mobile'
   const optimizedLineCount = isMobile ? Math.floor(lineCount * 0.6) : lineCount
 
   // --- CSS Styles for the effect ---
@@ -119,14 +131,8 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
     }
   }
 
-  // Keep beams visible as soon as the portfolio mounts.
   useEffect(() => {
-    setIsVisible(true)
-  }, [])
-
-  useEffect(() => {
-    // Fix SSR Issues: Only run on client-side
-    if (typeof document === 'undefined' || !containerRef.current) return
+    if (viewportMode === 'pending' || !containerRef.current) return
 
     const container = containerRef.current
     
@@ -187,7 +193,7 @@ const FallBeamBackground: React.FC<FallBeamBackgroundProps> = ({
         lines.forEach(line => line.remove())
       }
     }
-  }, [optimizedLineCount, beamColorClass, isMobile]) // Re-run effect if these props change
+  }, [beamColorClass, isMobile, optimizedLineCount, viewportMode])
 
   return (
     <>
