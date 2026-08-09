@@ -14,6 +14,8 @@ interface DashboardContextValue {
   signOut: () => Promise<void>
 }
 
+type AuthorizationState = 'loading' | 'authorized' | 'unauthorized'
+
 const DashboardContext = createContext<DashboardContextValue | null>(null)
 
 export const useDashboard = () => {
@@ -25,21 +27,44 @@ export const useDashboard = () => {
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [authorization, setAuthorization] = useState<AuthorizationState>('loading')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState<string | null>(null)
   const [signingIn, setSigningIn] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
-      setLoading(false)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    let active = true
+
+    const resolveAuthorization = async (session: { access_token: string; user: User } | null) => {
+      if (!active) return
+
       setUser(session?.user ?? null)
+      if (!session) {
+        setAuthorization('unauthorized')
+        return
+      }
+
+      setAuthorization('loading')
+      try {
+        const response = await fetch('/api/dashboard/authorization', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (active) setAuthorization(response.ok ? 'authorized' : 'unauthorized')
+      } catch {
+        if (active) setAuthorization('unauthorized')
+      }
+    }
+
+    void supabase.auth.getSession().then(({ data }) => resolveAuthorization(data.session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void resolveAuthorization(session)
     })
-    return () => subscription.unsubscribe()
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const { data: unreadCount = 0 } = useQuery({
@@ -52,7 +77,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       if (error) return 0
       return count ?? 0
     },
-    enabled: !!user,
+    enabled: authorization === 'authorized',
     refetchInterval: 60_000,
   })
 
@@ -69,7 +94,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     setSigningIn(false)
   }
 
-  if (loading) {
+  if (authorization === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#111111]">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-[#D4AF37]/70" />
@@ -119,6 +144,25 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               {signingIn ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
+        </div>
+      </div>
+    )
+  }
+
+  if (authorization !== 'authorized') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#111111] px-4">
+        <div className="w-full max-w-sm text-center">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Portfolio Admin</p>
+          <h1 className="text-xl font-semibold text-white">Not authorized</h1>
+          <p className="mt-2 text-sm text-white/40">This account does not have access to the dashboard.</p>
+          <button
+            type="button"
+            onClick={signOut}
+            className="mt-6 rounded-xl border border-white/[0.12] px-4 py-2.5 text-sm text-white/70 transition-colors hover:border-white/[0.22] hover:text-white"
+          >
+            Sign out
+          </button>
         </div>
       </div>
     )

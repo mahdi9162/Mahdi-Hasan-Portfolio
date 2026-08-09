@@ -13,6 +13,8 @@ function require(name: string): string {
   return value
 }
 
+const optional = (name: string) => process.env[name]?.trim() || null
+
 // Validated at first import. The server crashes immediately on startup
 // (or at first request in edge/serverless) if any variable is absent,
 // rather than failing silently mid-request.
@@ -22,4 +24,7 @@ export const serverEnv = Object.freeze({
   resendApiKey:           require('RESEND_API_KEY'),
   resendFrom:             require('RESEND_FROM'),
   resendTo:               require('RESEND_TO'),
+  // This remains optional at boot so a missing deployment setting fails closed
+  // for dashboard/API authorization instead of exposing an admin surface.
+  portfolioAdminEmail:    optional('PORTFOLIO_ADMIN_EMAIL'),
 } as const)

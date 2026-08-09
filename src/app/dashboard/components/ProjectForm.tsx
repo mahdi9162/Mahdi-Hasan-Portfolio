@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getEffectiveProjectSeo } from '@/lib/project-seo'
+import { isValidProjectSlug } from '@/lib/project-indexing'
 import {
   normalizeProjectGalleryItems,
   normalizeTechnicalHighlights,
@@ -280,7 +281,7 @@ const EMPTY: ProjectRow = {
 interface Props {
   initial?: ProjectRow
   initialSortOrder?: number   // max existing + 1, passed from manager
-  onSaved: (msg: string, project: { id: string; classification: ProjectRow['classification'] }) => void | Promise<void>
+  onSaved: (msg: string, project: { id: string; classification: ProjectRow['classification']; slug: string }) => void | Promise<void>
   onCancel: () => void
 }
 
@@ -374,6 +375,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
   const effectiveSeo = getEffectiveProjectSeo({
     title: form.title,
     slug: form.slug,
+    status: form.status,
     description: form.description,
     imageUrl: form.image_url,
     projectSubtitle: form.project_subtitle,
@@ -409,6 +411,9 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     const errors: Partial<Record<keyof ProjectRow, string>> = {}
     if (!form.title.trim())             errors.title             = 'Title is required.'
     if (!form.slug.trim())              errors.slug              = 'Slug is required.'
+    else if (!isValidProjectSlug(form.slug)) {
+      errors.slug = 'Use lowercase letters, numbers, and single hyphens only.'
+    }
     if (form.classification !== 'production' && form.classification !== 'personal') {
       errors.classification = 'Project type is required.'
     }
@@ -542,6 +547,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     await onSaved(id ? 'Project updated.' : 'Project created.', {
       id: data.id,
       classification: form.classification,
+      slug: form.slug.trim(),
     })
     setSaving(false)
   }

@@ -21,6 +21,7 @@ const getProjectSeoInput = (project: Awaited<ReturnType<typeof getPublishedProje
   return {
     title: project.title,
     slug: project.slug,
+    status: project.status,
     description: project.description,
     imageUrl: project.image,
     projectSubtitle: project.projectSubtitle,
@@ -103,7 +104,7 @@ export default async function ProjectCaseStudyPage({ params }: RouteProps) {
   const classificationLabel = project.classification === 'production' ? 'Production' : 'Personal'
   const hasKeyFeatures = project.keyFeatures.length > 0
   const hasTechnicalHighlights = project.showTechnicalHighlights && project.technicalHighlights.length > 0
-  const structuredData = project.status === 'published' && seo.isIndexable
+  const structuredData = seo.isIndexable
     ? buildProjectCaseStudyStructuredData(project, seo)
     : null
   const attributionVisible = Boolean(

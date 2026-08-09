@@ -1,6 +1,14 @@
 import type { ReactNode } from 'react'
+import type { Metadata } from 'next'
 import DashboardQueryProvider from './components/DashboardQueryProvider'
 import DashboardShell from './components/DashboardShell'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function DashboardRootLayout({ children }: { children: ReactNode }) {
   return (

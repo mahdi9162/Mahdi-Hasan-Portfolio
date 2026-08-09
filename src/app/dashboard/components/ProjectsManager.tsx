@@ -7,7 +7,7 @@ import { isProjectRelationship, normalizeProjectGalleryItems, normalizeTechnical
 import ProjectForm, { type ProjectRow, storagePathFromUrl } from './ProjectForm'
 import Toast from './Toast'
 import ConfirmDialog from './ConfirmDialog'
-import { revalidateHomepage } from '@/lib/revalidate'
+import { revalidateHomepage, revalidateProjectPages } from '@/lib/revalidate'
 
 type ToastState = { message: string; type: 'success' | 'error' } | null
 type ProjectClassification = ProjectRow['classification']
@@ -124,8 +124,9 @@ export default function ProjectsManager() {
     return updateError
   }
 
-  const handleSaved = async (msg: string, savedProject: { id: string; classification: ProjectClassification }) => {
+  const handleSaved = async (msg: string, savedProject: { id: string; classification: ProjectClassification; slug: string }) => {
     const previousClassification = editing?.classification
+    const previousSlug = editing?.slug
     const shouldAppendToGroup = !editing || previousClassification !== savedProject.classification
     const appendError = shouldAppendToGroup
       ? await appendProjectToGroup(savedProject.id, savedProject.classification)
@@ -142,7 +143,7 @@ export default function ProjectsManager() {
     setCreating(false)
     showToast(orderingError ? `${msg} Project order could not be normalized.` : msg, orderingError ? 'error' : 'success')
     invalidate()
-    revalidateHomepage()
+    await revalidateProjectPages([previousSlug, savedProject.slug])
   }
 
   const handleDelete = async (id: string) => {
@@ -162,7 +163,7 @@ export default function ProjectsManager() {
       const normalizeError = project ? await normalizeGroupOrder(project.classification) : null
       showToast(normalizeError ? 'Project deleted, but project order could not be normalized.' : 'Project deleted.', normalizeError ? 'error' : 'success')
       invalidate()
-      revalidateHomepage()
+      await revalidateProjectPages([project?.slug])
     }
   }
 
@@ -171,7 +172,7 @@ export default function ProjectsManager() {
     const { error } = await supabase
       .from('projects').update({ status: next }).eq('id', project.id!)
     if (error) showToast(error.message, 'error')
-    else { showToast(`Marked as ${next}.`); invalidate(); revalidateHomepage() }
+    else { showToast(`Marked as ${next}.`); invalidate(); await revalidateProjectPages([project.slug]) }
   }
 
   const moveProject = async (id: string, classification: ProjectClassification, dir: 'up' | 'down') => {

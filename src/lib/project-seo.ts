@@ -1,4 +1,5 @@
 import type { ProjectRelationship } from '@/types/project'
+import { isIndexableProjectCaseStudy } from '@/lib/project-indexing'
 
 const PORTFOLIO_URL = 'https://thisismahdihasan.com'
 const PORTFOLIO_OWNER = 'Mahdi Hasan'
@@ -10,6 +11,7 @@ export type SeoImageSource = 'custom' | 'project' | 'global'
 export interface ProjectSeoInput {
   title: string
   slug: string
+  status?: 'published' | 'draft'
   description?: string | null
   imageUrl?: string | null
   projectSubtitle?: string | null
@@ -177,7 +179,11 @@ export const getEffectiveProjectSeo = (project: ProjectSeoInput): EffectiveProje
     effectiveDescription: customDescription || getGeneratedDescription(project, title),
     effectiveImage: toAbsoluteUrl(customImage || mainImage || '/api/og-image'),
     canonicalUrl: `${PORTFOLIO_URL}/projects/${encodeURIComponent(slug)}`,
-    isIndexable: project.indexProjectCaseStudy === true,
+    isIndexable: isIndexableProjectCaseStudy({
+      slug: project.slug,
+      status: project.status ?? 'draft',
+      indexProjectCaseStudy: project.indexProjectCaseStudy,
+    }),
     titleSource: customTitle ? 'custom' : 'auto',
     descriptionSource: customDescription ? 'custom' : 'auto',
     imageSource: customImage ? 'custom' : mainImage ? 'project' : 'global',

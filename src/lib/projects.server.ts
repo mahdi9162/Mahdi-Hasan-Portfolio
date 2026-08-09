@@ -6,6 +6,12 @@ import {
   normalizeTechnicalHighlights,
   type Project,
 } from '@/types/project'
+import { isIndexableProjectCaseStudy } from '@/lib/project-indexing'
+
+export interface ProjectSitemapEntry {
+  slug: string
+  updatedAt?: Date
+}
 
 const getOptionalUrl = (value: unknown): string | undefined => {
   if (typeof value !== 'string' || !value.trim()) return undefined
@@ -101,3 +107,49 @@ export const getPublishedProjectBySlug = cache(async (slug: string): Promise<Pro
     return null
   }
 })
+
+const toValidDate = (value: unknown) => {
+  if (typeof value !== 'string' || !value.trim()) return undefined
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? undefined : date
+}
+
+// Keep the sitemap query intentionally small: a published case-study URL only
+// needs its slug and a database-managed modification timestamp.
+export async function getIndexableProjectSitemapEntries(): Promise<ProjectSitemapEntry[]> {
+  try {
+    const url = new URL('/rest/v1/projects', clientEnv.supabaseUrl)
+    url.searchParams.set('select', 'slug,updated_at,status,index_project_case_study')
+    url.searchParams.set('status', 'eq.published')
+    url.searchParams.set('index_project_case_study', 'eq.true')
+
+    const response = await fetch(url, {
+      headers: {
+        apikey: clientEnv.supabaseAnonKey,
+        Authorization: `Bearer ${clientEnv.supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 300 },
+    })
+
+    if (!response.ok) return []
+    const rows: unknown = await response.json()
+    if (!Array.isArray(rows)) return []
+
+    return rows.flatMap((row): ProjectSitemapEntry[] => {
+      if (!row || typeof row !== 'object') return []
+      const candidate = row as Record<string, unknown>
+      const slug = typeof candidate.slug === 'string' ? candidate.slug.trim() : ''
+      if (!isIndexableProjectCaseStudy({
+        slug,
+        status: typeof candidate.status === 'string' ? candidate.status : null,
+        indexProjectCaseStudy: candidate.index_project_case_study === true,
+      })) return []
+
+      const updatedAt = toValidDate(candidate.updated_at)
+      return [{ slug, ...(updatedAt ? { updatedAt } : {}) }]
+    })
+  } catch {
+    return []
+  }
+}
