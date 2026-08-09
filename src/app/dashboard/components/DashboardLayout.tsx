@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -17,6 +17,22 @@ export default function DashboardLayout({ user, onSignOut, unreadCount = 0, chil
   const initials = user.email?.slice(0, 2).toUpperCase() ?? 'AD'
   const pathname = usePathname()
   const activeItem = DASHBOARD_NAV.find(item => isDashboardNavActive(pathname, item.href)) ?? DASHBOARD_NAV[0]
+  const mobileNavRef = useRef<HTMLElement | null>(null)
+  const activeMobileNavItemRef = useRef<HTMLAnchorElement | null>(null)
+
+  useEffect(() => {
+    const nav = mobileNavRef.current
+    const activeNavItem = activeMobileNavItemRef.current
+    if (!nav || !activeNavItem) return
+
+    const itemStart = activeNavItem.offsetLeft
+    const itemEnd = itemStart + activeNavItem.offsetWidth
+    const viewportEnd = nav.scrollLeft + nav.clientWidth
+
+    if (itemStart < nav.scrollLeft || itemEnd > viewportEnd) {
+      activeNavItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }
+  }, [pathname])
 
   return (
     <div className="min-h-screen bg-[#111111] text-white">
@@ -105,14 +121,18 @@ export default function DashboardLayout({ user, onSignOut, unreadCount = 0, chil
       </div>
 
       {/* ── Mobile Bottom Nav ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full h-[64px] bg-[#0e0e0e]/95 backdrop-blur-xl border-t border-white/[0.07] flex justify-around items-center z-50">
+      <nav
+        ref={mobileNavRef}
+        className="lg:hidden fixed bottom-0 left-0 z-50 flex h-[64px] w-full items-stretch overflow-x-auto overflow-y-hidden border-t border-white/[0.07] bg-[#0e0e0e]/95 backdrop-blur-xl overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         {DASHBOARD_NAV.map(item => {
           const isActive = isDashboardNavActive(pathname, item.href)
           return (
             <Link
               key={item.id}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1 transition-colors relative
+              ref={isActive ? activeMobileNavItemRef : undefined}
+              className={`relative flex min-w-[76px] flex-1 shrink-0 flex-col items-center justify-center gap-0.5 px-3 py-1 transition-colors
                 ${isActive ? 'text-[#D4AF37]' : 'text-white/30 hover:text-white/60'}`}
             >
               <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
