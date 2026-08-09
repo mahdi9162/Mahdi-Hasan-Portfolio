@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { normalizeTechnicalHighlights } from '@/types/project'
+import { normalizeProjectGalleryItems, normalizeTechnicalHighlights } from '@/types/project'
 import ProjectForm, { type ProjectRow, storagePathFromUrl } from './ProjectForm'
 import Toast from './Toast'
 import ConfirmDialog from './ConfirmDialog'
 import { revalidateHomepage } from '@/lib/revalidate'
 
 type ToastState = { message: string; type: 'success' | 'error' } | null
+type ProjectClassification = ProjectRow['classification']
 
 const QUERY_KEY = ['dashboard-projects'] as const
 
@@ -23,10 +24,19 @@ const hasValidSourceUrl = (value: unknown) => {
   }
 }
 
+const sortProjectsByOrder = <T extends { sort_order: number; created_at?: string }>(projectList: T[]) =>
+  [...projectList].sort((a, b) => {
+    const aOrder = Number.isFinite(a.sort_order) ? a.sort_order : Number.MAX_SAFE_INTEGER
+    const bOrder = Number.isFinite(b.sort_order) ? b.sort_order : Number.MAX_SAFE_INTEGER
+    return aOrder !== bOrder
+      ? aOrder - bOrder
+      : (a.created_at ?? '').localeCompare(b.created_at ?? '')
+  })
+
 async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_subtitle, organization, project_year, project_context, key_features, gallery_images, show_technical_highlights, technical_highlights, status, sort_order, created_at')
+    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_subtitle, organization, project_year, project_context, key_features, gallery_images, gallery_items, show_technical_highlights, technical_highlights, status, sort_order, created_at')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
@@ -44,6 +54,7 @@ async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
     project_context: project.project_context ?? '',
     key_features: Array.isArray(project.key_features) ? project.key_features : [],
     gallery_images: Array.isArray(project.gallery_images) ? project.gallery_images : [],
+    gallery_items: normalizeProjectGalleryItems(project.gallery_items, project.gallery_images),
     show_technical_highlights: project.show_technical_highlights ?? false,
     technical_highlights: normalizeTechnicalHighlights(project.technical_highlights),
   })) as ProjectRow[]
@@ -63,6 +74,7 @@ export default function ProjectsManager() {
 
   const [editing, setEditing] = useState<ProjectRow | null>(null)
   const [creating, setCreating] = useState(false)
+  const [activeType, setActiveType] = useState<ProjectClassification>('production')
   const [toast, setToast] = useState<ToastState>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -70,10 +82,58 @@ export default function ProjectsManager() {
   const showToast = (message: string, type: 'success' | 'error' = 'success') =>
     setToast({ message, type })
 
-  const handleSaved = (msg: string) => {
+  const normalizeGroupOrder = async (classification: ProjectClassification) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id, sort_order, created_at')
+      .eq('classification', classification)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+
+    if (error) return error
+
+    const updates = sortProjectsByOrder(data ?? []).map((project, index) =>
+      supabase.from('projects').update({ sort_order: index }).eq('id', project.id)
+    )
+    const results = await Promise.all(updates)
+    return results.find(result => result.error)?.error ?? null
+  }
+
+  const appendProjectToGroup = async (id: string, classification: ProjectClassification) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id, sort_order')
+      .eq('classification', classification)
+
+    if (error) return error
+
+    const nextSortOrder = Math.max(-1, ...(data ?? [])
+      .filter(project => project.id !== id)
+      .map(project => typeof project.sort_order === 'number' ? project.sort_order : -1)) + 1
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ sort_order: nextSortOrder })
+      .eq('id', id)
+    return updateError
+  }
+
+  const handleSaved = async (msg: string, savedProject: { id: string; classification: ProjectClassification }) => {
+    const previousClassification = editing?.classification
+    const shouldAppendToGroup = !editing || previousClassification !== savedProject.classification
+    const appendError = shouldAppendToGroup
+      ? await appendProjectToGroup(savedProject.id, savedProject.classification)
+      : null
+    const newGroupError = shouldAppendToGroup && !appendError
+      ? await normalizeGroupOrder(savedProject.classification)
+      : appendError
+    const oldGroupError = previousClassification && previousClassification !== savedProject.classification
+      ? await normalizeGroupOrder(previousClassification)
+      : null
+    const orderingError = newGroupError ?? oldGroupError
+
     setEditing(null)
     setCreating(false)
-    showToast(msg)
+    showToast(orderingError ? `${msg} Project order could not be normalized.` : msg, orderingError ? 'error' : 'success')
     invalidate()
     revalidateHomepage()
   }
@@ -91,7 +151,12 @@ export default function ProjectsManager() {
     setDeleting(false)
     setConfirmDelete(null)
     if (error) showToast(error.message, 'error')
-    else { showToast('Project deleted.'); invalidate(); revalidateHomepage() }
+    else {
+      const normalizeError = project ? await normalizeGroupOrder(project.classification) : null
+      showToast(normalizeError ? 'Project deleted, but project order could not be normalized.' : 'Project deleted.', normalizeError ? 'error' : 'success')
+      invalidate()
+      revalidateHomepage()
+    }
   }
 
   const toggleStatus = async (project: ProjectRow) => {
@@ -102,12 +167,8 @@ export default function ProjectsManager() {
     else { showToast(`Marked as ${next}.`); invalidate(); revalidateHomepage() }
   }
 
-  const moveProject = async (id: string, dir: 'up' | 'down') => {
-    const sorted = [...projects].sort((a, b) =>
-      a.sort_order !== b.sort_order
-        ? a.sort_order - b.sort_order
-        : ((a as any).created_at < (b as any).created_at ? -1 : 1)
-    )
+  const moveProject = async (id: string, classification: ProjectClassification, dir: 'up' | 'down') => {
+    const sorted = sortProjectsByOrder(projects.filter(project => project.classification === classification))
     const idx = sorted.findIndex(p => p.id === id)
     const swapIdx = dir === 'up' ? idx - 1 : idx + 1
     if (swapIdx < 0 || swapIdx >= sorted.length) return
@@ -115,14 +176,33 @@ export default function ProjectsManager() {
     const a = sorted[idx]
     const b = sorted[swapIdx]
 
-    const [r1, r2] = await Promise.all([
-      supabase.from('projects').update({ sort_order: b.sort_order }).eq('id', a.id!),
-      supabase.from('projects').update({ sort_order: a.sort_order }).eq('id', b.id!),
-    ])
-    if (r1.error || r2.error) showToast('Move failed.', 'error')
+    // Park the moved row at an unused position first. This avoids a transient
+    // duplicate position if the database later enforces uniqueness per type.
+    const temporarySortOrder = Math.min(...sorted.map(project => project.sort_order)) - 1
+    const { error: parkError } = await supabase.from('projects').update({ sort_order: temporarySortOrder }).eq('id', a.id!)
+    if (parkError) { showToast('Move failed.', 'error'); return }
+
+    const { error: swapError } = await supabase.from('projects').update({ sort_order: a.sort_order }).eq('id', b.id!)
+    if (swapError) {
+      await supabase.from('projects').update({ sort_order: a.sort_order }).eq('id', a.id!)
+      showToast('Move failed.', 'error')
+      return
+    }
+
+    const { error: placeError } = await supabase.from('projects').update({ sort_order: b.sort_order }).eq('id', a.id!)
+    if (placeError) {
+      await supabase.from('projects').update({ sort_order: b.sort_order }).eq('id', b.id!)
+      await supabase.from('projects').update({ sort_order: a.sort_order }).eq('id', a.id!)
+      showToast('Move failed.', 'error')
+      return
+    }
     invalidate()
     revalidateHomepage()
   }
+
+  const productionProjects = sortProjectsByOrder(projects.filter(project => project.classification === 'production'))
+  const personalProjects = sortProjectsByOrder(projects.filter(project => project.classification === 'personal'))
+  const activeProjects = activeType === 'production' ? productionProjects : personalProjects
 
   // ── Form view ──────────────────────────────────────────────────────────────
   if (creating || editing) {
@@ -139,7 +219,9 @@ export default function ProjectsManager() {
         </h2>
         <ProjectForm
           initial={editing ?? undefined}
-          initialSortOrder={editing ? undefined : Math.max(0, ...projects.map(p => p.sort_order)) + 1}
+          initialSortOrder={editing ? undefined : Math.max(-1, ...projects
+            .filter(project => project.classification === 'personal')
+            .map(project => project.sort_order)) + 1}
           onSaved={handleSaved}
           onCancel={() => { setCreating(false); setEditing(null) }}
         />
@@ -167,88 +249,99 @@ export default function ProjectsManager() {
         </div>
       ) : isError ? (
         <p className="text-sm text-red-400/70 text-center py-16">{(queryError as Error)?.message ?? 'Failed to load projects.'}</p>
-      ) : projects.length === 0 ? (
-        <p className="text-sm text-white/30 text-center py-16">No projects yet.</p>
       ) : (
-        <div className="space-y-2">
-          {/* Header row — hidden on mobile */}
-          <div className="hidden sm:grid grid-cols-[32px_1fr_100px_90px_auto] gap-3 px-4 pb-1 text-xs lg:text-[13px] text-white/30 uppercase tracking-wider">
-            <span />
-            <span>Title</span>
-            <span>Type</span>
-            <span>Status</span>
-            <span />
+        <div>
+          <div role="tablist" aria-label="Project type" className="mb-5 flex w-full gap-2 border-b border-white/[0.09] pb-3 sm:w-auto sm:justify-start">
+            {([
+              { value: 'production', label: 'Production', count: productionProjects.length },
+              { value: 'personal', label: 'Personal', count: personalProjects.length },
+            ] as const).map(({ value, label, count }) => {
+              const isActive = activeType === value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveType(value)}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                    isActive
+                      ? 'border-brand-gold/45 bg-brand-gold/10 text-brand-gold'
+                      : 'border-white/[0.09] bg-white/[0.025] text-white/45 hover:border-white/[0.18] hover:text-white/70'
+                  }`}
+                >
+                  <span>{label}</span>
+                  <span className={`font-mono text-[11px] ${isActive ? 'text-brand-gold/75' : 'text-white/30'}`}>{count}</span>
+                </button>
+              )
+            })}
           </div>
 
-          {[...projects]
-            .sort((a, b) =>
-              a.sort_order !== b.sort_order
-                ? a.sort_order - b.sort_order
-                : ((a as any).created_at < (b as any).created_at ? -1 : 1)
-            )
-            .map((p, idx, sorted) => (
-            <div
-              key={p.id}
-              className="grid grid-cols-1 sm:grid-cols-[32px_1fr_100px_90px_auto] gap-2 sm:gap-3 items-center px-4 py-3 lg:py-4 bg-white/[0.03] border border-white/[0.07] rounded-lg"
-            >
-              {/* Move buttons */}
-              <div className="hidden sm:flex flex-col gap-0.5">
-                <button
-                  onClick={() => moveProject(p.id!, 'up')}
-                  disabled={idx === 0}
-                  title="Move up"
-                  className="w-6 h-5 flex items-center justify-center rounded text-white/30 hover:text-white/70 border border-white/[0.08] hover:border-white/20 transition-colors disabled:opacity-20 disabled:cursor-not-allowed text-[10px]"
-                >↑</button>
-                <button
-                  onClick={() => moveProject(p.id!, 'down')}
-                  disabled={idx === sorted.length - 1}
-                  title="Move down"
-                  className="w-6 h-5 flex items-center justify-center rounded text-white/30 hover:text-white/70 border border-white/[0.08] hover:border-white/20 transition-colors disabled:opacity-20 disabled:cursor-not-allowed text-[10px]"
-                >↓</button>
+          <section role="tabpanel" aria-label={`${activeType} projects`}>
+            {activeProjects.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-white/[0.08] px-4 py-5">
+                <p className="text-sm text-white/30">No {activeType} projects yet.</p>
+                <button onClick={() => setCreating(true)} className="mt-3 text-sm text-brand-gold/80 transition-colors hover:text-brand-gold">+ New Project</button>
               </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="hidden sm:grid grid-cols-[32px_1fr_100px_90px_auto] gap-3 px-4 pb-1 text-xs lg:text-[13px] uppercase tracking-wider text-white/30">
+                  <span />
+                  <span>Title</span>
+                  <span>Type</span>
+                  <span>Status</span>
+                  <span />
+                </div>
 
-              {/* Title + slug */}
-              <div className="min-w-0">
-                <p className="text-sm lg:text-base text-white truncate">{p.title}</p>
-                <p className="text-xs lg:text-[13px] text-white/30 truncate">{p.slug}</p>
+                {activeProjects.map((project, index) => (
+                  <div
+                    key={project.id}
+                    className="grid grid-cols-1 items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.03] px-4 py-3 sm:grid-cols-[32px_1fr_100px_90px_auto] sm:gap-3 lg:py-4"
+                  >
+                    <div className="hidden flex-col gap-0.5 sm:flex">
+                      <button
+                        onClick={() => moveProject(project.id!, activeType, 'up')}
+                        disabled={index === 0}
+                        title="Move up"
+                        className="flex h-5 w-6 items-center justify-center rounded border border-white/[0.08] text-[10px] text-white/30 transition-colors hover:border-white/20 hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-20"
+                      >↑</button>
+                      <button
+                        onClick={() => moveProject(project.id!, activeType, 'down')}
+                        disabled={index === activeProjects.length - 1}
+                        title="Move down"
+                        className="flex h-5 w-6 items-center justify-center rounded border border-white/[0.08] text-[10px] text-white/30 transition-colors hover:border-white/20 hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-20"
+                      >↓</button>
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-white lg:text-base">{project.title}</p>
+                      <p className="truncate text-xs text-white/30 lg:text-[13px]">{project.slug}</p>
+                    </div>
+
+                    <span className={`text-xs capitalize lg:text-sm ${activeType === 'production' ? 'text-brand-gold' : 'text-white/55'}`}>
+                      {activeType}
+                    </span>
+
+                    <button
+                      onClick={() => toggleStatus(project)}
+                      className={`w-fit rounded-full border px-2.5 py-1 text-xs transition-colors lg:text-sm ${
+                        project.status === 'published'
+                          ? 'border-green-500/30 text-green-400 hover:bg-green-500/10'
+                          : 'border-white/15 text-white/35 hover:bg-white/[0.06]'
+                      }`}
+                    >
+                      {project.status}
+                    </button>
+
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditing(project)} className="px-2 py-1 text-xs text-white/40 transition-colors hover:text-white/80 lg:text-sm">Edit</button>
+                      <button onClick={() => setConfirmDelete(project.id!)} className="px-2 py-1 text-xs text-white/25 transition-colors hover:text-red-400 lg:text-sm">Delete</button>
+                    </div>
+                  </div>
+                ))}
               </div>
-
-              {/* Project type */}
-              <span className={`text-xs lg:text-sm capitalize ${
-                p.classification === 'production' ? 'text-brand-gold' : 'text-white/55'
-              }`}>
-                {p.classification}
-              </span>
-
-              {/* Status toggle */}
-              <button
-                onClick={() => toggleStatus(p)}
-                className={`text-xs lg:text-sm px-2.5 py-1 rounded-full border w-fit transition-colors ${
-                  p.status === 'published'
-                    ? 'border-green-500/30 text-green-400 hover:bg-green-500/10'
-                    : 'border-white/15 text-white/35 hover:bg-white/[0.06]'
-                }`}
-              >
-                {p.status}
-              </button>
-
-              {/* Actions */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditing(p)}
-                  className="text-xs lg:text-sm text-white/40 hover:text-white/80 px-2 py-1 transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => setConfirmDelete(p.id!)}
-                  className="text-xs lg:text-sm text-white/25 hover:text-red-400 px-2 py-1 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+            )}
+          </section>
         </div>
       )}
 

@@ -21,8 +21,10 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
+  normalizeProjectGalleryItems,
   normalizeTechnicalHighlights,
   TECHNICAL_HIGHLIGHT_ICON_KEYS,
+  type ProjectGalleryItem,
   type TechnicalHighlight,
   type TechnicalHighlightIcon,
 } from '@/types/project'
@@ -46,21 +48,23 @@ export interface ProjectRow {
   project_context: string
   key_features: string[]
   gallery_images: string[]
+  gallery_items: ProjectGalleryItem[]
   show_technical_highlights: boolean
   technical_highlights: TechnicalHighlight[]
   status: 'published' | 'draft'
   sort_order: number
 }
 
-type ListField = 'key_features' | 'gallery_images'
+type ListField = 'key_features'
 
 export const MAX_KEY_FEATURES = 6
 export const MAX_GALLERY_IMAGES = 4
+export const MAX_GALLERY_CAPTION_TITLE_LENGTH = 50
+export const MAX_GALLERY_CAPTION_DESCRIPTION_LENGTH = 140
 export const MAX_TECHNICAL_HIGHLIGHTS = 5
 
 const LIST_LIMITS: Record<ListField, number> = {
   key_features: MAX_KEY_FEATURES,
-  gallery_images: MAX_GALLERY_IMAGES,
 }
 
 const TECHNICAL_HIGHLIGHT_ICON_OPTIONS: Array<{
@@ -256,7 +260,7 @@ const EMPTY: ProjectRow = {
   show_view_project: true, show_source: false,
   tech_stack: [],
   project_subtitle: '', organization: '',
-  project_year: null, project_context: '', key_features: [], gallery_images: [],
+  project_year: null, project_context: '', key_features: [], gallery_images: [], gallery_items: [],
   show_technical_highlights: false, technical_highlights: [],
   status: 'draft', sort_order: 0,
 }
@@ -264,7 +268,7 @@ const EMPTY: ProjectRow = {
 interface Props {
   initial?: ProjectRow
   initialSortOrder?: number   // max existing + 1, passed from manager
-  onSaved: (msg: string) => void
+  onSaved: (msg: string, project: { id: string; classification: ProjectRow['classification'] }) => void | Promise<void>
   onCancel: () => void
 }
 
@@ -322,6 +326,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       project_context:   base.project_context ?? '',
       key_features:      Array.isArray(base.key_features) ? base.key_features : [],
       gallery_images:    Array.isArray(base.gallery_images) ? base.gallery_images : [],
+      gallery_items:     normalizeProjectGalleryItems(base.gallery_items, base.gallery_images),
       show_technical_highlights: base.show_technical_highlights ?? false,
       technical_highlights: normalizeTechnicalHighlights(base.technical_highlights),
       status:            base.status            ?? 'draft',
@@ -370,8 +375,14 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     if (form.key_features.length > MAX_KEY_FEATURES) {
       errors.key_features = `Use up to ${MAX_KEY_FEATURES} key features.`
     }
-    if (form.gallery_images.length > MAX_GALLERY_IMAGES) {
-      errors.gallery_images = `Use up to ${MAX_GALLERY_IMAGES} gallery images.`
+    if (form.gallery_items.length > MAX_GALLERY_IMAGES) {
+      errors.gallery_items = `Use up to ${MAX_GALLERY_IMAGES} gallery images.`
+    }
+    if (form.gallery_items.some(item => item.captionTitle && item.captionTitle.length > MAX_GALLERY_CAPTION_TITLE_LENGTH)) {
+      errors.gallery_items = `Caption titles can be up to ${MAX_GALLERY_CAPTION_TITLE_LENGTH} characters.`
+    }
+    if (form.gallery_items.some(item => item.captionDescription && item.captionDescription.length > MAX_GALLERY_CAPTION_DESCRIPTION_LENGTH)) {
+      errors.gallery_items = `Caption descriptions can be up to ${MAX_GALLERY_CAPTION_DESCRIPTION_LENGTH} characters.`
     }
     if (form.technical_highlights.length > MAX_TECHNICAL_HIGHLIGHTS) {
       errors.technical_highlights = `Use up to ${MAX_TECHNICAL_HIGHLIGHTS} technical highlights.`
@@ -405,7 +416,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     if (galleryIndex === undefined) {
       set('image_url', data.publicUrl)
     } else {
-      updateListValue('gallery_images', galleryIndex, data.publicUrl)
+      updateGalleryItem(galleryIndex, 'imageUrl', data.publicUrl)
     }
     setUploading(false)
     setUploadMsg({ text: galleryIndex === undefined ? 'Image uploaded.' : 'Gallery image uploaded.', ok: true })
@@ -422,6 +433,14 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
 
     // Strip id from payload for insert
     const { id, description, ...rest } = form
+    const galleryItems = form.gallery_items
+      .map(item => ({
+        imageUrl: item.imageUrl.trim(),
+        captionTitle: item.captionTitle?.trim() || null,
+        captionDescription: item.captionDescription?.trim() || null,
+      }))
+      .filter(item => Boolean(item.imageUrl))
+
     const payload = {
       ...rest,
       slug: form.slug.trim(),
@@ -432,7 +451,9 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       project_year: typeof form.project_year === 'number' ? form.project_year : null,
       project_context: form.project_context.trim() || null,
       key_features: form.key_features.map(value => value.trim()).filter(Boolean),
-      gallery_images: form.gallery_images.map(value => value.trim()).filter(Boolean),
+      gallery_items: galleryItems,
+      // Keep the established URL column in sync for older readers and a safe rollback path.
+      gallery_images: galleryItems.map(item => item.imageUrl),
       technical_highlights: form.technical_highlights
         .map(({ text, icon }) => ({
           text: text.trim(),
@@ -441,13 +462,17 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         .filter((highlight) => Boolean(highlight.text)),
     }
 
-    const { error } = id
-      ? await supabase.from('projects').update(payload).eq('id', id)
-      : await supabase.from('projects').insert(payload)
+    const { data, error } = id
+      ? await supabase.from('projects').update(payload).eq('id', id).select('id').single()
+      : await supabase.from('projects').insert(payload).select('id').single()
 
+    if (error) { setSaving(false); setSubmitErr(error.message); return }
+    if (!data?.id) { setSaving(false); setSubmitErr('Project saved, but its ID was not returned.'); return }
+    await onSaved(id ? 'Project updated.' : 'Project created.', {
+      id: data.id,
+      classification: form.classification,
+    })
     setSaving(false)
-    if (error) { setSubmitErr(error.message); return }
-    onSaved(id ? 'Project updated.' : 'Project created.')
   }
 
   // ── Field helpers ──────────────────────────────────────────────────────────
@@ -486,6 +511,24 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
 
   const removeListValue = (field: ListField, index: number) =>
     set(field, form[field].filter((_, itemIndex) => itemIndex !== index))
+
+  const updateGalleryItem = (
+    index: number,
+    field: keyof ProjectGalleryItem,
+    value: string,
+  ) => {
+    const next = [...form.gallery_items]
+    next[index] = { ...next[index], [field]: value || null }
+    set('gallery_items', next)
+  }
+
+  const addGalleryItem = () => {
+    if (form.gallery_items.length >= MAX_GALLERY_IMAGES) return
+    set('gallery_items', [...form.gallery_items, { imageUrl: '', captionTitle: null, captionDescription: null }])
+  }
+
+  const removeGalleryItem = (index: number) =>
+    set('gallery_items', form.gallery_items.filter((_, itemIndex) => itemIndex !== index))
 
   const updateTechnicalHighlight = (
     index: number,
@@ -531,32 +574,6 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
               placeholder={placeholder}
               className={inputCls}
             />
-            {field === 'gallery_images' && (
-              <label
-                role="button"
-                tabIndex={uploading ? -1 : 0}
-                aria-disabled={uploading}
-                onKeyDown={event => {
-                  if (uploading || (event.key !== 'Enter' && event.key !== ' ')) return
-                  event.preventDefault()
-                  event.currentTarget.querySelector<HTMLInputElement>('input')?.click()
-                }}
-                className={`inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border px-3.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
-                uploading
-                  ? 'cursor-not-allowed border-white/[0.07] text-white/25'
-                  : 'border-white/[0.12] bg-white/[0.045] text-white/70 hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold'
-                }`}
-              >
-                {uploading ? 'Uploading…' : 'Upload'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  onChange={event => handleImageUpload(event, index)}
-                  className="hidden"
-                />
-              </label>
-            )}
             <button
               type="button"
               onClick={() => removeListValue(field, index)}
@@ -575,6 +592,95 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
         className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-white/[0.14] bg-white/[0.045] px-3.5 text-sm font-medium text-white/70 transition-colors hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:border-white/[0.07] disabled:bg-transparent disabled:text-white/25"
       >
         + {addLabel}
+      </button>
+    </section>
+  )
+
+  const galleryFields = () => (
+    <section className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
+      <div className="flex items-center justify-between gap-3">
+        <label className="text-sm font-medium text-white/80">Project Gallery</label>
+        <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] text-white/50">
+          {form.gallery_items.length} / {MAX_GALLERY_IMAGES} {form.gallery_items.length === 1 ? 'image' : 'images'}
+        </span>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-white/40">Additional project visuals only; the main image remains the hero image. Captions are optional.</p>
+
+      <div className="space-y-3">
+        {form.gallery_items.map((item, index) => (
+          <div key={`gallery-item-${index}`} className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.025] p-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="font-mono text-xs uppercase tracking-[0.12em] text-white/55">Gallery Image {String(index + 1).padStart(2, '0')}</p>
+              <button
+                type="button"
+                onClick={() => removeGalleryItem(index)}
+                className="min-h-8 rounded-md px-2 text-xs text-white/55 transition-colors hover:bg-red-400/[0.06] hover:text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+              >
+                Remove
+              </button>
+            </div>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+              <input
+                type="url"
+                value={item.imageUrl}
+                onChange={event => updateGalleryItem(index, 'imageUrl', event.target.value)}
+                placeholder="https://…"
+                className={inputCls}
+              />
+              <label
+                role="button"
+                tabIndex={uploading ? -1 : 0}
+                aria-disabled={uploading}
+                onKeyDown={event => {
+                  if (uploading || (event.key !== 'Enter' && event.key !== ' ')) return
+                  event.preventDefault()
+                  event.currentTarget.querySelector<HTMLInputElement>('input')?.click()
+                }}
+                className={`inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border px-3.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                  uploading
+                    ? 'cursor-not-allowed border-white/[0.07] text-white/25'
+                    : 'border-white/[0.12] bg-white/[0.045] text-white/70 hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold'
+                }`}
+              >
+                {uploading ? 'Uploading…' : 'Upload'}
+                <input type="file" accept="image/*" disabled={uploading} onChange={event => handleImageUpload(event, index)} className="hidden" />
+              </label>
+            </div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs text-white/45">Caption title <span className="text-white/25">(optional)</span></label>
+                <input
+                  type="text"
+                  maxLength={MAX_GALLERY_CAPTION_TITLE_LENGTH}
+                  value={item.captionTitle ?? ''}
+                  onChange={event => updateGalleryItem(index, 'captionTitle', event.target.value)}
+                  placeholder="Dashboard Analytics"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-white/45">Caption description <span className="text-white/25">(optional)</span></label>
+                <input
+                  type="text"
+                  maxLength={MAX_GALLERY_CAPTION_DESCRIPTION_LENGTH}
+                  value={item.captionDescription ?? ''}
+                  onChange={event => updateGalleryItem(index, 'captionDescription', event.target.value)}
+                  placeholder="Short context about what this screenshot shows."
+                  className={inputCls}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {fieldErrors.gallery_items && <p className="mt-2 text-xs text-red-400/75">{fieldErrors.gallery_items}</p>}
+      <button
+        type="button"
+        onClick={addGalleryItem}
+        disabled={form.gallery_items.length >= MAX_GALLERY_IMAGES}
+        className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-white/[0.14] bg-white/[0.045] px-3.5 text-sm font-medium text-white/70 transition-colors hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:border-white/[0.07] disabled:bg-transparent disabled:text-white/25"
+      >
+        + Add Gallery Image
       </button>
     </section>
   )
@@ -820,14 +926,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
             'e.g. Payment integration',
             'Add Feature'
           )}
-          {repeatableFields(
-            'gallery_images',
-            'Project Gallery',
-            'Additional project visuals only; the main image remains the hero image.',
-            'https://…',
-            'Add Gallery Image',
-            'url'
-          )}
+          {galleryFields()}
 
           <div className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
             <label className="flex items-center gap-2 text-sm text-white/70">

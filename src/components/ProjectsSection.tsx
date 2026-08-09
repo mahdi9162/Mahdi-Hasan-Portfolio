@@ -8,7 +8,7 @@ import Container from '@/components/shared/Container'
 import SectionHeader from '@/components/shared/SectionHeader'
 import { EASE_OUT_QUART } from '@/lib/animations'
 import { projects as fallbackProjects } from '@/data/projects'
-import { normalizeTechnicalHighlights, type Project } from '@/types/project'
+import { normalizeProjectGalleryItems, normalizeTechnicalHighlights, type Project } from '@/types/project'
 import { supabase } from '@/lib/supabase'
 
 const ProjectDetailsModal = dynamic(() => import('@/components/ProjectDetailsModal'), {
@@ -18,6 +18,9 @@ const ProjectDetailsModal = dynamic(() => import('@/components/ProjectDetailsMod
 type ProjectFilter = 'production' | 'personal'
 
 const getClassification = (project: Project): ProjectFilter => project.classification
+
+const sortProjectsByOrder = (projectList: Project[]) =>
+  [...projectList].sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER))
 
 const getOptionalUrl = (value: unknown): string | undefined => {
   if (typeof value !== 'string' || !value.trim()) return undefined
@@ -39,7 +42,7 @@ const getDefaultFilter = (projectList: Project[]): ProjectFilter =>
 
 const getInitialProjectId = (projectList: Project[]) => {
   const filter = getDefaultFilter(projectList)
-  return projectList.find((project) => getClassification(project) === filter)?.id ?? null
+  return sortProjectsByOrder(projectList.filter((project) => getClassification(project) === filter))[0]?.id ?? null
 }
 
 function MobileTechnologyPreview({ technologies }: { technologies: string[] }) {
@@ -175,7 +178,7 @@ export default function ProjectsSection({
           .select('*')
           .eq('status', 'published')
           .order('sort_order', { ascending: true })
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: true })
 
         if (error || !data?.length) return
 
@@ -198,6 +201,7 @@ export default function ProjectsSection({
               classification: row.classification === 'production' || row.classification === 'personal'
                 ? row.classification
                 : 'personal',
+              sortOrder: typeof row.sort_order === 'number' ? row.sort_order : undefined,
               projectSubtitle: typeof row.project_subtitle === 'string' && row.project_subtitle.trim()
                 ? row.project_subtitle
                 : null,
@@ -209,7 +213,7 @@ export default function ProjectsSection({
                 ? row.project_context
                 : null,
               keyFeatures: Array.isArray(row.key_features) ? row.key_features : [],
-              galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
+              galleryImages: normalizeProjectGalleryItems(row.gallery_items, row.gallery_images),
               showTechnicalHighlights: row.show_technical_highlights ?? false,
               technicalHighlights: normalizeTechnicalHighlights(row.technical_highlights),
               bullets: Array.isArray(row.bullets) ? row.bullets : undefined,
@@ -228,11 +232,11 @@ export default function ProjectsSection({
   }, [initialProjects, projectsFromSupabase])
 
   const productionProjects = useMemo(
-    () => projects.filter((project) => getClassification(project) === 'production'),
+    () => sortProjectsByOrder(projects.filter((project) => getClassification(project) === 'production')),
     [projects]
   )
   const personalProjects = useMemo(
-    () => projects.filter((project) => getClassification(project) === 'personal'),
+    () => sortProjectsByOrder(projects.filter((project) => getClassification(project) === 'personal')),
     [projects]
   )
 

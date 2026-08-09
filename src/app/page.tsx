@@ -1,5 +1,5 @@
 import PortfolioClient from '@/components/PortfolioClient'
-import { normalizeTechnicalHighlights, type Project } from '@/types/project'
+import { normalizeProjectGalleryItems, normalizeTechnicalHighlights, type Project } from '@/types/project'
 import type { HeroContent } from '@/types/hero'
 import type { AboutContent } from '@/types/about'
 import { clientEnv } from '@/config/env.client'
@@ -158,7 +158,7 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
     if (!url || !key) return { data: undefined, fromSupabase: false }
 
     const res = await fetch(
-      `${url}/rest/v1/projects?status=eq.published&order=sort_order.asc,created_at.desc&select=*`,
+      `${url}/rest/v1/projects?status=eq.published&order=sort_order.asc,created_at.asc&select=*`,
       {
         headers: {
           apikey: key,
@@ -192,6 +192,7 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
           classification: row.classification === 'production' || row.classification === 'personal'
             ? row.classification
             : 'personal',
+          sortOrder: typeof row.sort_order === 'number' ? row.sort_order : undefined,
           projectSubtitle: typeof row.project_subtitle === 'string' && row.project_subtitle.trim()
             ? row.project_subtitle
             : null,
@@ -203,7 +204,7 @@ async function getInitialProjects(): Promise<{ data: Project[] | undefined; from
             ? row.project_context
             : null,
           keyFeatures: Array.isArray(row.key_features) ? row.key_features : [],
-          galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
+          galleryImages: normalizeProjectGalleryItems(row.gallery_items, row.gallery_images),
           showTechnicalHighlights: row.show_technical_highlights ?? false,
           technicalHighlights: normalizeTechnicalHighlights(row.technical_highlights),
           bullets: Array.isArray(row.bullets) ? row.bullets : undefined,

@@ -88,7 +88,11 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
     [project.keyFeatures]
   )
   const galleryImages = useMemo(
-    () => (Array.isArray(project.galleryImages) ? project.galleryImages : []).map(getImageUrl).filter((item): item is string => Boolean(item)),
+    () => (Array.isArray(project.galleryImages) ? project.galleryImages : []).reduce<Array<{ imageUrl: string; captionTitle: string | null; captionDescription: string | null }>>((items, item) => {
+      const imageUrl = getImageUrl(item.imageUrl)
+      if (imageUrl) items.push({ ...item, imageUrl })
+      return items
+    }, []),
     [project.galleryImages]
   )
   const technicalHighlights = useMemo(
@@ -103,7 +107,7 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
   const organization = project.organization?.trim()
   const projectMetadata = [organization, project.year].filter((value): value is string | number => Boolean(value))
   const eyebrow = [project.classification?.toUpperCase(), context?.toUpperCase()].filter(Boolean).join(' / ')
-  const previewImage = lightboxIndex === null ? null : galleryImages[lightboxIndex] ?? null
+  const previewImage = lightboxIndex === null ? null : galleryImages[lightboxIndex]?.imageUrl ?? null
 
   const openLightbox = (index: number) => {
     lightboxOriginIndexRef.current = index
@@ -209,6 +213,7 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
     : galleryImages.length === 2 || galleryImages.length === 4
       ? 'grid-cols-1 sm:grid-cols-2'
       : 'grid-cols-1 sm:grid-cols-2'
+  const galleryHasCaptions = galleryImages.some(image => image.captionTitle || image.captionDescription)
 
   if (!mounted) return null
 
@@ -319,17 +324,20 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
             {galleryImages.length > 0 && (
               <section>
                 <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-white/85">Project Gallery</h3>
-                <div className={`mt-4 grid gap-3 ${galleryClass}`}>
-                  {galleryImages.map((image, index) => (
+                <div className={`mt-4 grid gap-x-3 ${galleryHasCaptions ? 'gap-y-8' : 'gap-y-3'} ${galleryClass}`}>
+                  {galleryImages.map((image, index) => {
+                    const hasCaption = Boolean(image.captionTitle || image.captionDescription)
+                    return (
+                    <div
+                      key={`${image.imageUrl}-${index}`}
+                      className={`min-w-0 ${galleryImages.length === 3 && index === 0 ? 'sm:row-span-2' : ''}`}
+                    >
                     <button
-                      key={`${image}-${index}`}
                       ref={element => { galleryTriggerRefs.current[index] = element }}
                       type="button"
                       onClick={() => openLightbox(index)}
                       aria-label={`Preview ${project.title} gallery image ${index + 1} of ${galleryImages.length}`}
-                      className={`group relative block min-w-0 cursor-pointer overflow-hidden rounded-lg bg-white/[0.12] p-px text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
-                        galleryImages.length === 3 && index === 0 ? 'sm:row-span-2' : ''
-                      }`}
+                      className="group relative block min-w-0 cursor-pointer overflow-hidden rounded-lg bg-white/[0.12] p-px text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
                     >
                       <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" preserveAspectRatio="none">
                         <defs>
@@ -385,7 +393,7 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
                       </svg>
                       <span className="relative block overflow-hidden rounded-[7px] bg-black/45">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={image} alt={`${project.title} gallery image ${index + 1}`} className="block h-auto w-full object-contain" />
+                        <img src={image.imageUrl} alt={`${project.title} gallery image ${index + 1}`} className="block h-auto w-full object-contain" />
                         <span className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:flex group-hover:opacity-100 group-focus-visible:flex group-focus-visible:opacity-100 sm:flex">
                           <span className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-black/70 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white">
                             <Eye className="h-4 w-4 text-brand-gold" aria-hidden="true" /> Preview
@@ -396,7 +404,16 @@ export default function ProjectDetailsModal({ project, projects, onProjectChange
                         </span>
                       </span>
                     </button>
-                  ))}
+                    {hasCaption && (
+                      <div className="mt-3.5 px-0.5">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-gold/85">{String(index + 1).padStart(2, '0')}</span>
+                        {image.captionTitle && <p className="mt-1 text-sm font-medium leading-5 text-white/88">{image.captionTitle}</p>}
+                        {image.captionDescription && <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/50">{image.captionDescription}</p>}
+                      </div>
+                    )}
+                    </div>
+                    )
+                  })}
                 </div>
               </section>
             )}
