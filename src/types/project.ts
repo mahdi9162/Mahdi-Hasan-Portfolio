@@ -15,6 +15,19 @@ export const TECHNICAL_HIGHLIGHT_ICON_KEYS = [
 
 export type TechnicalHighlightIcon = typeof TECHNICAL_HIGHLIGHT_ICON_KEYS[number]
 
+export const PROJECT_RELATIONSHIPS = [
+  'personal',
+  'team_company',
+  'client',
+  'owned_product',
+  'co_owned_product',
+] as const
+
+export type ProjectRelationship = typeof PROJECT_RELATIONSHIPS[number]
+
+export const isProjectRelationship = (value: unknown): value is ProjectRelationship =>
+  typeof value === 'string' && PROJECT_RELATIONSHIPS.includes(value as ProjectRelationship)
+
 export interface TechnicalHighlight {
   text: string
   icon: TechnicalHighlightIcon | null
@@ -136,6 +149,13 @@ export interface Project {
   organization?: string | null
   year?: number | null
   projectContext?: string | null
+  projectRelationship?: ProjectRelationship | null
+  myRole?: string | null
+  contributionSummary?: string | null
+  indexProjectCaseStudy?: boolean
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoOgImageUrl?: string | null
   keyFeatures: string[]
   galleryImages: ProjectGalleryItem[]
   showTechnicalHighlights: boolean

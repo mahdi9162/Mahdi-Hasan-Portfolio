@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { normalizeProjectGalleryItems, normalizeTechnicalHighlights } from '@/types/project'
+import { isProjectRelationship, normalizeProjectGalleryItems, normalizeTechnicalHighlights } from '@/types/project'
 import ProjectForm, { type ProjectRow, storagePathFromUrl } from './ProjectForm'
 import Toast from './Toast'
 import ConfirmDialog from './ConfirmDialog'
@@ -36,7 +36,7 @@ const sortProjectsByOrder = <T extends { sort_order: number; created_at?: string
 async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_subtitle, organization, project_year, project_context, key_features, gallery_images, gallery_items, show_technical_highlights, technical_highlights, status, sort_order, created_at')
+    .select('id, title, slug, classification, full_description, image_url, live_url, github_url, show_view_project, show_source, tech_stack, project_subtitle, organization, project_year, project_context, project_relationship, my_role, contribution_summary, index_project_case_study, seo_title, seo_description, seo_og_image_url, key_features, gallery_images, gallery_items, show_technical_highlights, technical_highlights, status, sort_order, created_at')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
@@ -52,6 +52,13 @@ async function fetchProjectsFromDB(): Promise<ProjectRow[]> {
     organization: project.organization ?? '',
     project_year: typeof project.project_year === 'number' ? project.project_year : null,
     project_context: project.project_context ?? '',
+    project_relationship: isProjectRelationship(project.project_relationship) ? project.project_relationship : '',
+    my_role: project.my_role ?? '',
+    contribution_summary: project.contribution_summary ?? '',
+    index_project_case_study: project.index_project_case_study ?? false,
+    seo_title: project.seo_title ?? '',
+    seo_description: project.seo_description ?? '',
+    seo_og_image_url: project.seo_og_image_url ?? '',
     key_features: Array.isArray(project.key_features) ? project.key_features : [],
     gallery_images: Array.isArray(project.gallery_images) ? project.gallery_images : [],
     gallery_items: normalizeProjectGalleryItems(project.gallery_items, project.gallery_images),

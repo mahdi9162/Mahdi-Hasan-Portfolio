@@ -23,8 +23,10 @@ import { supabase } from '@/lib/supabase'
 import {
   normalizeProjectGalleryItems,
   normalizeTechnicalHighlights,
+  PROJECT_RELATIONSHIPS,
   TECHNICAL_HIGHLIGHT_ICON_KEYS,
   type ProjectGalleryItem,
+  type ProjectRelationship,
   type TechnicalHighlight,
   type TechnicalHighlightIcon,
 } from '@/types/project'
@@ -46,6 +48,13 @@ export interface ProjectRow {
   organization: string
   project_year: number | null
   project_context: string
+  project_relationship: ProjectRelationship | ''
+  my_role: string
+  contribution_summary: string
+  index_project_case_study: boolean
+  seo_title: string
+  seo_description: string
+  seo_og_image_url: string
   key_features: string[]
   gallery_images: string[]
   gallery_items: ProjectGalleryItem[]
@@ -260,7 +269,9 @@ const EMPTY: ProjectRow = {
   show_view_project: true, show_source: false,
   tech_stack: [],
   project_subtitle: '', organization: '',
-  project_year: null, project_context: '', key_features: [], gallery_images: [], gallery_items: [],
+  project_year: null, project_context: '', project_relationship: '', my_role: '', contribution_summary: '',
+  index_project_case_study: false, seo_title: '', seo_description: '', seo_og_image_url: '',
+  key_features: [], gallery_images: [], gallery_items: [],
   show_technical_highlights: false, technical_highlights: [],
   status: 'draft', sort_order: 0,
 }
@@ -324,6 +335,15 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       organization:      base.organization ?? '',
       project_year:      typeof base.project_year === 'number' ? base.project_year : null,
       project_context:   base.project_context ?? '',
+      project_relationship: PROJECT_RELATIONSHIPS.includes(base.project_relationship as ProjectRelationship)
+        ? base.project_relationship as ProjectRelationship
+        : '',
+      my_role:           base.my_role ?? '',
+      contribution_summary: base.contribution_summary ?? '',
+      index_project_case_study: base.index_project_case_study ?? false,
+      seo_title:         base.seo_title ?? '',
+      seo_description:   base.seo_description ?? '',
+      seo_og_image_url:  base.seo_og_image_url ?? '',
       key_features:      Array.isArray(base.key_features) ? base.key_features : [],
       gallery_images:    Array.isArray(base.gallery_images) ? base.gallery_images : [],
       gallery_items:     normalizeProjectGalleryItems(base.gallery_items, base.gallery_images),
@@ -336,10 +356,20 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [uploadMsg, setUploadMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [uploadMsg, setUploadMsg] = useState<{ text: string; ok: boolean; target: 'main' | 'gallery' | 'seo' } | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ProjectRow, string>>>({})
   const [submitErr, setSubmitErr] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [expandedSections, setExpandedSections] = useState(() => ({
+    projectDetails: true,
+    projectGallery: true,
+    technicalHighlights: Boolean(
+      initial?.show_technical_highlights
+      && normalizeTechnicalHighlights(initial?.technical_highlights).length > 0
+    ),
+    projectAttribution: false,
+    seoSearch: false,
+  }))
 
   const set = (field: keyof ProjectRow, value: unknown) => {
     setForm(f => ({ ...f, [field]: value }))
@@ -388,16 +418,28 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       errors.technical_highlights = `Use up to ${MAX_TECHNICAL_HIGHLIGHTS} technical highlights.`
     }
     setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      setExpandedSections(current => ({
+        ...current,
+        projectDetails: current.projectDetails || Boolean(errors.key_features),
+        projectGallery: current.projectGallery || Boolean(errors.gallery_items),
+        technicalHighlights: current.technicalHighlights || Boolean(errors.technical_highlights),
+      }))
+    }
     return Object.keys(errors).length === 0
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    target: 'main' | 'gallery' | 'seo' = 'main',
+    galleryIndex?: number,
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     const slug = form.slug.trim() || 'project'
     const ext = file.name.split('.').pop() ?? 'webp'
-    const path = `projects/${slug}-${Date.now()}.${ext}`
+    const path = `projects/${slug}${target === 'seo' ? '-seo' : ''}-${Date.now()}.${ext}`
 
     setUploading(true)
     setUploadMsg(null)
@@ -408,19 +450,25 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
 
     if (uploadError) {
       setUploading(false)
-      setUploadMsg({ text: uploadError.message, ok: false })
+      setUploadMsg({ text: uploadError.message, ok: false, target })
       return
     }
 
     const { data } = supabase.storage.from('project-images').getPublicUrl(path)
-    if (galleryIndex === undefined) {
-      set('image_url', data.publicUrl)
-    } else {
+    if (target === 'seo') {
+      set('seo_og_image_url', data.publicUrl)
+    } else if (target === 'gallery' && galleryIndex !== undefined) {
       updateGalleryItem(galleryIndex, 'imageUrl', data.publicUrl)
+    } else {
+      set('image_url', data.publicUrl)
     }
     setUploading(false)
-    setUploadMsg({ text: galleryIndex === undefined ? 'Image uploaded.' : 'Gallery image uploaded.', ok: true })
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    setUploadMsg({
+      text: target === 'seo' ? 'SEO social image uploaded.' : target === 'gallery' ? 'Gallery image uploaded.' : 'Image uploaded.',
+      ok: true,
+      target,
+    })
+    if (target === 'main' && fileInputRef.current) fileInputRef.current.value = ''
     e.target.value = ''
   }
 
@@ -450,6 +498,13 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       organization: form.organization.trim() || null,
       project_year: typeof form.project_year === 'number' ? form.project_year : null,
       project_context: form.project_context.trim() || null,
+      project_relationship: form.project_relationship || null,
+      my_role: form.my_role.trim() || null,
+      contribution_summary: form.contribution_summary.trim() || null,
+      index_project_case_study: form.index_project_case_study,
+      seo_title: form.seo_title.trim() || null,
+      seo_description: form.seo_description.trim() || null,
+      seo_og_image_url: form.seo_og_image_url.trim() || null,
       key_features: form.key_features.map(value => value.trim()).filter(Boolean),
       gallery_items: galleryItems,
       // Keep the established URL column in sync for older readers and a safe rollback path.
@@ -598,10 +653,46 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
     </section>
   )
 
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(current => ({ ...current, [section]: !current[section] }))
+  }
+
+  const sectionCard = (
+    id: string,
+    section: keyof typeof expandedSections,
+    title: string,
+    helper: string,
+    children: React.ReactNode,
+  ) => {
+    const expanded = expandedSections[section]
+
+    return (
+      <section className="rounded-xl border border-white/[0.14] bg-white/[0.035]">
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={id}
+          onClick={() => toggleSection(section)}
+          className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-white/[0.025] focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand-gold sm:px-5"
+        >
+          <span>
+            <span className="block text-sm font-semibold uppercase tracking-[0.12em] text-white/85">{title}</span>
+            <span className="mt-1 block text-xs leading-5 text-white/45">{helper}</span>
+          </span>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-brand-gold/75 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+        {expanded && (
+          <div id={id} className="space-y-4 border-t border-white/[0.1] p-4 sm:p-5">
+            {children}
+          </div>
+        )}
+      </section>
+    )
+  }
+
   const galleryFields = () => (
-    <section className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
+    <>
       <div className="flex items-center justify-between gap-3">
-        <label className="text-sm font-medium text-white/80">Project Gallery</label>
         <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] text-white/50">
           {form.gallery_items.length} / {MAX_GALLERY_IMAGES} {form.gallery_items.length === 1 ? 'image' : 'images'}
         </span>
@@ -645,7 +736,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
                 }`}
               >
                 {uploading ? 'Uploading…' : 'Upload'}
-                <input type="file" accept="image/*" disabled={uploading} onChange={event => handleImageUpload(event, index)} className="hidden" />
+                <input type="file" accept="image/*" disabled={uploading} onChange={event => handleImageUpload(event, 'gallery', index)} className="hidden" />
               </label>
             </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -684,7 +775,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
       >
         + Add Gallery Image
       </button>
-    </section>
+    </>
   )
 
   return (
@@ -814,7 +905,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
                 className="hidden"
               />
             </label>
-            {uploadMsg && (
+            {uploadMsg?.target === 'main' && (
               <span className={`text-xs ${uploadMsg.ok ? 'text-green-400/80' : 'text-red-400/80'}`}>
                 {uploadMsg.text}
               </span>
@@ -871,13 +962,12 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
 
       {form.show_source && fieldBlock('Source URL', 'github_url', 'url', 'https://github.com/…')}
 
-      {form.show_view_project && (
-        <div className="space-y-5 rounded-xl border border-white/[0.14] bg-white/[0.035] p-4 sm:p-5">
-          <div className="border-b border-white/[0.1] pb-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.12em] text-white/85">Project Details</p>
-            <p className="mt-1 text-xs leading-5 text-white/45">Optional information for the future View Project experience.</p>
-          </div>
-
+      {form.show_view_project && sectionCard(
+        'project-details-section',
+        'projectDetails',
+        'Project Details',
+        'Optional information for the future View Project experience.',
+        <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs text-white/45">Year</label>
@@ -928,8 +1018,23 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
             'e.g. Payment integration',
             'Add Feature'
           )}
-          {galleryFields()}
+        </>
+      )}
 
+      {sectionCard(
+        'project-gallery-section',
+        'projectGallery',
+        'Project Gallery',
+        'Additional project visuals and optional captions.',
+        galleryFields(),
+      )}
+
+      {sectionCard(
+        'technical-highlights-section',
+        'technicalHighlights',
+        'Technical Highlights',
+        'Optional implementation details that support the project story.',
+        <>
           <div className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
             <label className="flex items-center gap-2 text-sm text-white/70">
               <input
@@ -944,7 +1049,7 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
           </div>
 
           {form.show_technical_highlights && (
-            <section className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
+            <div className="rounded-lg border border-white/[0.09] bg-black/10 p-3.5 sm:p-4">
               <div className="flex items-center justify-between gap-3">
                 <label className="text-sm font-medium text-white/80">Technical Highlights</label>
                 <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] text-white/50">
@@ -992,9 +1097,144 @@ export default function ProjectForm({ initial, initialSortOrder, onSaved, onCanc
               >
                 + Add Highlight
               </button>
-            </section>
+            </div>
           )}
-        </div>
+        </>
+      )}
+
+      {sectionCard(
+        'project-attribution-section',
+        'projectAttribution',
+        'Project Attribution',
+        'Clarify your role and relationship to this project.',
+        <>
+          <div>
+            <label className="mb-1 block text-xs text-white/45">Relationship to Project</label>
+            <DashboardSelect
+              value={form.project_relationship}
+              onChange={value => set('project_relationship', value as ProjectRow['project_relationship'])}
+              options={[
+                { value: '', label: 'Select relationship (optional)' },
+                { value: 'personal', label: 'Personal / Self-built' },
+                { value: 'team_company', label: 'Team / Company Project' },
+                { value: 'client', label: 'Client Project' },
+                { value: 'owned_product', label: 'Owned Product' },
+                { value: 'co_owned_product', label: 'Co-owned Product' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-white/45">My Role <span className="text-white/25">(optional)</span></label>
+            <input
+              type="text"
+              value={form.my_role}
+              onChange={event => set('my_role', event.target.value)}
+              placeholder="Backend Developer"
+              className={inputCls}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-white/45">Contribution Summary <span className="text-white/25">(optional)</span></label>
+            <textarea
+              value={form.contribution_summary}
+              onChange={event => set('contribution_summary', event.target.value)}
+              rows={3}
+              placeholder="Built the real-time chat system and contributed to backend integration work."
+              className={`${inputCls} resize-none`}
+            />
+            <p className="mt-1 text-xs leading-5 text-white/35">Describe your actual contribution, not the project&apos;s overall capabilities.</p>
+          </div>
+        </>,
+      )}
+
+      {sectionCard(
+        'seo-search-section',
+        'seoSearch',
+        'SEO & Search',
+        'Control how this project case study will appear in search and social sharing.',
+        <>
+          <label className="flex items-start gap-2.5 text-sm text-white/70">
+            <input
+              type="checkbox"
+              checked={form.index_project_case_study}
+              onChange={event => set('index_project_case_study', event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#D4AF37]"
+            />
+            <span>
+              <span className="block">Index Project Case Study</span>
+              <span className="mt-1 block text-xs leading-5 text-white/40">Allows this project&apos;s dedicated case-study page to be included in search engines and the project sitemap once project SEO routing is enabled.</span>
+            </span>
+          </label>
+
+          <div>
+            <label className="mb-1 block text-xs text-white/45">SEO Title <span className="text-white/25">(optional)</span></label>
+            <input
+              type="text"
+              maxLength={120}
+              value={form.seo_title}
+              onChange={event => set('seo_title', event.target.value)}
+              placeholder="Leave blank to generate later"
+              className={inputCls}
+            />
+            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to use the automatically generated project case-study title later. Recommended: around 60 characters.</p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-white/45">SEO Description <span className="text-white/25">(optional)</span></label>
+            <textarea
+              maxLength={320}
+              value={form.seo_description}
+              onChange={event => set('seo_description', event.target.value)}
+              rows={3}
+              placeholder="Leave blank to generate later"
+              className={`${inputCls} resize-none`}
+            />
+            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to generate it later from the project and contribution data. Recommended: around 155–165 characters.</p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-white/45">SEO / Social Image <span className="text-white/25">(optional)</span></label>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+              <input
+                type="url"
+                value={form.seo_og_image_url}
+                onChange={event => set('seo_og_image_url', event.target.value)}
+                placeholder="https://…"
+                className={inputCls}
+              />
+              <label
+                role="button"
+                tabIndex={uploading ? -1 : 0}
+                aria-disabled={uploading}
+                onKeyDown={event => {
+                  if (uploading || (event.key !== 'Enter' && event.key !== ' ')) return
+                  event.preventDefault()
+                  event.currentTarget.querySelector<HTMLInputElement>('input')?.click()
+                }}
+                className={`inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border px-3.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold ${
+                  uploading
+                    ? 'cursor-not-allowed border-white/[0.07] text-white/25'
+                    : 'border-white/[0.12] bg-white/[0.045] text-white/70 hover:border-brand-gold/45 hover:bg-brand-gold/10 hover:text-brand-gold'
+                }`}
+              >
+                {uploading ? 'Uploading…' : 'Upload'}
+                <input type="file" accept="image/*" disabled={uploading} onChange={event => handleImageUpload(event, 'seo')} className="hidden" />
+              </label>
+            </div>
+            {uploadMsg?.target === 'seo' && (
+              <p className={`mt-2 text-xs ${uploadMsg.ok ? 'text-green-400/80' : 'text-red-400/80'}`}>{uploadMsg.text}</p>
+            )}
+            {form.seo_og_image_url && (
+              <div className="mt-2 h-24 w-full overflow-hidden rounded-lg border border-white/[0.08] bg-black/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.seo_og_image_url} alt="SEO social image preview" className="h-full w-full object-cover object-center" />
+              </div>
+            )}
+            <p className="mt-1 text-xs leading-5 text-white/35">Leave blank to use the project&apos;s main image for social sharing. Recommended: 1200 × 630 landscape.</p>
+          </div>
+        </>,
       )}
 
       {submitErr && <p className="text-xs text-red-400/80">{submitErr}</p>}

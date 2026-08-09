@@ -8,7 +8,7 @@ import Container from '@/components/shared/Container'
 import SectionHeader from '@/components/shared/SectionHeader'
 import { EASE_OUT_QUART } from '@/lib/animations'
 import { projects as fallbackProjects } from '@/data/projects'
-import { normalizeProjectGalleryItems, normalizeTechnicalHighlights, type Project } from '@/types/project'
+import { isProjectRelationship, normalizeProjectGalleryItems, normalizeTechnicalHighlights, type Project } from '@/types/project'
 import { supabase } from '@/lib/supabase'
 
 const ProjectDetailsModal = dynamic(() => import('@/components/ProjectDetailsModal'), {
@@ -211,6 +211,19 @@ export default function ProjectsSection({
               year: typeof row.project_year === 'number' ? row.project_year : null,
               projectContext: typeof row.project_context === 'string' && row.project_context.trim()
                 ? row.project_context
+                : null,
+              projectRelationship: isProjectRelationship(row.project_relationship) ? row.project_relationship : null,
+              myRole: typeof row.my_role === 'string' && row.my_role.trim() ? row.my_role : null,
+              contributionSummary: typeof row.contribution_summary === 'string' && row.contribution_summary.trim()
+                ? row.contribution_summary
+                : null,
+              indexProjectCaseStudy: row.index_project_case_study ?? false,
+              seoTitle: typeof row.seo_title === 'string' && row.seo_title.trim() ? row.seo_title : null,
+              seoDescription: typeof row.seo_description === 'string' && row.seo_description.trim()
+                ? row.seo_description
+                : null,
+              seoOgImageUrl: typeof row.seo_og_image_url === 'string' && row.seo_og_image_url.trim()
+                ? row.seo_og_image_url
                 : null,
               keyFeatures: Array.isArray(row.key_features) ? row.key_features : [],
               galleryImages: normalizeProjectGalleryItems(row.gallery_items, row.gallery_images),
