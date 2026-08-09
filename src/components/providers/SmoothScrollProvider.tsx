@@ -2,26 +2,34 @@
 
 import { useEffect, useState } from 'react'
 import Lenis from 'lenis'
-import { useMobile } from '@/hooks/useMediaQueries'
 
 interface SmoothScrollProviderProps {
   children: React.ReactNode
 }
 
+type ViewportMode = 'pending' | 'mobile' | 'desktop'
+
 export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
-  // Use shared mobile detection hook for better performance
-  const isMobile = useMobile()
+  // Resolve the viewport only after mount so mobile never creates Lenis during
+  // the shared hook's initial desktop-shaped render.
+  const [viewportMode, setViewportMode] = useState<ViewportMode>('pending')
 
   useEffect(() => {
-    // Only initialize Lenis on desktop (md+)
-    if (isMobile) {
-      // Clear any existing Lenis instance
-      if ((window as any).lenis) {
-        ;(window as any).lenis.destroy()
-        ;(window as any).lenis = null
-      }
-      return
+    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    const updateViewportMode = () => {
+      const nextMode: ViewportMode = mediaQuery.matches ? 'mobile' : 'desktop'
+      setViewportMode(currentMode => currentMode === nextMode ? currentMode : nextMode)
     }
+
+    updateViewportMode()
+    mediaQuery.addEventListener('change', updateViewportMode)
+
+    return () => mediaQuery.removeEventListener('change', updateViewportMode)
+  }, [])
+
+  useEffect(() => {
+    // Pending and mobile modes intentionally keep native scrolling untouched.
+    if (viewportMode !== 'desktop') return
 
     const lenis = new Lenis({
       duration: 2.2, // Luxury slow timing
@@ -33,21 +41,24 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
       infinite: false,
     })
 
+    let animationFrameId: number
+
     function raf(time: number) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      animationFrameId = requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    animationFrameId = requestAnimationFrame(raf)
 
     // Make lenis available globally for anchor scrolling
     ;(window as any).lenis = lenis
 
     return () => {
+      cancelAnimationFrame(animationFrameId)
       lenis.destroy()
       ;(window as any).lenis = null
     }
-  }, [isMobile])
+  }, [viewportMode])
 
   return <>{children}</>
 }

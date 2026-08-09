@@ -317,7 +317,6 @@ export default function ProjectsSection({
                     src={activeProject.image}
                     alt={`${activeProject.title} project screenshot`}
                     fill
-                    priority
                     sizes="(max-width: 1023px) 100vw, (max-width: 1280px) 62vw, 760px"
                     className="object-contain object-center sm:object-cover sm:object-top"
                   />
