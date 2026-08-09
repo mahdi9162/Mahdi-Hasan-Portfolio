@@ -141,6 +141,22 @@ export function PersonJsonLd() {
           '@id': `${siteConfig.url}/#person`,
         },
       },
+      {
+        '@type': 'WebPage',
+        '@id': `${siteConfig.url}/#webpage`,
+
+        url: siteConfig.url,
+        name: siteConfig.title,
+        description: siteConfig.description,
+
+        isPartOf: {
+          '@id': `${siteConfig.url}/#website`,
+        },
+
+        mainEntity: {
+          '@id': `${siteConfig.url}/#person`,
+        },
+      },
     ],
   }
 

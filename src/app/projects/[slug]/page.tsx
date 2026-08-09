@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Container from '@/components/shared/Container'
 import ProjectCaseStudyGallery from '@/components/ProjectCaseStudyGallery'
+import ProjectCaseStudyJsonLd from '@/components/ProjectCaseStudyJsonLd'
 import { getEffectiveProjectSeo, getProjectRelationshipLabel } from '@/lib/project-seo'
+import { buildProjectCaseStudyStructuredData } from '@/lib/project-structured-data'
 import { getPublishedProjectBySlug } from '@/lib/projects.server'
 import { siteConfig } from '@/lib/seo'
 
@@ -101,6 +103,9 @@ export default async function ProjectCaseStudyPage({ params }: RouteProps) {
   const classificationLabel = project.classification === 'production' ? 'Production' : 'Personal'
   const hasKeyFeatures = project.keyFeatures.length > 0
   const hasTechnicalHighlights = project.showTechnicalHighlights && project.technicalHighlights.length > 0
+  const structuredData = project.status === 'published' && seo.isIndexable
+    ? buildProjectCaseStudyStructuredData(project, seo)
+    : null
   const attributionVisible = Boolean(
     project.projectRelationship
     || project.myRole
@@ -109,7 +114,9 @@ export default async function ProjectCaseStudyPage({ params }: RouteProps) {
   )
 
   return (
-    <main id="main-content" className="min-h-screen bg-[#060606] py-10 text-white sm:py-14 lg:py-20">
+    <>
+      {structuredData && <ProjectCaseStudyJsonLd structuredData={structuredData} />}
+      <main id="main-content" className="min-h-screen bg-[#060606] py-10 text-white sm:py-14 lg:py-20">
       <Container className="max-w-6xl">
         <Link
           href="/#projects"
@@ -240,6 +247,7 @@ export default async function ProjectCaseStudyPage({ params }: RouteProps) {
           <p className="sr-only">This published case-study page is intentionally marked noindex for search engines.</p>
         )}
       </Container>
-    </main>
+      </main>
+    </>
   )
 }
