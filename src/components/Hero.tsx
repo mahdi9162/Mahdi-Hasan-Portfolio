@@ -131,7 +131,7 @@ const Hero = ({ entryRevealReady = true, heroContent }: HeroProps) => {
 
   return (
     <motion.div 
-      className="flex flex-col h-full justify-center pt-8 sm:pt-12 md:pt-24 pb-10 sm:pb-12 md:pb-24"
+      className="flex flex-col h-full justify-center md:max-lg:justify-start pt-8 sm:pt-12 md:pt-24 md:max-lg:pt-0 pb-10 sm:pb-12 md:pb-24 md:max-lg:pb-8"
       variants={containerVariants}
       initial="hidden"
       animate={entryRevealReady ? "show" : "hidden"}
@@ -164,17 +164,19 @@ const Hero = ({ entryRevealReady = true, heroContent }: HeroProps) => {
           </div>
         </motion.div>
 
-        {/* CTA Buttons - Pop in animation */}
+      </div>
+
+      {/* CTA Buttons - Pop in animation */}
         <motion.div 
           variants={buttonVariants}
-          className="flex flex-col sm:flex-row md:flex-row items-stretch sm:items-center md:items-center gap-4 mt-6 md:mt-6 lg:mt-8"
+          className="w-full max-w-3xl text-center md:text-start md:max-w-[42ch] lg:max-w-3xl flex flex-col sm:flex-row md:flex-row md:max-[839px]:flex-col items-stretch sm:items-center md:items-center md:max-[839px]:items-stretch gap-4 md:max-[839px]:gap-3 mt-6 md:mt-6 lg:mt-8"
         >
           {/* Primary CTA - Resume */}
           <motion.a
             href={content.primary_cta_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto px-6 py-3 text-sm font-medium bg-brand-gold text-black rounded-md text-center sm:text-left min-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="w-full sm:w-auto md:max-[839px]:w-full min-[840px]:max-lg:flex-1 min-[840px]:max-lg:min-w-0 px-6 py-3 text-sm font-medium bg-brand-gold text-black rounded-md text-center sm:text-left min-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             data-lens="on"
             whileHover={isMobile ? {} : { 
               scale: 1.05,
@@ -194,7 +196,7 @@ const Hero = ({ entryRevealReady = true, heroContent }: HeroProps) => {
           
           {/* Secondary CTA - View Projects (always scrolls to #projects) */}
           <motion.button 
-            className="w-full sm:w-auto px-6 py-3 text-sm font-medium border-2 border-neutral-700 dark:border-neutral-300 text-neutral-800 dark:text-primary rounded-md bg-transparent min-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="w-full sm:w-auto md:max-[839px]:w-full min-[840px]:max-lg:flex-1 min-[840px]:max-lg:min-w-0 px-6 py-3 text-sm font-medium border-2 border-neutral-700 dark:border-neutral-300 text-neutral-800 dark:text-primary rounded-md bg-transparent min-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             data-lens="on"
             onClick={() => {
               const element = document.getElementById('projects')
@@ -232,7 +234,6 @@ const Hero = ({ entryRevealReady = true, heroContent }: HeroProps) => {
             {content.secondary_cta_label}
           </motion.button>
         </motion.div>
-      </div>
     </motion.div>
   )
 }

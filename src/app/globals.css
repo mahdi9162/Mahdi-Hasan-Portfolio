@@ -713,8 +713,8 @@ section,
   display: none;
 }
 
-/* Hide main browser scrollbar on desktop only - keep scroll functionality */
-@media (min-width: 1024px) {
+/* Hide main browser scrollbar chrome on tablet and desktop - keep scroll functionality */
+@media (min-width: 768px) {
   html, body {
     scrollbar-width: none;         /* Firefox */
     -ms-overflow-style: none;      /* old Edge/IE */

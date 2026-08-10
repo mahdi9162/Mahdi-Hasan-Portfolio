@@ -198,11 +198,11 @@ const AboutSection = ({ aboutContent }: AboutSectionProps) => {
             />
           </motion.div>
 
-          <div className="w-full flex flex-col md:flex-row md:justify-between items-start gap-10 lg:gap-14">
+          <div className="w-full flex flex-col md:max-lg:grid md:max-lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.2fr)] lg:flex lg:flex-row lg:justify-between items-start gap-10 md:max-lg:gap-x-8 md:max-lg:gap-y-10 lg:gap-14">
             
             {/* Left Side: Portrait & Academic Detail */}
             <motion.div 
-              className="w-full md:w-[35%] relative group portrait-hover max-w-[520px] mx-auto md:mx-0"
+              className="w-full lg:w-[35%] md:max-lg:mt-4 relative group portrait-hover max-w-[520px] mx-auto md:mx-0"
               variants={leftVariants}
               style={{ 
                 willChange: "transform, opacity, filter",
@@ -248,11 +248,11 @@ const AboutSection = ({ aboutContent }: AboutSectionProps) => {
             </motion.div>
 
             {/* Right Side: Content */}
-            <div className="w-full md:w-[58%] self-center">
-              <div className="w-full">
+            <div className="w-full lg:w-[58%] md:max-lg:contents self-center">
+              <div className="w-full md:max-lg:contents">
                 {/* Main Content - Story Area */}
                 <motion.div 
-                  className="space-y-5 md:space-y-6"
+                  className="space-y-5 md:space-y-6 md:max-lg:col-start-2 md:max-lg:row-start-1"
                   variants={childVariants}
                   style={{ willChange: "transform, opacity, filter" }}
                 >
@@ -281,7 +281,7 @@ const AboutSection = ({ aboutContent }: AboutSectionProps) => {
                 </motion.div>
 
                 {/* Sub-sections: Expertise & Beyond Code */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 mt-6 border-t border-zinc-800">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 mt-6 border-t border-zinc-800 md:max-lg:col-span-2 md:max-lg:row-start-2">
                 
                 {/* Expertise */}
                 <motion.div 

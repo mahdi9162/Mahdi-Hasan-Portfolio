@@ -120,6 +120,11 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
     : activeSkillCount <= 5
       ? 'lg:h-[26rem]'
       : 'lg:h-[28rem]'
+  const tabletDeckHeightClass = activeSkillCount <= 3
+    ? 'md:max-lg:h-[22rem]'
+    : activeSkillCount <= 5
+      ? 'md:max-lg:h-[25rem]'
+      : 'md:max-lg:h-[30rem]'
   // Use refs for touch tracking — avoids re-renders during swipe gesture
   const touchStartRef = useRef(0)
   const touchEndRef = useRef(0)
@@ -370,7 +375,7 @@ const SkillsSection = ({ initialSkillCategories }: { initialSkillCategories?: Se
                 onTouchEnd={handleTouchEnd}
               >
                 {/* Stacked Cards */}
-                <div className={`relative h-[420px] sm:h-[440px] md:h-[clamp(26rem,52vh,30rem)] ${laptopDeckHeightClass} xl:h-[clamp(26rem,52vh,30rem)] overflow-visible ${prefersReducedMotion ? '' : 'lg:transition-[height] lg:duration-300 lg:ease-out'}`}>
+                <div className={`relative h-[420px] sm:h-[440px] ${tabletDeckHeightClass} ${laptopDeckHeightClass} xl:h-[clamp(26rem,52vh,30rem)] overflow-visible ${prefersReducedMotion ? '' : 'md:max-lg:transition-[height] md:max-lg:duration-300 md:max-lg:ease-out lg:transition-[height] lg:duration-300 lg:ease-out'}`}>
                   {skillCategories.map((category, index) => {
                     const offset = (index - activeCardIndex + skillCategories.length) % skillCategories.length
                     const isActive = offset === 0
@@ -873,7 +878,7 @@ const StackedSkillCard = memo(function StackedSkillCard({
 
           {/* Full-width skill rows - Mobile: no nested scroll, Desktop: allow scroll */}
           <motion.div 
-            className="flex-1 space-y-2 overflow-x-hidden skills-scroll pr-2 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:pr-0"
+            className="flex-1 space-y-2 overflow-x-hidden skills-scroll pr-2 md:min-h-0 md:pr-0 lg:overflow-y-auto lg:overscroll-contain"
             data-lenis-prevent
             style={{
               touchAction: 'pan-y',
